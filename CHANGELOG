@@ -1,0 +1,310 @@
+Version 0.15.6
+2008-04-09
+Fixed embarrassingly mis-placed parentheses (thanks to Hans Hübner)
+
+Version 0.15.5
+2008-04-08
+Removed FORCE-OUTPUT* and thus the ACL-COMPAT dependency (thanks to Hans Hübner)
+Support for MP-less CMUCL (thanks to Hans Hübner)
+
+Version 0.15.4
+2008-03-27
+Fixed unportable LOOP usage (caught by "C S S")
+
+Version 0.15.3
+2008-03-17
+Added CODE parameter to REDIRECT (thanks to Michael Weber)
+
+Version 0.15.2
+2008-03-06
+Fixed typo in test.lisp (thanks to Ben Hyde)
+Changed wrong usage of EQ to EQL (thanks to Ariel Badichi)
+Fixed typo in default handler (thanks to Eugene Ossintsev)
+
+Version 0.15.1
+2008-02-13
+Uses CL-FAD for HANDLE-STATIC-FILE now
+Better error reporting for CREATE-FOLDER-DISPATCHER-AND-HANDLER (suggested by Cyrus Harmon)
+Faster version of WRITE-HEADER-LINE (thanks to V. Seguí)
+
+Version 0.15.0
+2007-12-29
+Added support for CLISP (thanks to Anton Vodonosov)
+
+Version 0.14.7
+2007-11-15
+Replace ENOUGH-NAMESTRING with ENOUGH-URL (patch by Kilian Sprotte and Hans Hübner)
+
+Version 0.14.6
+2007-11-08
+Fix compilation order (thanks to Tiarnan O'Corrain and Chris Dean)
+
+Version 0.14.5
+2007-10-21
+Robustified MAKE-SOCKET-STREAM against potential leak (thanks to Alain Picard)
+Replaced #-FOO #-FOO constructs for OpenMCL (patch by Michael Weber)
+Updated tutorial links
+
+Version 0.14.4
+2007-10-20
+Made log stream shared on OpenMCL (thanks to Gary Byers)	
+
+Version 0.14.3
+2007-10-07
+Enabled GET-GID-FROM-NAME for newer versions of SBCL (patch by Cyrus Harmon)
+
+Version 0.14.2
+2007-09-26
+Better handling of PORT parameter in REDIRECT (thanks to Vladimir Sedach)	
+
+Version 0.14.1
+2007-09-24
+Fixed bug where you couldn't set "Server" header (caught by Ralf Mattes)
+Documentation clarification for HEADER-OUT function	
+
+Version 0.14.0
+2007-09-18
+Added support for "HttpOnly" cookie attribute
+
+Version 0.13.0
+2007-09-14
+Added *METHODS-FOR-POST-PARAMETERS* (suggested by Jonathon McKitrick)
+
+Version 0.12.1
+2007-09-13
+Better support for WITH-TIMEOUT on SBCL/Win32 (thanks to Anton Vodonosov)	
+	
+Version 0.12.0
+2007-09-07
+Now uses bound for flexi stream returned by RAW-POST-DATA
+Needs FLEXI-STREAMS 0.12.0 or higher	
+
+Version 0.11.2
+2007-09-05
+Fixed typo in docs
+Added declaration in server.lisp to appease SBCL
+
+Version 0.11.1
+2007-05-25
+Fixes for OpenMCL (thanks to Lennart Staflin and Tiarnan O'Corrain)
+	
+Version 0.11.0
+2007-05-25
+Added server names and coupled them with easy handlers (suggested by Mac Chan)
+Exported SESSION-COOKIE-VALUE instead of SESSION-STRING (suggested by Slava Akhmechet)
+Documentation fixes (thanks to Victor Kryukov and Igor Plekhov)
+
+Version 0.10.0
+2007-05-12
+Made MAYBE-INVOKE-DEBUGGER a generic function and exported it (suggested by Vladimir Sedach)
+
+Version 0.9.3
+2007-05-08
+Fixed CREATE-FOLDER-DISPATCHER-AND-HANDLER in the presence of URL-encoded URLs (bug caught by Nicolas Lamirault)
+
+Version 0.9.2
+2007-05-01
+Made DEF-HTTP-RETURN-CODE more flexible (suggested by Jong-won Choi)
+
+Version 0.9.1
+2007-04-29
+Added PORT parameter to REDIRECT (suggested by Cyrus Harmon)
+Exported REMOVE-SESSION (suggested by Vamsee Kanakala)	
+
+Version 0.9.0
+2007-04-19
+Added socket timeouts for AllegroCL
+Catch IO timeout conditions for AllegroCL, SBCL and CMUCL (suggested by Red Daly and others)
+Added per-server dispatch tables (suggested by Robert Synnott and Andrei Stebakov)
+
+Version 0.8.6
+2007-04-18
+USE the CL package explicitly when defining HUNCHENTOOT-MP (bug report by Joel Boehland)
+
+Version 0.8.5
+2007-04-10
+Correct behaviour for "100 Continue" responses
+
+Version 0.8.4
+2007-04-09
+Cleanup
+
+Version 0.8.3
+2007-04-07
+Don't use chunked encoding for empty (NIL) bodies
+
+Version 0.8.2
+2007-04-05
+Really exported REASON-PHRASE this time (and also *CURRENT-PROCESS*)
+
+Version 0.8.1
+2007-04-04
+Added HUNCHENTOOT-MP package (suggested by Cyrus Harmon)
+Only invoke MARK-AND-SWEEP for 32-bit versions of LW (thanks to Chris Dean)
+Exported REASON-PHRASE
+
+Version 0.8.0
+2007-03-31
+Added *APPROVED-RETURN-CODES*, *HEADER-STREAM*, and +HTTP-FAILED-DEPENDENCY+
+Exported MIME-TYPE and SSL-P
+Some minor changes
+
+Version 0.7.3
+2007-03-28
+Added +HTTP-MULTI-STATUS+
+
+Version 0.7.2
+2007-03-09
+Fix test suite to properly handle non-base characters in LW (bug caught by Jong-won Choi)
+
+Version 0.7.1
+2007-03-09
+Fixed last change (thanks to Marko Kocic)
+
+Version 0.7.0
+2007-03-09
+Development port (no threads) to SBCL/Win32 (patch by Marko Kocic)
+Support for compilation without SSL	
+
+Version 0.6.2
+2007-02-22
+Don't use NSTRING-UPCASE for outgoing headers (bug caught by Saurabh Nanda)
+Changed ProxyPass example in docs from /lisp to /hunchentoot	
+
+Version 0.6.1
+2007-01-24
+Reset to "faithful" external format on each iteration (bug caught by Viljo Marrandi and Ury Marshak)
+
+Version 0.6.0
+2007-01-23
+Accept chunked transfer encoding for mod_lisp request bodies (thanks to Hugh Winkler's mod_lisp additions)
+Robustify against erroneous form-data submissions (caught by Ury Marshak)
+
+Version 0.5.1
+2007-01-18
+Even more flexible behaviour of RAW-POST-DATA
+
+Version 0.5.0
+2007-01-17
+More flexible behaviour of RAW-POST-DATA
+Robustified PARSE-CONTENT-TYPE
+
+Version 0.4.14
+2007-01-17
+More meaningful results for RAW-POST-DATA
+
+Version 0.4.13
+2007-01-14
+Added favicon.ico to example website (thanks to Yoni Rabkin Katzenell, Toby, and Uwe von Loh)
+
+Version 0.4.12
+2006-12-27
+Added Hunchentoot logo by Uwe von Loh
+
+Version 0.4.11
+2006-12-01
+Exported symbols related to session GC (suggested by Nico de Jager)
+
+Version 0.4.10
+2006-11-19
+Added *HANDLE-HTTP-ERRORS-P* (thanks to Marijn Haverbeke)
+Remove duplicate headers when reading from mod_lisp
+
+Version 0.4.9
+2006-11-12
+Fixed HEADER-OUT (thanks to Robert J. Macomber)
+
+Version 0.4.8
+2006-11-06
+Fixed bug in START-OUTPUT which confused mod_lisp
+
+Version 0.4.7
+2006-11-06
+Changed behaviour of REAL-REMOTE-ADDR (as suggested by Robert J. Macomber)
+Fixed COOKIE-OUT (thanks to Robert J. Macomber)	
+
+Version 0.4.6
+2006-11-05
+Don't bind *DISPATCH-TABLE* too early (thanks to Marijn Haverbeke)
+
+Version 0.4.5
+2006-10-25
+Fixed bug in AUTHORIZATION function (reported by Michael J. Forster)
+
+Version 0.4.4
+2006-10-12
+Correct SSL check in REDIRECT function
+LOG-MESSAGE now checks for (BOUNDP '*SERVER*)
+
+Version 0.4.3
+2006-10-11
+OpenMCL fixes (by Ralf Stoye)
+	
+Version 0.4.2
+2006-10-10
+No timeouts for mod_lisp servers (as in Hunchentoot 0.3.x)
+
+Version 0.4.1
+2006-10-10
+Fixed a typo in easy-handlers.lisp (caught by Travis Cross)
+
+Version 0.4.0
+2006-10-10
+Ported to CMUCL, SBCL, OpenMCL, and AllegroCL
+Merged with TBNL	
+Tons of small changes, too many to list them individually	
+
+Version 0.3.2
+2006-09-14
+Uses TBNL's WITH-DEBUGGER now
+
+Version 0.3.1
+2006-09-14
+Added *CATCH-ERRORS-P* (from TBNL)
+
+Version 0.3.0
+2006-09-05
+Accept HTTP requests with chunked transfer encoding
+Use Chunga for chunking
+
+Version 0.2.2
+2006-08-31
+Skip START-OUTPUT advice completely if working for TBNL	
+
+Version 0.2.1
+2006-08-28
+Added write timeouts for LW 5.0
+Updated LW links in documentation	
+
+Version 0.2.0
+2006-08-28
+Serves as infrastructure for TBNL now (to replace KMRCL)
+For HTTP/1.1 only send 'Keep-Alive' headers if explicitly requested	
+
+Version 0.1.5
+2006-08-23
+Connection headers are separated by commas, not semicolons
+
+Version 0.1.4
+2006-08-22
+Refactored streams.lisp to appease LW compiler (thanks to Martin Simmons)
+Changed handling of version string	
+Changed package handling in system definition (thanks to Christophe Rhodes)	
+
+Version 0.1.3
+2006-02-08
+Removed KMRCL workaround
+
+Version 0.1.2
+2006-01-03
+Mention TBNL version number in server name header
+
+Version 0.1.1
+2005-12-31
+Fixed package stuff and HYPERDOC support
+
+Version 0.1.0
+2005-12-31
+Initial public release
+	
+[For earlier changes see the file "CHANGELOG_TBNL" that is included with the release.]

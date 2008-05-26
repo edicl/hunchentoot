@@ -1,0 +1,340 @@
+Version 0.11.3
+2006-09-30
+Added *FILE-UPLOAD-HOOK* (suggested by Erik Enge)
+Fixed DEFINE-EASY-HANDLER for cases where URI is NIL	
+	
+Version 0.11.2
+2006-09-20
+DEFINE-EASY-HANDLER: fixed and clarified redefinition
+DEFINE-EASY-HANDLER: allow for functions designators as "URIs"
+DEFINE-EASY-HANDLER: take file uploads into account
+Made logging a little bit more robust
+Added mime type for XSL-FO (.fo)
+
+Version 0.11.1
+2006-09-14
+Cleaner implementation of *CATCH-ERRORS-P*
+
+Version 0.11.0
+2006-09-14
+Added *CATCH-ERRORS-P*
+
+Version 0.10.3
+2006-09-05
+Appease SBCL (thanks to Juho Snellman)	
+
+Version 0.10.2
+2006-09-05
+Better reporting of IP addresses and ports if not behind mod_lisp
+Improved logging
+Fixed REAL-REMOTE-ADDR
+Cookies always use UTF-8 encoding (which is opaque to the client anyway)	
+Read request bodies without 'Content-Length' header (for Hunchentoot)
+Removed accented character from test.lisp to appease SBCL (reported by Xristos Kalkanis)
+
+Version 0.10.1
+2006-08-31
+Only LispWorks: Set read timeout to NIL if connected to mod_lisp	
+
+Version 0.10.0
+2006-08-28
+Based LispWorks version of TBNL on Hunchentoot infrastructure
+Added "easy" handlers
+Exported GET-BACKTRACE (suggested by Erik Enge)
+	
+Version 0.9.11
+2006-08-16
+Added note about SBCL problems
+
+Version 0.9.10
+2006-05-24
+Prepare for LW 5.0 release
+
+Version 0.9.9
+2006-05-12
+Workaround for something like "application/x-www-form-urlencoded;charset=UTF-8" (caught by John Bates)
+
+Version 0.9.8
+2006-04-25
+For mod_lisp, Lisp-Content-Length header must be sent after Content-Length header
+
+Version 0.9.7
+2006-02-06
+More robust computation of content length
+
+Version 0.9.6
+2006-01-22
+Added the missing piece (argh!)
+
+Version 0.9.5
+2006-01-22
+Made creation of REQUEST object safer (thanks to Robert J. Macomber)
+Replaced some erroneous DECLAIMs with DECLAREs (thanks to SBCL's style warnings)
+Slight documentation enhancements
+
+Version 0.9.4
+2006-01-03
+Handle "Expect: 100-continue" for non-Apache front-ends
+Re-introduced IGNORE-ERRORS in GET-REQUEST-DATA
+
+Version 0.9.3
+2006-01-01
+Fixed bug in READ-HTTP-REQUEST
+
+Version 0.9.2
+2005-12-31
+Protocol of reply is HTTP/1.1 now
+Made HTTP/0.9 default protocol of request if none was provided
+Some preparations for Hunchentoot
+Various minor changes
+Small fixes in docs
+
+Version 0.9.1
+2005-12-25
+Added missing file mime-types.lisp (thanks to Hilverd Reker)
+
+Version 0.9.0
+2005-12-24
+Experimental support for writing directly to the front-end (see SEND-HEADERS)
+Added HANDLE-STATIC-FILE
+Changed CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER to use new facilities
+Added CREATE-FOLDER-DISPATCHER-AND-HANDLER
+Added link to Travis Cross' message w.r.t. SBCL
+
+Version 0.8.9
+2005-12-16
+Also use :TBNL-BIVALENT-STREAMS if :SB-UNICODE is present
+
+Version 0.8.8
+2005-12-08
+Made RAW-POST-DATA more useful
+Updated docs w.r.t. Araneida (thanks to Alan Shields)
+
+Version 0.8.7
+2005-11-29
+Made "Content-Length" header SETFable
+
+Version 0.8.6
+2005-11-18
+Restored original stream-based code for multipart/form-data parsing (got lost somehow)
+Wrapped REMOTE-ADDR with IGNORE-ERRORS (just in case)
+
+Version 0.8.5
+2005-11-14
+Added generic function DISPATCH-REQUEST (thanks to Jeff Caldwell)
+
+Version 0.8.4
+2005-10-21
+Provide REMOTE-ADDR if connected directly (for LispWorks and AllegroCL)
+Show remote user and address (if available) in non-Apache logs
+Mention Debian package in docs
+
+Version 0.8.3
+2005-10-10
+Alert LW users that a patch for OCTETS-TO-STRINGS is available (thanks to LispWorks support)
+
+Version 0.8.2
+2005-10-06
+Make STRING-TO-OCTETS and OCTETS-TO-STRING safer for LW
+
+Version 0.8.1
+2005-09-29
+Bugfix in CMUCL version of STRING-TO-OCTETS
+
+Version 0.8.0
+2005-09-24
+Added the ability to cope with different external formats (incorporating suggestions from Will Glozer and Ivan Shvedunov)
+Raw post data is now always saved (so *SAVE-RAW-POST-DATA-P* is gone)
+
+Version 0.7.0
+2005-09-17
+Added the ability to store arbitrary data within REQUEST objects (suggested by Zach Beane)
+Fixed handling of *HTTP-ERROR-HANDLER*
+Note: *TBNL-VERSION* was wrong in 0.6.0 and 0.6.1
+
+Version 0.6.1
+2005-09-10
+Robustified socket handling code
+
+Version 0.6.0
+2005-09-08
+Added TBNL-CONTRIB package
+Added contrib directory with first entry (from Alceste Scalas)
+Updated link to Bill Clementson's blog
+Don't redefine what's already there (for LispWorks)
+
+Version 0.5.5
+2005-04-18
+Make RFC 2388 code an external dependency (thanks to Janis Dzerins)
+
+Version 0.5.4
+2005-04-03
+Fixed dumb typo (caught by Bob Hutchison)
+
+Version 0.5.3
+2005-04-03
+Re-introduced automatic front-end selection (originally by Bob Hutchison)
+
+Version 0.5.2
+2005-03-26
+Fixed bug in modlisp.html where *CLOSE-TBNL-STREAM* could be NIL although it should be T
+Set correct content type for 304 replies
+
+Version 0.5.1
+2005-03-17
+Changed default cookie path in START-SESSION (suggested by Stefan Scholl)
+Small bugfixes
+More headers from the Araneida front-end
+Added *SHOW-ACCESS-LOG-MESSAGES*
+Changed "back-end" to "front-end" :)
+
+Version 0.5.0
+2005-03-17
+Initial support for "stand-alone" version (no front-end) (supplied by Bob Hutchison)
+New logging API
+Fixes in START-TBNL/STOP-TBNL
+Documentation enhancements
+
+Version 0.4.1
+2005-03-15
+Fixed some typos, removed unused code
+
+Version 0.4.0
+2005-03-14
+Initial Araneida support (supplied by Bob Hutchison)
+
+Version 0.3.13
+2005-03-12
+Small bugfix in RFC-1123-DATE (thanks to Bob Hutchison and Stefan Scholl)
+
+Version 0.3.12
+2005-03-01
+Added *HTTP-ERROR-HANDLER* (suggested and coded by Stefan Scholl)
+Exported and documented *SESSION-MAX-TIME*
+
+Version 0.3.11
+2005-02-21
+Added ability to access raw post data (suggested and coded by Zach Beane)
+
+Version 0.3.10
+2005-01-24
+Make bivalent streams work with LispWorks 4.4
+UTF-8 demo for LispWorks (thanks to Bob Hutchison)
+
+Version 0.3.9
+2004-12-31
+Re-compute content length after applying MAYBE-REWRITE-URLS-FOR-SESSION (caught by Stefan Scholl)
+
+Version 0.3.8
+2004-12-27
+Don't send body for HEAD requests (needs current mod_lisp version) 
+
+Version 0.3.7
+2004-12-22
+Change #\Del to #\Rubout in QUOTE-STRING (AllegroCL complains, #\Del isn't even semi-standard)
+
+Version 0.3.6
+2004-12-02
+Make REQUIRE-AUTHORIZATION compliant to RFC 2616 (thanks to Stefan Scholl)
+
+Version 0.3.5
+2004-12-01
+Several small doc fixes (thanks to Stefan Scholl)
+Catch requests like "GET http://server/foo.html HTTP/1.0" (suggested by Stefan Scholl)
+
+Version 0.3.4
+2004-11-29
+Added backtrace code for OpenMCL (provided by Tiarnán Ó Corráin)
+
+Version 0.3.3
+2004-11-22
+Cleaner handling of macro variables
+
+Version 0.3.2
+2004-11-11
+Updated docs for mod_lisp2
+
+Version 0.3.1
+2004-11-09
+Slight changes to support Chris Hanson's mod_lisp2
+Changed GET-BACKTRACE for newer SBCL versions (thanks to Nikodemus Siivola)
+
+Version 0.3.0
+2004-11-09
+Initial support for multipart/form-data (thanks to Michael Weber and Janis Dzerins)
+Fixed bug in CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER (caught by Bill Clementson)
+
+Version 0.2.12
+2004-10-15
+Exported and documented DO-SESSIONS
+
+Version 0.2.11
+2004-09-02
+FORM-URL-ENCODED-LIST-TO-ALIST now decodes names and values
+
+Version 0.2.10
+2004-08-28
+Allow non-strings to be cookie values (bug caught by Zach Beane)
+
+Version 0.2.9
+2004-08-11
+Consistent usage of RFC-1123-DATE (provided by Stefan Scholl)
+Added all missing http headers from RFC 2616 (provided by Stefan Scholl)
+Added support for mod_lisp version strings (see <http://common-lisp.net/pipermail/mod-lisp-devel/2004-August/000019.html>)
+Don't always add session IDs when redirecting
+
+Version 0.2.8
+2004-07-24
+Fixed typo in html.lisp and improved docs (both caught by Stefan Scholl)
+
+Version 0.2.7
+2004-07-24
+Add missing exports and docs
+
+Version 0.2.6
+2004-07-24
+Make CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER thread-safe (caught by Jeff Caldwell)
+Added support for 'If-Modified-Since' request headers (provided by Stefan Scholl)
+
+Version 0.2.5
+2004-07-21
+Added CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER (provided by Stefan Scholl)
+Improved test suite
+
+Version 0.2.4
+2004-07-19
+New variable *CONTENT-TYPES-FOR-URL-REWRITE* (suggested by Stefan Scholl)
+Updated index.html regarding new version of mod_lisp
+
+Version 0.2.3
+2004-06-12
+Bugfix for FORM-URL-ENCODED-LIST-TO-ALIST (bug caught by Jong-won Choi)
+
+Version 0.2.2
+2004-06-10
+Bugfix for SESSION-GC and RESET-SESSIONS (bug introduced in 0.2.0)
+
+Version 0.2.1
+2004-06-10
+Only create backtrace if needed (speeds up AllegroCL considerably)
+
+Version 0.2.0
+2004-06-07
+Added SESSION-STRING and *SESSION-REMOVAL-HOOK*
+Added GET-BACKTRACE for AllegroCL
+
+Version 0.1.2
+2004-05-12
+Removed some more typos in docs (thanks to Karl A. Krueger)
+Changed BASE64 to CL-BASE64 in .asd file (thanks to Frank Sonnemans and Nicolas Lamirault)
+
+Version 0.1.1
+2004-05-08
+Removed some old files from Jeff's port
+Fixed a couple of typos in docs
+
+Version 0.1.0
+2004-05-07
+First public release
+Original code by Edi Weitz
+Initial doc strings, port to KMRCL, logging code and various other improvements by Jeff Caldwell
