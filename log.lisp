@@ -37,14 +37,14 @@ instance.")
    (stream :initform nil
            :accessor log-file-stream
            :documentation "Open stream to current log file.")
-   (lock :initform (bt:make-lock)
+   (lock :initform (make-lock "Hunchentoot log file lock")
          :reader log-file-lock
          :documentation "Lock to guard write access to the log file.
-Every write to the log file done with the lock held to prevent
+Every write to the log file is done with the lock held to prevent
 unwanted mixing of log entries.")))
 
 (defun ensure-log-stream-open (log-file)
-  "Ensure that the stream to the given LOG-FILE instance is opened."
+  "Ensures that the stream to the given LOG-FILE instance is open."
   (unless (log-file-stream log-file)
     (setf (log-file-stream log-file)
           (make-flexi-stream (open (ensure-directories-exist (log-file-pathname log-file))
@@ -62,7 +62,7 @@ which is assumed to be an instance of the LOG-FILE class.  The stream
 will be opened if neccessary, and the lock of the LOG-FILE will be
 held during execution of BODY."
   (with-unique-names (retval)
-    `(bt:with-lock-held ((log-file-lock ,log-file))
+    `(with-lock-held ((log-file-lock ,log-file))
        (ensure-log-stream-open ,log-file)
        ;; In order to reduce logging overhead, we print the message
        ;; to to an in-memory buffer and then send it to the
@@ -85,7 +85,7 @@ be used for all three of them."
   `(progn
      
      (defvar ,special-variable (make-instance 'log-file :pathname ,pathname)
-       ,documentation)
+       ,(format nil "The ~A" documentation))
 
      (defun ,visible-name ()
        ,(format nil "Returns the ~A" documentation)
@@ -93,35 +93,50 @@ be used for all three of them."
 
      (defun (setf ,visible-name) (pathname)
        ,(format nil "Sets the ~A" documentation)
-       (bt:with-lock-held ((log-file-lock ,special-variable))
+       (with-lock-held ((log-file-lock ,special-variable))
          (when (log-file-stream ,special-variable)
            (close (log-file-stream ,special-variable))
            (setf (log-file-stream ,special-variable) nil))
          (setf (log-file-pathname ,special-variable) pathname)))))
 
 (define-log-file log-file *log-file* *log-pathname*
-  "File to use to log general messages")
+  "file to use to log general messages.")
 
 (defmethod log-message (log-level format &rest args)
   "Sends a formatted message to the file denoted by *LOG-FILE*.
 FORMAT and ARGS are as in FORMAT.  LOG-LEVEL is a keyword denoting the
-log level."
-  (with-log-file (s *log-file*)
-    (format s
-            "[~A~@[ [~A]~]] " (iso-time) log-level)
-    (apply #'format s format args)
-    (terpri s)))
+log level or NIL in which case it is ignored."
+  (with-log-file (stream *log-file*)
+    (format stream "[~A~@[ [~A]~]] " (iso-time) log-level)
+    (apply #'format stream format args)
+    (terpri stream)))
+
+(defun log-message* (log-level format &rest args)
+  "Internal function accepting the same arguments as LOG-MESSAGE and
+using the message logger of *SERVER* \(if there is one)."
+  (when-let (message-logger (server-message-logger *server*))
+    (apply message-logger log-level format args)))
 
 (define-log-file access-log-file *access-log-file* *access-log-pathname*
-  "File to use to log access messages")
+  "File to use to log access messages.")
 
 (defun log-access (&key return-code content content-length)
-  (with-log-file (s *access-log-file*)
-    (format s "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] \"~A ~A~@[?~A~] ~
-               ~A\" ~A ~:[~*-~;~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
-            (remote-addr) (header-in :x-forwarded-for)
-            (authorization) (request-method) (script-name)
-            (query-string) (server-protocol)
-            return-code content content-length
-            (referer) (user-agent))))
+  "Sends a standardized access log message to the file denoted by
+*ACCESS-LOG-FILE* with information about the current request and
+response."
+  (with-log-file (stream *access-log-file*)
+    (format stream "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] \"~A ~A~@[?~A~] ~
+                    ~A\" ~A ~:[~*-~;~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
+            (remote-addr)
+            (header-in :x-forwarded-for)
+            (authorization)
+            (request-method)
+            (script-name)
+            (query-string)
+            (server-protocol)
+            return-code
+            content
+            content-length
+            (referer)
+            (user-agent))))
   

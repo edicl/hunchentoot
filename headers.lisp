@@ -30,16 +30,19 @@
 (in-package :hunchentoot)
 
 (defun maybe-write-to-header-stream (key &optional value)
+  "Accepts a string KEY and an optional Lisp object VALUE and writes
+them directly to the character stream *HEADER-STREAM* as an HTTP
+header line \(or as a simple line if VALUE is NIL)."
   (when *header-stream*
     (format *header-stream* "~A~@[: ~A~]~%" key
             (and value (regex-replace-all "[\\r\\n]" value " ")))
     (force-output *header-stream*)))
 
 (defgeneric write-header-line (key value)
-  (:documentation "Accepts strings KEY and VALUE and writes them
-directly to the client as a HTTP header line.")
+  (:documentation "Accepts a string KEY and a Lisp object VALUE and
+writes them directly to the client as an HTTP header line.")
   (:method (key (string string))
-    (let ((stream (flexi-stream-stream *hunchentoot-stream*)))
+    (let ((stream *hunchentoot-stream*))
       (labels ((write-header-char (char)
                  (when *header-stream*
                    (write-char char *header-stream*))
@@ -128,7 +131,7 @@ the stream to write to."
                   content)))
       ;; now set headers for keep-alive and chunking
       (when chunkedp
-        (setf (header-out "Transfer-Encoding") "chunked"))
+        (setf (header-out :transfer-encoding) "chunked"))
       (cond (keep-alive-p
              (setf *close-hunchentoot-stream* nil)
              (when (and (server-read-timeout *server*)
@@ -137,15 +140,15 @@ the stream to write to."
                ;; persistent connections are implicitly assumed for
                ;; HTTP/1.1, but we return a 'Keep-Alive' header if the
                ;; client has explicitly asked for one
-               (setf (header-out "Connection") "Keep-Alive"
-                     (header-out "Keep-Alive")
+               (setf (header-out :connection) "Keep-Alive"
+                     (header-out :keep-alive)
                      (format nil "timeout=~D" (server-read-timeout *server*)))))
-            (t (setf (header-out "Connection") "Close"))))
-    (unless (and (header-out-set-p "Server")
-                 (null (header-out "Server")))
-      (setf (header-out "Server") (or (header-out "Server")
-                                      (server-name-header))))
-    (setf (header-out "Date") (rfc-1123-date))
+            (t (setf (header-out :connection) "Close"))))
+    (unless (and (header-out-set-p :server)
+                 (null (header-out :server)))
+      (setf (header-out :server) (or (header-out :server)
+                                     (server-name-header))))
+    (setf (header-out :date) (rfc-1123-date))
     (unless reason-phrase
       (setq content (escape-for-html
                      (format nil "Unknown http return code: ~A" return-code))
@@ -174,7 +177,7 @@ the stream to write to."
                           ((#.+http-internal-server-error+) content)
                           ((#.+http-moved-temporarily+ #.+http-moved-permanently+)
                            (format nil "The document has moved <a href='~A'>here</a>"
-                                   (header-out "Location")))
+                                   (header-out :location)))
                           ((#.+http-authorization-required+)
                            "The server could not verify that you are authorized to access the document requested.  Either you supplied the wrong credentials \(e.g., bad password), or your browser doesn't understand how to supply the credentials required.")
                           ((#.+http-forbidden+)
@@ -190,8 +193,8 @@ the stream to write to."
     ;; start with status line      
     (let ((first-line
            (format nil "HTTP/1.1 ~D ~A" return-code reason-phrase)))
-      (write-string first-line *hunchentoot-stream*)
-      (write-string +crlf+ *hunchentoot-stream*)
+      (write-sequence (map 'list #'char-code first-line) *hunchentoot-stream*)
+      (write-sequence +crlf+ *hunchentoot-stream*)
       (maybe-write-to-header-stream first-line))
     (when (and (stringp content)
                (not content-modified-p)
@@ -218,88 +221,81 @@ the stream to write to."
     (loop for (nil . cookie) in (cookies-out)
        do (write-header-line "Set-Cookie" (stringify-cookie cookie)))
     ;; all headers sent
-    (write-string +crlf+ *hunchentoot-stream*)
+    (write-sequence +crlf+ *hunchentoot-stream*)
     (maybe-write-to-header-stream "")
     ;; access log message
-    (when (server-access-logger *server*)
-      (funcall (server-access-logger *server*)
+    (when-let (access-logger (server-access-logger *server*))
+      (funcall access-logger
                :return-code return-code
                :content content
                :content-length (content-length)))
-    (setf (flexi-stream-external-format *hunchentoot-stream*) (reply-external-format))
     ;; now optional content
     (unless (or (null content) head-request-p)
-      #+:clisp
-      (unless (stringp content)
-        (setf (flexi-stream-element-type *hunchentoot-stream*) 'octet))
-      (write-sequence content (typecase content
-                                (string *hunchentoot-stream*)
-                                ;; if the content is binary, we
-                                ;; don't need FLEXI-STREAM's
-                                ;; encoding capabilities
-                                (otherwise (flexi-stream-stream *hunchentoot-stream*)))))
+      (write-sequence content *hunchentoot-stream*))
     (when chunkedp
       ;; turn chunking on after the headers have been sent
-      (setf (chunked-stream-output-chunking-p
-             (flexi-stream-stream *hunchentoot-stream*)) t))
+      (unless (typep *hunchentoot-stream* 'chunked-stream)
+        (setq *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)))
+      (setf (chunked-stream-output-chunking-p *hunchentoot-stream*) t))
     *hunchentoot-stream*))
 
 (defun send-headers ()
-  "Sends the initial status line and all headers as determined by
-the REPLY object *REPLY*.  Returns a stream to which the body of
-the reply can be written.  Once this function has been called,
-further changes to *REPLY* don't have any effect.  Also,
-automatic handling of errors \(i.e. sending the corresponding
-status code to the browser, etc.) is turned off for this request.
-If your handlers return the full body as a string or as an array
-of octets you should NOT call this function."
+  "Sends the initial status line and all headers as determined by the
+REPLY object *REPLY*.  Returns a binary stream to which the body of
+the reply can be written.  Once this function has been called, further
+changes to *REPLY* don't have any effect.  Also, automatic handling of
+errors \(i.e. sending the corresponding status code to the browser,
+etc.) is turned off for this request.  If your handlers return the
+full body as a string or as an array of octets you should NOT call
+this function."
   (start-output))
 
 (defvar *break-even-while-reading-request-type-p* nil
   "If this variable is set to true, Hunchentoot will not bind
-   *BREAK-ON-SIGNALS* to NIL while reading the next request type from
-   an incoming connection.  By default, Hunchentoot will not enter the
-   debugger if an error occurs during the reading of the request type,
-   as this will happen regularily and legitimately (the incoming
-   connection times out or the client closes the connection without
-   initiating another request, which is permissible.")
+*BREAK-ON-SIGNALS* to NIL while reading the next request type from an
+incoming connection.  By default, Hunchentoot will not enter the
+debugger if an error occurs during the reading of the request type, as
+this will happen regularily and legitimately.  \(The incoming
+connection times out or the client closes the connection without
+initiating another request, which is permissible.)")
 
 (defun read-initial-request-line (stream)
-  "Read and return the initial HTTP request line, catching permitted
+  "Reads and returns the initial HTTP request line, catching permitted
 errors and handling *BREAK-EVEN-WHILE-READING-REQUEST-TYPE-P*.  If no
 request could be read, return NIL."
   (let ((*break-on-signals* (and *break-even-while-reading-request-type-p*
                                  *break-on-signals*)))
     (handler-case
-        (read-line* stream)
-      ((or end-of-file usocket:timeout-error) ()
+        (let ((*current-error-message* "While reading initial request line:"))
+          (read-line* stream))
+      ((or end-of-file #-:lispworks usocket:timeout-error) ()
         nil))))
   
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
 multiple values the headers as an alist, the method, the URI, and the
 protocol of the request."
-  (let ((first-line (read-initial-request-line stream)))
-    (when first-line
-      (destructuring-bind (method url-string &optional protocol)
-          (split "\\s+" first-line :limit 3)
-        (maybe-write-to-header-stream first-line)
-        (let ((headers (and protocol (read-http-headers stream
-                                                        *header-stream*))))
-          (unless protocol (setq protocol "HTTP/0.9"))
-          (when (equalp (cdr (assoc :expect headers)) "100-continue")
-            ;; handle 'Expect: 100-continue' header
-            (let ((continue-line
-                   (format nil "HTTP/1.1 ~D ~A"
-                           +http-continue+
-                           (reason-phrase +http-continue+))))
-              (write-string continue-line stream)
-              (write-string +crlf+ stream)
-              (write-string +crlf+ stream)
-              (force-output stream)
-              (maybe-write-to-header-stream continue-line)
-              (maybe-write-to-header-stream "")))
-          (values headers
-                  (make-keyword method)
-                  url-string
-                  (make-keyword (string-trim '(#\Space #\Tab #\NewLine #\Return) protocol))))))))
+  (with-character-stream-semantics
+   (let ((first-line (read-initial-request-line stream)))
+     (when first-line
+       (destructuring-bind (method url-string &optional protocol)
+           (split "\\s+" first-line :limit 3)
+         (maybe-write-to-header-stream first-line)
+         (let ((headers (and protocol (read-http-headers stream *header-stream*))))
+           (unless protocol (setq protocol "HTTP/0.9"))
+           (when (equalp (cdr (assoc :expect headers)) "100-continue")
+             ;; handle 'Expect: 100-continue' header
+             (let ((continue-line
+                    (format nil "HTTP/1.1 ~D ~A"
+                            +http-continue+
+                            (reason-phrase +http-continue+))))
+               (write-sequence (map 'list #'char-code continue-line) stream)
+               (write-sequence +crlf+ stream)
+               (write-sequence +crlf+ stream)
+               (force-output stream)
+               (maybe-write-to-header-stream continue-line)
+               (maybe-write-to-header-stream "")))
+           (values headers
+                   (as-keyword method)
+                   url-string
+                   (as-keyword (trim-whitespace protocol)))))))))

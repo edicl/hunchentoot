@@ -67,11 +67,6 @@ are discarded \(that is, the body is an implicit PROGN)."
                  bindings)
          ,@body))
 
-#+:lispworks
-(defmacro with-rebinding (bindings &body body)
-  "Renaming LW:REBINDING for better indentation."
-  `(lw:rebinding ,bindings ,@body))
-
 #-:lispworks
 (defmacro with-rebinding (bindings &body body)
   "Syntax: WITH-REBINDING ( { var | (var prefix) }* ) form*
@@ -136,18 +131,9 @@ cease to be valid."
 doesn't know."
   (gethash return-code *http-reason-phrase-map*))
 
-(defun make-keyword (string &key (destructivep t))
-  "Interns the upcased version of STRING into the KEYWORD package.
-Uses NSTRING-UPCASE if DESTRUCTIVEP is true.  Returns NIL if STRING is
-not a string."
-  (and (stringp string)
-       (intern (if destructivep
-                 (nstring-upcase string)
-                 (string-upcase string)) :keyword)))
-
 (defgeneric assoc (thing alist &key &allow-other-keys)
-  (:documentation "LIKE CL:ASSOC, but \'does the right thing\' if
-THING is a string or a symbol."))
+  (:documentation "LIKE CL:ASSOC, but 'does the right thing' if THING
+is a string or a symbol."))
 
 (defmethod assoc ((thing symbol) alist &key &allow-other-keys)
   "Version of ASSOC for symbols, always uses EQ as test function."
@@ -311,27 +297,21 @@ values - the type, the subtype, and the requests' character set as
 specified in the 'charset' parameter in the header, if there is one
 and if the content type is \"text\".  CONTENT-TYPE-HEADER is supposed
 to be the corresponding header value as a string."
-  (with-input-from-string (stream content-type-header)
-    (let* ((*current-error-message* "Corrupted Content-Type header:")
-           (type (read-token stream))
-           (subtype (if (char= #\/ (read-char stream))
-                        (read-token stream)
-                        (return-from parse-content-type
-                          ;; try to return something meaningful
-                          (values "application" "octet-stream" nil))))
-           (parameters (read-name-value-pairs stream))
-           (charset (cdr (assoc "charset" parameters)))
-           (charset
-            (when (string-equal type "text")
-              charset)))
-      (values type subtype charset))))
-
-(defun get-token-and-parameters (header)
-  (with-input-from-string (stream header)
-    (let* ((*current-error-message* (format nil "Corrupted header ~S:" header))
-           (token (read-token stream))
-           (parameters (read-name-value-pairs stream)))
-      (values token parameters))))
+  (with-input-from-sequence (stream (map 'list 'char-code content-type-header))
+    (with-character-stream-semantics
+     (let* ((*current-error-message* "Corrupted Content-Type header:")
+            (type (read-token stream))
+            (subtype (if (eql #\/ (read-char* stream nil))
+                       (read-token stream)
+                       (return-from parse-content-type
+                         ;; try to return something meaningful
+                         (values "application" "octet-stream" nil))))
+            (parameters (read-name-value-pairs stream))
+            (charset (cdr (assoc "charset" parameters)))
+            (charset
+             (when (string-equal type "text")
+               charset)))
+       (values type subtype charset)))))
 
 (defun keep-alive-p ()
   "Returns a true value unless the incoming request's headers or the
@@ -371,14 +351,42 @@ inclusion in HTML output."
   (format nil "Hunchentoot ~A" *hunchentoot-version*))
 
 (defun input-chunking-p ()
-  "Whether input chunking is currently switched on for \(the socket
-stream underlying) *HUNCHENTOOT-STREAM* - note that this will return
-NIL if the underlying stream of the flexi stream is not a chunked
-stream."
-  (chunked-stream-input-chunking-p (flexi-stream-stream *hunchentoot-stream*)))
+  "Whether input chunking is currently switched on for
+*HUNCHENTOOT-STREAM* - note that this will return NIL if the stream
+not a chunked stream."
+  (chunked-stream-input-chunking-p *hunchentoot-stream*))
 
-(defun cleanup-function ()
-  "The default for *CLEANUP-FUNCTION*.  Invokes a GC on 32-bit
-LispWorks and does nothing on other Lisps."
-  #+(and :lispworks (not :lispworks-64bit))
-  (hcl:mark-and-sweep 2))
+#-:lispworks
+(defun get-peer-address-and-port (socket)
+  "Returns the peer address and port of the socket SOCKET as two
+values.  The address is returned as a string in dotted IP address
+notation."
+  (values (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
+          (usocket:get-peer-port socket)))
+
+#-:lispworks
+(defun make-socket-stream (socket server)
+  "Returns a stream for the socket SOCKET.  The SERVER argument is
+ignored."
+  (declare (ignore server))
+  (usocket:socket-stream socket))
+
+#-:lispworks
+(defun make-lock (name)
+  "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
+  (bt:make-lock name))
+
+#-:lispworks
+(defun make-recursive-lock (name)
+  "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
+  (bt:make-recursive-lock name))
+
+#-:lispworks
+(defmacro with-recursive-lock-held ((lock) &body body)
+  "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
+  `(bt:with-recursive-lock-held (,lock) ,@body))
+
+#-:lispworks
+(defmacro with-lock-held ((lock) &body body)
+  "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
+  `(bt:with-lock-held (,lock) ,@body))

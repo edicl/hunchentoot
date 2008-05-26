@@ -29,11 +29,11 @@
 
 (in-package :hunchentoot)
 
-;;; System specific implementation of the SET-TIMEOUTS function that
-;;; sets up connection timeouts
+;;; system specific implementation of the function that sets up
+;;; connection timeouts
 
 (defun set-timeouts (usocket read-timeout write-timeout)
-  "Set up timeouts on the given USOCKET object.  READ-TIMEOUT is the
+  "Sets up timeouts on the given USOCKET object.  READ-TIMEOUT is the
 read timeout period, WRITE-TIMEOUT is the write timeout, specified in
 seconds.  The timeouts can either be implemented using the low-level
 socket options SO_RCVTIMEO and SO_SNDTIMEO or some other,
@@ -41,34 +41,28 @@ implementation specific mechanism.  On platforms that do not support
 separate read and write timeouts, both must be equal or an error will
 be signaled.  READ-TIMEOUT and WRITE-TIMEOUT may be NIL, which means
 that the corresponding socket timeout value will not be set."
-
-  #+clisp
-  (progn
-    (when read-timeout (socket:socket-options (usocket:socket usocket) :SO-RCVTIMEO read-timeout))
-    (when write-timeout (socket:socket-options (usocket:socket usocket) :SO-SNDTIMEO write-timeout)))
-
-  #+allegro
-  (progn
-    (when read-timeout (socket:socket-control (usocket:socket usocket) :read-timeout read-timeout))
-    (when write-timeout(socket:socket-control (usocket:socket usocket) :write-timeout write-timeout)))
-
-  #+openmcl
-  (progn
-    (when read-timeout (setf (ccl:stream-input-timeout (usocket:socket usocket)) read-timeout))
-    (when write-timeout (setf (ccl:stream-output-timeout (usocket:socket usocket)) write-timeout)))
-
-  #+sbcl
-  (progn
-    (unless (eql read-timeout write-timeout)
-      (error "read and write timeouts for socket must be equal"))
-    (setf (sb-impl::fd-stream-timeout (usocket:socket-stream usocket))
-          (coerce read-timeout 'single-float)))
-
-  #+lispworks
-  (progn
-    (when read-timeout (setf (stream:stream-read-timeout (usocket:socket-stream usocket)) read-timeout))
-    (when write-timeout (setf (stream:stream-write-timeout (usocket:socket-stream usocket)) write-timeout)))
-
-  #-(or clisp allegro openmcl sbcl lispworks)
-  (warn "timeouts not implemented for this lisp implementation"))
+  (declare (ignorable usocket read-timeout write-timeout))
+  #+:sbcl
+  ;; add other Lisps here if necessary
+  (unless (eql read-timeout write-timeout)
+    (error "Read and write timeouts for socket must be equal."))
+  #+:clisp
+  (when read-timeout
+    (socket:socket-options (usocket:socket usocket) :SO-RCVTIMEO read-timeout))
+  #+:clisp
+  (when write-timeout
+    (socket:socket-options (usocket:socket usocket) :SO-SNDTIMEO write-timeout))
+  #+:openmcl
+  (when read-timeout
+    (setf (ccl:stream-input-timeout (usocket:socket usocket))
+          read-timeout))
+  #+:openmcl
+  (when write-timeout
+    (setf (ccl:stream-output-timeout (usocket:socket usocket))
+          write-timeout))
+  #+:sbcl
+  (setf (sb-impl::fd-stream-timeout (usocket:socket-stream usocket))
+        (coerce read-timeout 'single-float))
+  #-(or :clisp :allegro :openmcl :sbcl :lispworks)
+  (warn "Timeouts not implemented for ~A." (lisp-implementation-type)))
 

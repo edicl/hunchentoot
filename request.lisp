@@ -74,7 +74,12 @@ arbitrary data during the request.")
 POST request, populated only if not a multipart/form-data request."))
   (:documentation "Objects of this class hold all the information
 about an incoming request.  They are created automatically by
-Hunchentoot and can be accessed by the corresponding handler."))
+Hunchentoot and can be accessed by the corresponding handler.
+
+You should not mess with the slots of these objects directly, but you
+can subclass REQUEST in order to implement your own behaviour.  See
+for example the REQUEST-CLASS keyword argument of START-SERVER and the
+function DISPATCH-REQUEST."))
 
 (defun parse-rfc2388-form-data (stream content-type-header)
   "Creates an alist of POST parameters from the stream STREAM which is
@@ -111,17 +116,16 @@ already been read."
          (content-stream (content-stream request)))
     (setf (slot-value request 'raw-post-data)
           (cond (want-stream
-                 (setf (flexi-stream-position *hunchentoot-stream*) 0)
-                 (when content-length
-                   (setf (flexi-stream-bound content-stream) content-length))
-                 content-stream)
+                 (let ((stream (make-flexi-stream content-stream :external-format +latin-1+)))
+                   (when content-length
+                     (setf (flexi-stream-bound stream) content-length))
+                   stream))
                 ((and content-length (> content-length already-read))
                  (decf content-length already-read)
                  (when (input-chunking-p)
                    ;; see RFC 2616, section 4.4
-                   (log-message :warn "Got Content-Length header although input chunking is on."))
+                   (log-message* :warning "Got Content-Length header although input chunking is on."))
                  (let ((content (make-array content-length :element-type 'octet)))
-                   #+:clisp (setf (flexi-stream-element-type content-stream) 'octet)
                    (read-sequence content content-stream)
                    content))
                 ((input-chunking-p)
@@ -138,7 +142,7 @@ already been read."
   "The only initarg for a REQUEST object is :HEADERS-IN.  All other
 slot values are computed in this :AFTER method."
   (declare (ignore init-args))
-  (with-slots (headers-in cookies-in get-parameters post-parameters script-name query-string session)
+  (with-slots (headers-in cookies-in get-parameters script-name query-string session)
       request
     (handler-case
         (progn
@@ -162,49 +166,44 @@ slot values are computed in this :AFTER method."
                 session (session-verify request)
                 *session* session))
       (error (condition)
-        (log-message :error "Error when creating REQUEST object: ~A" condition)
+        (log-message* :error "Error when creating REQUEST object: ~A" condition)
         ;; we assume it's not our fault...
         (setf (return-code) +http-bad-request+)))))
 
 (defun parse-multipart-form-data (&optional (request *request*))
   "Parse the REQUEST body as multipart/form-data, assuming that its
-  content type has already been verified.  Returns the form data as
-  alist or NIL if there was no data or the data could not be parsed."
+content type has already been verified.  Returns the form data as
+alist or NIL if there was no data or the data could not be parsed."
   (handler-case
-      (let* ((content-stream (content-stream request))
-             (start (flexi-stream-position content-stream)))
+      (let ((content-stream (make-flexi-stream (content-stream request) :external-format +latin-1+)))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type))
-          (let* ((end (flexi-stream-position content-stream))
-                 (stray-data (get-post-data :already-read (- end start))))
+          (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
             (when (and stray-data (plusp (length stray-data)))
               (warn "~A octets of stray data after form-data sent by client."
                     (length stray-data))))))
     (error (msg)
-      (log-message :error
-                   "While parsing multipart/form-data parameters: ~A"
-                   msg)
+      (log-message* :error "While parsing multipart/form-data parameters: ~A" msg)
       nil)))
 
 (defun maybe-read-post-parameters (&key (request *request*) force external-format)
   "Make surce that any POST parameters in the REQUEST are parsed.  The
-   body of the request must be either
-   application/x-www-form-urlencoded or multipart/form-data to be
-   considered as containing POST parameters.  If FORCE is true, parsing
-   is done unconditionally.  Otherwise, parsing will only be done if
-   the RAW-POST-DATA slot in the REQUEST is false.  EXTERNAL-FORMAT
-   specifies the external format of the data in the request body.  By
-   default, the encoding is determined from the Content-Type header of
-   the request or from *hunchentoot-default-external-format* if none
-   is found."
+body of the request must be either application/x-www-form-urlencoded
+or multipart/form-data to be considered as containing POST parameters.
+If FORCE is true, parsing is done unconditionally.  Otherwise, parsing
+will only be done if the RAW-POST-DATA slot in the REQUEST is false.
+EXTERNAL-FORMAT specifies the external format of the data in the
+request body.  By default, the encoding is determined from the
+Content-Type header of the request or from
+*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT* if none is found."
   (when (and (header-in :content-type)
              (member (request-method) *methods-for-post-parameters* :test #'eq)
              (or force
                  (not (slot-value request 'raw-post-data))))
     (unless (or (header-in :content-length)
                 (input-chunking-p))
-      (log-message :warn "Can't read request body because there's no~
-Content-Length header and input chunking is off.")
+      (log-message* :warning "Can't read request body because there's ~
+no Content-Length header and input chunking is off.")
       (return-from maybe-read-post-parameters nil))
     (handler-case
         (multiple-value-bind (type subtype charset)
@@ -226,10 +225,10 @@ Content-Length header and input chunking is off.")
                           external-format))
                         ((and (string-equal type "multipart")
                               (string-equal subtype "form-data"))
-                         (setf (slot-value request 'raw-post-data) t)
-                         (parse-multipart-form-data request))))))
+                         (prog1 (parse-multipart-form-data request)
+                           (setf (slot-value request 'raw-post-data) t)))))))
       (error (condition)
-        (log-message :error "Error when reading POST parameters from body: ~A" condition)
+        (log-message* :error "Error when reading POST parameters from body: ~A" condition)
         ;; we assume it's not our fault...
         (setf (return-code) +http-bad-request+)))))
 
@@ -261,7 +260,7 @@ object REQUEST."
 (defun post-parameters (&optional (request *request*))
   "Returns an alist of the POST parameters associated with the REQUEST
 object REQUEST."
-  (maybe-read-post-parameters)
+  (maybe-read-post-parameters :request request)
   (slot-value request 'post-parameters))
 
 (defun headers-in (&optional (request *request*))
@@ -371,14 +370,14 @@ TIME."
     (values)))
 
 (defun external-format-from-content-type (content-type)
-  "Return the external format corresponding to the value of the
-   content type header provided in CONTENT-TYPE, if the content type
-   was not set or if the character set specified was invalid.
-   CONTENT-TYPE may be NIL, which makes this function return NIL, too."
+  "Creates and returns an external format corresponding to the value
+of the content type header provided in CONTENT-TYPE.  If the content
+type was not set or if the character set specified was invalid, NIL is
+returned."
   (when content-type
     (when-let (charset (nth-value 2 (parse-content-type content-type)))
       (handler-case
-          (make-external-format (make-keyword charset) :eol-style :lf)
+          (make-external-format (as-keyword charset) :eol-style :lf)
         (error ()
           (warn "Invalid character set ~S in request has been ignored." charset))))))
 

@@ -29,6 +29,10 @@
 
 (in-package :hunchentoot)
 
+(defvar *session-data-lock* (make-recursive-lock "session-data-lock")
+  "A lock to prevent two threads from modifying *SESSION-DATA* at the
+same time.")
+
 (let ((session-id-counter 0))
   (defun get-next-session-id ()
     "Returns the next sequential session id."
@@ -119,7 +123,7 @@ ENCODE-SESSION-STRING."
 (defun session-gc ()
   "Removes sessions from *session-data* which are too old - see
 SESSION-TOO-OLD-P."
-  (bt:with-recursive-lock-held (*session-data-lock*)
+  (with-recursive-lock-held (*session-data-lock*)
     (setq *session-data*
             (loop for id-session-pair in *session-data*
                   for (nil . session) = id-session-pair
@@ -144,7 +148,7 @@ replaced. Will automatically start a session if none was supplied and
 there's no session for the current request."
   (with-rebinding (symbol)
     (with-unique-names (place %session)
-      `(bt:with-recursive-lock-held (*session-data-lock*)
+      `(with-recursive-lock-held (*session-data-lock*)
          (let* ((,%session (or ,session (start-session)))
                 (,place (assoc ,symbol (session-data ,%session))))
            (cond
@@ -185,7 +189,7 @@ case the function will also send a session cookie to the browser."
       (return-from start-session session))
     (setf session (make-instance 'session)
           (session *request*) session)
-    (bt:with-recursive-lock-held (*session-data-lock*)
+    (with-recursive-lock-held (*session-data-lock*)
       (setq *session-data* (acons (session-id session) session *session-data*)))
     (set-cookie *session-cookie-name*
                 :value (session-cookie-value session)
@@ -195,7 +199,7 @@ case the function will also send a session cookie to the browser."
 (defun remove-session (session)
   "Completely removes the SESSION object SESSION from Hunchentoot's
 internal session database."
-  (bt:with-recursive-lock-held (*session-data-lock*)
+  (with-recursive-lock-held (*session-data-lock*)
     (funcall *session-removal-hook* session)
     (setq *session-data*
             (delete (session-id session) *session-data*
@@ -217,7 +221,7 @@ will not create a new one."
     (when (and session
                (session-too-old-p session))
       (when *reply*
-        (log-message :notice "Session with ID ~A too old" id))
+        (log-message* :info "Session with ID ~A too old" id))
       (remove-session session)
       (setq session nil))
     session))
@@ -254,11 +258,13 @@ is returned \(and updated). Otherwise NIL is returned."
                                                      (session-start session))))
           (when *reply*
             (cond ((null session)
-                    (log-message :notice "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                                 session-identifier user-agent remote-addr))
+                    (log-message* :info
+                                  "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                                  session-identifier user-agent remote-addr))
                   (t
-                    (log-message :warning "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                                 session-identifier user-agent remote-addr))))
+                    (log-message* :warning
+                                  "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                                  session-identifier user-agent remote-addr))))
           (when session
             (remove-session session))
           (return-from session-verify nil))
@@ -269,7 +275,7 @@ is returned \(and updated). Otherwise NIL is returned."
 (defun reset-sessions ()
   "Removes ALL stored sessions and creates a new session secret."
   (reset-session-secret)
-  (bt:with-recursive-lock-held (*session-data-lock*)
+  (with-recursive-lock-held (*session-data-lock*)
     (loop for (nil . session) in *session-data*
           do (funcall *session-removal-hook* session))
     (setq *session-data* nil))

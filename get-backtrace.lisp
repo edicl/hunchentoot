@@ -83,14 +83,7 @@ returns a string with the corresponding backtrace."
 show or log backtraces."
   (declare (ignore error))
   (with-output-to-string (stream)
-    (do ((last nil frame)
-         (frame (sys::the-frame) (sys::frame-up-1 frame 1)))
-        ((eq frame last))
-      (let ((formatted-frame (format-frame frame)))
-        (when (function-frame-p formatted-frame)
-          (write-line (subseq formatted-frame (+ (position #\> formatted-frame) 2)
-                              (position #\Newline formatted-frame))
-                      stream))))))
+    (system::print-backtrace :out stream)))
 
 #+lispworks
 (defun get-backtrace (error)

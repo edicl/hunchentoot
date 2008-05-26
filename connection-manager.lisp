@@ -55,11 +55,12 @@ environment, the thunk will be called directly."))
   (:documentation
    "This function is called by Hunchentoot to start processing of
 requests on a new incoming connection.  SOCKET is the usocket instance
-that represents the new connection.  The connection manager starts
-processing requests on the incoming connection by calling the
-START-REQUEST-PROCESSING function of the server instance, taken from
-the SERVER slot in the connection manager instance.  The SOCKET
-argument is passed to START-REQUEST-PROCESSING as argument.
+that represents the new connection \(or a socket handle on LispWorks).
+The connection manager starts processing requests on the incoming
+connection by calling the START-REQUEST-PROCESSING function of the
+server instance, taken from the SERVER slot in the connection manager
+instance.  The SOCKET argument is passed to START-REQUEST-PROCESSING
+as argument.
 
 In a multi-threaded environment, the connection manager runs the thunk
 in a separate thread.  In a single-threaded environment, the thunk
@@ -67,45 +68,80 @@ will be called directly."))
 
 (defgeneric shutdown (connection-manager)
   (:documentation "Terminate all threads that are currently associated
-with the connection manager, if any."))
+with the connection manager, if any.")
+  (:method (manager)
+   #+:lispworks
+   (when-let (listener (server-listener (server manager)))
+     ;; kill the main listener process, see LW documentation for
+     ;; COMM:START-UP-SERVER
+     (mp:process-kill listener))))
 
 (defclass single-threaded-connection-manager (connection-manager)
   ()
   (:documentation "Connection manager that runs synchronously in the
 thread that invoked the START-SERVER function."))
 
-(defmethod execute-listener ((cm single-threaded-connection-manager))
-  (listen-for-connections (server cm)))
+(defmethod execute-listener ((manager single-threaded-connection-manager))
+  (listen-for-connections (server manager)))
 
-(defmethod handle-incoming-connection ((cm single-threaded-connection-manager) socket)
-  (process-connection (server cm) socket))
-
-(defmethod shutdown ((cm single-threaded-connection-manager))
-  nil)
+(defmethod handle-incoming-connection ((manager single-threaded-connection-manager) socket)
+  (process-connection (server manager) socket))
 
 (defclass one-thread-per-connection-manager (connection-manager)
-  ()
+  ((workers :initform nil
+            :accessor connection-manager-workers
+            :documentation "A list of currently active worker
+threads."))
   (:documentation "Connection manager that starts one thread for
-listening to incoming requests and one thread for each incoming connection."))
+listening to incoming requests and one thread for each incoming
+connection."))
 
-#+(or)
-(defmethod print-object ((cm one-thread-per-connection-manager) stream)
-  (print-unreadable-object (cm stream :type t)
-    (format stream "~A worker~:P" (length (connection-manager-workers cm)))))
+(defmethod print-object ((manager one-thread-per-connection-manager) stream)
+  (print-unreadable-object (manager stream :type t)
+    (format stream "~A worker~:P" (length (connection-manager-workers manager)))))
 
-(defmethod execute-listener ((cm one-thread-per-connection-manager))
+(defmethod execute-listener ((manager one-thread-per-connection-manager))
+  #+:lispworks
+  (listen-for-connections (server manager))
+  #-:lispworks
   (bt:make-thread (lambda ()
-                    (listen-for-connections (server cm)))
-                  :name (format nil "Hunchentoot listener (~A:~A)"
-                                (or (server-address (server cm)) "*")
-                                (server-port (server cm)))))
+                    (listen-for-connections (server manager)))
+                  :name (format nil "Hunchentoot listener \(~A:~A)"
+                                (or (server-address (server manager)) "*")
+                                (server-port (server manager)))))
 
-(defmethod handle-incoming-connection ((cm one-thread-per-connection-manager) socket)
-  (bt:make-thread (lambda ()
-                    (process-connection (server cm) socket))
-                  :name (format nil "Hunchentoot worker (client: ~A:~A)"
-                                (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
-                                (usocket:get-peer-port socket))))
+#+:lispworks
+(defmethod handle-incoming-connection ((manager one-thread-per-connection-manager) handle)
+  (incf *worker-counter*)
+  ;; check if we need to perform a global GC
+  (when (and *cleanup-interval*
+             (zerop (mod *worker-counter* *cleanup-interval*)))
+    (when *cleanup-function*
+      (funcall *cleanup-function*)))
+  ;; start a worker thread for this connection and remember it
+  (push (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
+                                         (multiple-value-list
+                                          (get-peer-address-and-port handle)))
+                                 nil #'process-connection
+                                 (server manager) handle)
+        (connection-manager-workers manager)))
 
-(defmethod shutdown ((cm one-thread-per-connection-manager))
-  nil)
+#-:lispworks
+(defmethod handle-incoming-connection ((manager one-thread-per-connection-manager) socket)
+  (push (bt:make-thread (lambda ()
+                          (process-connection (server manager) socket))
+                        :name (format nil "Hunchentoot worker \(client: ~A:~A)"
+                                      (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
+                                      (usocket:get-peer-port socket)))
+        (connection-manager-workers manager)))
+
+#+:lispworks
+(defmethod shutdown ((manager one-thread-per-connection-manager))
+  ;; kill all worker threads
+  (dolist (worker (connection-manager-workers manager))
+    (ignore-errors
+      (when (mp:process-alive-p worker)
+        (mp:process-kill worker)))
+    (mp:process-allow-scheduling))
+  ;; finally, kill main listener
+  (call-next-method))

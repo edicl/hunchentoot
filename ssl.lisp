@@ -33,18 +33,31 @@
   ((ssl-certificate-file :initarg :ssl-certificate-file
                          :reader server-ssl-certificate-file
                          :documentation "The namestring of a
-certificate file if SSL is used, NIL otherwise.")
+certificate file.")
    (ssl-privatekey-file :initarg :ssl-privatekey-file
                         :reader server-ssl-privatekey-file
-                        :documentation "The namestring of a
-private key file if SSL is used, NIL otherwise.")
-   (ssl-privatekey-password :initarg :ssl-privatekey-password
+                        :documentation "The namestring of a private
+key file, or NIL if the certificate file contains the private key.")
+   (ssl-privatekey-password #+:lispworks #+:lispworks
+                            :initform nil
+                            :initarg :ssl-privatekey-password
                             :reader server-ssl-privatekey-password
                             :documentation "The password for the
 private key file or NIL."))
   (:default-initargs :port 443 :output-chunking-p nil)
   (:documentation "This class defines additional slots required to
 serve requests by SSL"))
+
+(defmethod initialize-instance :around ((server ssl-server)
+                                        &rest args
+                                        &key ssl-certificate-file ssl-privatekey-file
+                                        &allow-other-keys)
+  (apply #'call-next-method server
+         :ssl-certificate-file (namestring ssl-certificate-file)
+         :ssl-privatekey-file (namestring (or ssl-privatekey-file
+                                              #+:lispworks
+                                              ssl-certificate-file))
+         args))
 
 #+lispworks
 (defun make-ssl-server-stream (socket-stream &key certificate-file privatekey-file privatekey-password)
@@ -53,7 +66,7 @@ stream using the certificate file CERTIFICATE-FILE and the private key
 file PRIVATEKEY-FILE.  Both of these values must be namestrings
 denoting the location of the files.  If PRIVATEKEY-PASSWORD is not NIL
 then it should be the password for the private key file \(if
-necessary)."
+necessary).  Returns the stream"
   (flet ((ctx-configure-callback (ctx)
            (when privatekey-password
              (comm:set-ssl-ctx-password-callback ctx :password privatekey-password))
@@ -64,15 +77,12 @@ necessary)."
                                              privatekey-file
                                              comm:ssl_filetype_pem)))
     (comm:attach-ssl socket-stream
-                     :ctx-configure-callback #'ctx-configure-callback)))
+                     :ctx-configure-callback #'ctx-configure-callback)
+    socket-stream))
 
 
 (defmethod server-ssl-p ((server ssl-server))
   t)
-
-(defmethod initialize-instance :after ((ssl-server ssl-server) &key ssl-certificate-file ssl-privatekey-file)
-  (unless ssl-privatekey-file
-    (setf (slot-value ssl-server 'ssl-privatekey-file) ssl-certificate-file)))
 
 (defmethod initialize-connection-stream ((server ssl-server) stream)
   ;; attach SSL to the stream if necessary

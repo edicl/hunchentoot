@@ -91,14 +91,6 @@ true.  See the docs for URL-REWRITE:REWRITE-URLS."
                                           :cookie-name cookie-name
                                           :value value))))))))
 
-(defmethod dispatch-request (dispatch-table)
-  "Dispatches *REQUEST* based upon rules in the DISPATCH-TABLE.
-This method provides the default Hunchentoot behavior."
-  (loop for dispatcher in dispatch-table
-        for action = (funcall dispatcher *request*)
-        when action return (funcall action)
-        finally (setf (return-code *reply*) +http-not-found+)))
-
 (defun default-dispatcher (request)
   "Default dispatch function which handles every request with the
 function stored in *DEFAULT-HANDLER*."
@@ -108,7 +100,7 @@ function stored in *DEFAULT-HANDLER*."
 (defun default-handler ()
   "The handler that is supposed to serve the request if no other
 handler is called."
-  (log-message :info "Default handler called for script ~A" (script-name))
+  (log-message* :info "Default handler called for script ~A" (script-name))
   (format nil "<html><head><title>Hunchentoot</title></head><body><h2>Hunchentoot Default Page</h2><p>This is the Hunchentoot default page. You're most likely seeing it because the server administrator hasn't set up a custom default page yet.</p><p>Hunchentoot is a web server written in <a href='http://www.lisp.org/'>Common Lisp</a>.  More info about Hunchentoot can be found at <a href='http://weitz.de/hunchentoot/'>http://weitz.de/hunchentoot/</a>.</p></p><p><hr>~A</p></body></html>"
           (address-string)))
 
@@ -151,7 +143,7 @@ type via the file's suffix."
                      :direction :input
                      :element-type 'octet
                      :if-does-not-exist nil)
-      (setf (header-out "Last-Modified") (rfc-1123-date time)
+      (setf (header-out :last-modified) (rfc-1123-date time)
             (content-length) (file-length file))
       (let ((out (send-headers)))
         #+:clisp
@@ -212,13 +204,13 @@ it'll be the content type used for all files in the folder."
 
 (defun no-cache ()
   "Adds appropriate headers to completely prevent caching on most browsers."
-  (setf (header-out "Expires")
+  (setf (header-out :expires)
           "Mon, 26 Jul 1997 05:00:00 GMT"
-        (header-out "Cache-Control")
+        (header-out :cache-control)
           "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
-        (header-out "Pragma")
+        (header-out :pragma)
           "no-cache"
-        (header-out "Last-Modified")
+        (header-out :last-modified)
           (rfc-1123-date))
   (values))
 
@@ -256,7 +248,7 @@ redirection code, it will be sent as status code."
 (defun require-authorization (&optional (realm "Hunchentoot"))
   "Sends back appropriate headers to require basic HTTP authentication
 \(see RFC 2617) for the realm REALM."
-  (setf (header-out "WWW-Authenticate")
+  (setf (header-out :www-authenticate)
           (format nil "Basic realm=\"~A\"" (quote-string realm))
         (return-code *reply*)
           +http-authorization-required+)

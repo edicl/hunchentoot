@@ -55,8 +55,11 @@ server's status line."
                                           value reason-phrase))
        (setf (gethash ,value *http-reason-phrase-map*) ,reason-phrase))))
 
-(defconstant +crlf+ #.(format nil "~C~C" #\Return #\Linefeed)
-  "A constant string consisting of the two ASCII characters CR and LF.")
+(defconstant +crlf+
+  (make-array 2 :element-type '(unsigned-byte 8)
+              :initial-contents (mapcar 'char-code '(#\Return #\Linefeed)))
+  "A 2-element array consisting of the character codes for a CRLF
+sequence.")
 
 (def-http-return-code +http-continue+ 100 "Continue")
 (def-http-return-code +http-switching-protocols+ 101 "Switching Protocols")
@@ -219,18 +222,18 @@ occurs.  Will only have an effect if *LOG-LISP-ERRORS-P* or
 
 (defvar *log-dir* 
   #+:allegro (system:temporary-directory)
-  #+:lispworks (pathname (or (lw:environment-variable "TEMP")
-                             (lw:environment-variable "TMP")
+  #+:lispworks (pathname (or (get-env-variable-as-directory "TEMP")
+                             (get-env-variable-as-directory "TMP")
                              #+:win32 "C:/"
                              #-:win32 "/tmp/"))
   #-(or :allegro :lispworks) #p"/tmp/"
-  "Directory to place log files in")
+  "Directory to place log files in.")
 
-(defvar *log-pathname* (#+openmcl identity #-openmcl load-time-value
+(defvar *log-pathname* (#-:openmcl load-time-value #+:openmcl identity
                         (merge-pathnames "hunchentoot-error.log" *log-dir*))
   "The error log file to use.")
 
-(defvar *access-log-pathname* (#+openmcl identity #-openmcl load-time-value
+(defvar *access-log-pathname* (#-:openmcl load-time-value #+:openmcl identity
                                (merge-pathnames "hunchentoot-access.log" *log-dir*))
   "The access log file to use.")
 
@@ -252,7 +255,7 @@ occurs.  Will only have an effect if *LOG-LISP-ERRORS-P* or
   "A link to the website of the underlying Lisp implementation.")
 
 (defvar *dispatch-table* (list 'default-dispatcher)
-  "A list of dispatch functions - see *META-DISPATCHER*.")
+  "A global list of dispatch functions.")
 
 (defvar *default-handler* 'default-handler
   "The name of the function which is always returned by
@@ -274,10 +277,6 @@ is true \(the default), either a default body for the return code or
 the result of calling *HTTP-ERROR-HANDLER* is used.  When the value is
 NIL, no special action is taken and you are expected to supply your
 own response body to describe the error.")
-
-(defvar *session-data-lock* (bt:make-recursive-lock "session-data-lock")
-  "A lock to prevent two threads from modifying *SESSION-DATA* at the
-same time.")
 
 (defvar *session-removal-hook* (constantly nil)
   "A function of one argument \(a session object) which is called
@@ -311,15 +310,6 @@ encode cookie values.")
   "During the execution of dispatchers and handlers this variable
 is bound to the SERVER object which processes the request.")
 
-(defvar *meta-dispatcher* (lambda (server)
-                            (declare (ignore server))
-                            *dispatch-table*)
-  "The value of this variable should be a function of one argument.
-It is called with the current Hunchentoot server instance \(unless the
-server has its own dispatch table) and must return a suitable dispatch
-table.  The initial value is a function which always unconditionally
-returns *DISPATCH-TABLE*.")
-
 (defvar *server-counter* 0
   "Internal counter used to generate meaningful names for
 listener threads.")
@@ -332,14 +322,6 @@ threads.")
   "The default connection timeout used when a Hunchentoot server is
 reading from and writing to a socket stream.")
 
-(defvar *cleanup-interval* 100
-  "Should be NIL or a positive integer.  The system calls
-*CLEANUP-FUNCTION* whenever *CLEANUP-INTERVAL* new worker threads have
-been created unless the value is NIL.")
-
-(defvar *cleanup-function* 'cleanup-function
-  "The function which is called if *CLEANUP-INTERVAL* is not NIL.")
-
 (defvar-unbound *local-host*
   "Bound to a string denoting the address at which the current
 request arrived.")
@@ -351,6 +333,10 @@ originated from.")
 (defvar-unbound *remote-port*
   "Bound to an integer denoting the port the current request
 originated from.")
+
+(define-symbol-macro *supports-threads-p*
+  #+:lispworks t
+  #-:lispworks bt:*supports-threads-p*)
 
 (pushnew :hunchentoot *features*)
 

@@ -34,7 +34,7 @@
 
 (in-package :hunchentoot-asd)
 
-(defvar *hunchentoot-version* "0.15.6"
+(defvar *hunchentoot-version* "1.0.0"
   "A string denoting the current version of Hunchentoot.  Used
 for diagnostic output.")
 
@@ -47,13 +47,16 @@ for diagnostic output.")
                :cl-base64
                :cl-fad
                :cl-ppcre
+               :flexi-streams
                #-(or :lispworks :hunchentoot-no-ssl) :cl+ssl
                :md5
                :rfc2388
-               :usocket
-               :bordeaux-threads
+               #-:lispworks :usocket
+               #-:lispworks :bordeaux-threads
                :url-rewrite)
   :components ((:file "packages")
+               #+:lispworks
+               (:file "lispworks")
                (:file "specials")
                (:file "mime-types")
                (:file "util")
@@ -75,7 +78,5 @@ for diagnostic output.")
                (:file "set-timeouts")
                (:file "connection-manager")
                (:file "server")
-               #+:lispworks
-               (:file "lispworks-ide-helper")
                #-:hunchentoot-no-ssl
                (:file "ssl")))

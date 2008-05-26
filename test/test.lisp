@@ -136,18 +136,12 @@
 
 (defun oops ()
   (with-html
-    (log-message :emerg "Oops emergency")
-    (log-message :alert "Oops alert")
-    (log-message :crit "Oops critical")
-    (log-message :error "Oops error")
-    (log-message :warning "Oops warning")
-    (log-message :notice "Oops notice")
-    (log-message :info "Oops info")
-    (log-message :debug "Oops debug")
-    (error "Eight errors were triggered on purpose. Check your ~
-error log file ~S." (log-file))
+    (log-message :error "Oops \(error log level).")
+    (log-message :warning "Oops \(warning log level).")
+    (log-message :info "Oops \(info log level).")
+    (error "Errors were triggered on purpose.  Check your error log.")
     (:html
-     (:body "You'll never see this sentence..."))))
+     (:body "You should never see this sentence..."))))
 
 (defun redir ()
   (redirect "/hunchentoot/test/info.html?redirected=1"))
@@ -355,18 +349,14 @@ and see what's happening.")
   (setf (content-type) "text/html; charset=utf-8")
   (let ((stream (send-headers))
         (buffer (make-array 1024 :element-type 'flex:octet)))
-    #+:clisp
-    (setf (flex:flexi-stream-element-type stream) 'flex:octet)
-    (with-open-file (in *utf-8-file*
-                        :element-type 'flex:octet)
+    (with-open-file (in *utf-8-file* :element-type 'flex:octet)
       (loop for pos = (read-sequence buffer in)
             until (zerop pos) 
             do (write-sequence buffer stream :end pos)))))
 
 (defun stream-direct-utf-8 ()
   (setf (content-type) "text/html; charset=utf-8")
-  (let ((stream (send-headers)))
-    (setf (flex:flexi-stream-external-format stream) *utf-8*)
+  (let ((stream (flex:make-flexi-stream (send-headers) :external-format *utf-8*)))
     (with-open-file (in (merge-pathnames "UTF-8-demo.html" *this-file*)
                         :element-type 'flex:octet)
       (setq in (flex:make-flexi-stream in :external-format *utf-8*))

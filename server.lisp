@@ -30,9 +30,7 @@
 (in-package :hunchentoot)
 
 (defclass server ()
-  ((socket :accessor server-socket
-           :documentation "The socket the server is listening on.")
-   (port :initarg :port
+  ((port :initarg :port
          :documentation "The port the server is listening on.
 See START-SERVER.")
    (address :initarg :address
@@ -41,11 +39,15 @@ on.  See START-SERVER.")
    (name :initarg :name
          :accessor server-name
          :documentation "The optional name of the server, a symbol.")
+   (request-class :initarg :request-class
+                  :reader server-request-class
+                  :documentation "Determines which class of request
+objects is created when a request comes in and should be \(a symbol
+naming) a class which inherits from REQUEST.")
    (dispatch-table :initarg :dispatch-table
                    :accessor server-dispatch-table
                    :documentation "The dispatch-table used by this
-server.  Can be NIL to denote that *META-DISPATCHER* should be called
-instead.")
+server.  Can be NIL to denote that *DISPATCH-TABLE* should be used.")
    (output-chunking-p :initarg :output-chunking-p
                       :reader server-output-chunking-p
                       :documentation "Whether the server may use output chunking.")
@@ -78,50 +80,56 @@ socket timeouts.")
                        :documentation "The connection manager that is
 responsible for listening to new connections and scheduling them for
 execution.")
-   (lock :initform (bt:make-lock)
-         :reader server-lock
-         :documentation "A lock which is used to make sure that
-we can shutdown the server cleanly.")
+   #+:lispworks
+   (listener :accessor server-listener
+             :documentation "The Lisp process which listens for
+incoming requests.")
    (server-shutdown-p :initform nil
                       :accessor server-shutdown-p
                       :documentation "Flag that makes the server
 shutdown itself when set to something other than NIL.")
    (access-logger :initarg :access-logger
                   :accessor server-access-logger
-                  :documentation "Function to call to log access to
-the server.  The function must accept the RETURN-CODE, CONTENT and
-CONTENT-LENGTH keyword arguments which are used to pass in additional
-information about the request to log.  In addition, it can use the
-standard request accessor functions that are available to handler
-functions to find out more information about the request.  This slot
-defaults to the LOG-ACCESS function which logs the information to a
-file in a format that can be parsed by most Apache log analysis
-tools.")
+                  :documentation "Designator for a function to call to
+log access to the server.  The function must accept the RETURN-CODE,
+CONTENT and CONTENT-LENGTH keyword arguments which are used to pass in
+additional information about the request to log.  In addition, it can
+use the standard request accessor functions that are available to
+handler functions to find out more information about the request.
+This slot defaults to the LOG-ACCESS function which logs the
+information to a file in a format that can be parsed by most Apache
+log analysis tools.")
    (message-logger :initarg :message-logger
                    :accessor server-message-logger
-                   :documentation "Function to call to log messages by
-the server.  It must accept a severity level for the message, which
-will be one of (:NOTICE :INFO :WARNING), a format string and an
-arbitary number of formatting arguments.  This slot defaults to the
-LOG-MESSAGE function which writes writes the information to a file."))
+                   :documentation "Designator for a function to call
+to log messages by the server.  It must accept a severity level for
+the message, which will be one of :NOTICE, :INFO, or :WARNING, a
+format string and an arbitary number of formatting arguments.  This
+slot defaults to the LOG-MESSAGE function which writes writes the
+information to a file."))
   (:default-initargs
-    :address nil
-    :port 80
-    :name (gensym)
-    :output-chunking-p t
-    :input-chunking-p t
-    :dispatch-table nil
-    :access-logger #'log-access
-    :message-logger #'log-message)
+   :address nil
+   :port 80
+   :name (gensym)
+   :request-class 'request
+   :output-chunking-p t
+   :input-chunking-p t
+   :dispatch-table nil
+   :access-logger 'log-access
+   :message-logger 'log-message)
   (:documentation "An object of this class contains all relevant
 information about a running Hunchentoot server instance."))
 
 (defmethod initialize-instance :after ((server server)
                                        &key connection-manager-class
                                             connection-manager-arguments
-                                            (threaded bt:*supports-threads-p* threaded-specified-p)
-                                            (persistent-connections-p threaded persistent-connections-specified-p)
-                                            (connection-timeout *default-connection-timeout* connection-timeout-provided-p)
+                                            (threaded *supports-threads-p* threaded-specified-p)
+                                            (persistent-connections-p
+                                             threaded
+                                             persistent-connections-specified-p)
+                                            (connection-timeout
+                                             *default-connection-timeout*
+                                             connection-timeout-provided-p)
                                             (read-timeout nil read-timeout-provided-p)
                                             (write-timeout nil write-timeout-provided-p))
   "The CONNECTION-MANAGER-CLASS and CONNECTION-MANAGER-ARGUMENTS
@@ -166,16 +174,9 @@ CONNECTION-TIMEOUT is not used and may not be supplied."
 (defun ssl-p (&optional (server *server*))
   (server-ssl-p server))
 
-(defgeneric server-chunking-p (server)
-  (:documentation "Return non-NIL if the SERVER is in chunking mode
-\(either for input or output)")
-  (:method (server)    
-    (or (server-input-chunking-p server)
-        (server-output-chunking-p server))))
-
 (defmethod print-object ((server server) stream)
   (print-unreadable-object (server stream :type t)
-    (format stream "host ~A port ~A"
+    (format stream "\(host ~A, port ~A)"
             (or (server-address server) "*") (server-port server))))
 
 (defun server-address (&optional (server *server*))
@@ -195,8 +196,8 @@ connections.")
 (defgeneric stop (server)
   (:documentation "Stop the SERVER so that it does no longer accept requests.")
   (:method ((server server))
-    (setf (server-shutdown-p server) t)
-    (shutdown (server-connection-manager server))))
+   (setf (server-shutdown-p server) t)
+   (shutdown (server-connection-manager server))))
 
 (defun start-server (&rest args
                      &key port address dispatch-table name
@@ -208,7 +209,7 @@ connections.")
                      #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl
                      ssl-certificate-file ssl-privatekey-file ssl-privatekey-password
                      access-logger)
-  ;; Except for ssl-certificate-file, which is used to determine
+  ;; except for SSL-CERTIFICATE-FILE, which is used to determine
   ;; whether SSL is desired, all arguments are here so that the lambda
   ;; list is self documenting and ignored otherwise
   (declare (ignore port address dispatch-table name
@@ -231,13 +232,18 @@ host names such as \"www.nowhere.com\" and address strings like
 connections to all IP addresses on the machine.  This is the default.
 
 DISPATCH-TABLE can either be a dispatch table which is to be used by
-this server or NIL which means that at request time *META-DISPATCHER*
-will be called to retrieve a dispatch table.
+this server or NIL which means that the value of the global variable
+*DISPATCH-TABLE* at request time will be used.  This argument is of
+course meaningless if you implement your own dispatch mechanism.
 
 NAME should be a symbol which can be used to name the server.  This
 name can utilized when defining \"easy handlers\" - see
 DEFINE-EASY-HANDLER.  The default name is an uninterned symbol as
 returned by GENSYM.
+
+The REQUEST-CLASS argument determines which class of request objects
+is created when a request comes in and should be \(a symbol naming) a
+class which inherits from REQUEST.  The default is the symbol REQUEST.
 
 If INPUT-CHUNKING-P is true, the server will accept request bodies
 without a `Content-Length' header if the client uses chunked transfer
@@ -272,14 +278,21 @@ to do this if you're using a privileged port like 80.)  SETUID and
 SETGID can be integers \(the actual IDs) or strings \(for the user and
 group name respectively).
 
-ACCESS-LOGGER is a function that is called by the server to log
-requests.  It defaults to the function HUNCHENTOOT::LOG-ACCESS and can
-be overriden for individual servers.  The function needs to accept the
-RETURN-CODE, CONTENT and CONTENT-LENGTH keyword arguments which are
-bound by the server to the HTTP return code, the CONTENT sent back to
-the client and the number of bytes sent back in the request body to
-the client.  HUNCHENTOOT::LOG-ACCESS calls the generic logging
-function specified by LOGGER.
+MESSAGE-LOGGER is a designator for a function to call to log messages
+by the server.  It must accept a severity level for the message \(one
+of :INFO, :WARNING, or :ERROR), a format string, and an arbitary
+number of formatting arguments.  This slot defaults to the LOG-MESSAGE
+function which writes writes the information to a file.
+
+ACCESS-LOGGER is a designator for a function that is called by the
+server to log requests.  It defaults to the function
+HUNCHENTOOT::LOG-ACCESS and can be overriden for individual servers.
+The function needs to accept the RETURN-CODE, CONTENT and
+CONTENT-LENGTH keyword arguments which are bound by the server to the
+HTTP return code, the CONTENT sent back to the client and the number
+of bytes sent back in the request body to the client.
+HUNCHENTOOT::LOG-ACCESS calls the generic logging function specified
+by LOGGER.
 
 If you want your server to use SSL you must provide the pathname
 designator\(s) SSL-CERTIFICATE-FILE for the certificate file and
@@ -308,125 +321,155 @@ associated with a password."
   "Stops the Hunchentoot server SERVER."
   (stop server))
 
-;; Connection manager API
+;; connection manager API
 
 (defconstant +new-connection-wait-time+ 2
-  "Time in seconds to wait for a new connection to arrive before performing a cleanup run.")
+  "Time in seconds to wait for a new connection to arrive before
+performing a cleanup run.")
 
 (defgeneric listen-for-connections (server)
-  (:documentation "Set up a listen socket for the given SERVER and
-listen for incoming connections.  In a loop, accept a connection and
-dispatch it to the server's connection manager object for processing
+  (:documentation "Sets up a listen socket for the given SERVER and
+listens for incoming connections.  In a loop, accepts a connection and
+dispatches it to the server's connection manager object for processing
 using HANDLE-INCOMING-CONNECTION.")
   (:method ((server server))
-    (usocket:with-socket-listener (listener
-                                   (or (server-address server)
-                                       usocket:*wildcard-host*)
-                                   (server-port server)
-                                   :reuseaddress t
-                                   :element-type '(unsigned-byte 8))
-      (do ((new-connection-p (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
-                             (usocket:wait-for-input listener :timeout +new-connection-wait-time+)))
-          ((server-shutdown-p server))
-        (when new-connection-p
-          (let ((client-connection (usocket:socket-accept listener)))
-            (when client-connection
-              (set-timeouts client-connection
-                            (server-read-timeout server)
-                            (server-write-timeout server))
-              (handle-incoming-connection (server-connection-manager server)
-                                          client-connection))))))))
+   #+:lispworks
+   (setf (server-listener server)
+         (comm:start-up-server :service (server-port server)
+                               :address (server-address server)
+                               :process-name (format nil "Hunchentoot listener \(~A:~A)"
+                                                     (or (server-address server) "*") (server-port server))
+                               ;; this function is called once on startup - we
+                               ;; use it to check for errors
+                               :announce (lambda (socket &optional condition)
+                                           (declare (ignore socket))
+                                           (when condition
+                                             (error condition)))
+                               ;; this function is called whenever a connection
+                               ;; is made
+                               :function (lambda (handle)
+                                           (unless (server-shutdown-p server)
+                                             (handle-incoming-connection
+                                              (server-connection-manager server) handle)))
+                               ;; wait until the server was successfully started
+                               ;; or an error condition is returned
+                               :wait t))
+   #-:lispworks
+   (usocket:with-socket-listener (listener
+                                  (or (server-address server)
+                                      usocket:*wildcard-host*)
+                                  (server-port server)
+                                  :reuseaddress t
+                                  :element-type '(unsigned-byte 8))
+     (do ((new-connection-p (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
+                            (usocket:wait-for-input listener :timeout +new-connection-wait-time+)))
+         ((server-shutdown-p server))
+       (when new-connection-p
+         (let ((client-connection (usocket:socket-accept listener)))
+           (when client-connection
+             (set-timeouts client-connection
+                           (server-read-timeout server)
+                           (server-write-timeout server))
+             (handle-incoming-connection (server-connection-manager server)
+                                         client-connection))))))))
 
-(defgeneric initialize-connection-stream (server stream)
-  (:documentation "Wrap the given STREAM with all the additional
-stream classes to support the functionality required by SERVER")
-  (:method (server stream)
-    ;; wrap with chunking-enabled stream if necessary
-    (when (server-chunking-p server)
-      (setq stream (make-chunked-stream stream)))
-    ;; now wrap with flexi stream with "faithful" external format
-    (setq stream
-          (make-flexi-stream stream :external-format +latin-1+))))
+(defgeneric initialize-connection-stream (server stream) 
+ (:documentation "Wraps the given STREAM with all the additional
+stream classes to support the functionality required by SERVER.  The
+methods of this generic function must return the stream to use.")
+ ;; default method does nothing
+ (:method (server stream)
+  (declare (ignore server))
+  stream))
 
 (defgeneric reset-connection-stream (server stream)
-  (:documentation "Reset the given STREAM so that it can be used to
+  (:documentation "Resets the given STREAM so that it can be used to
 process the next request, SERVER is the server that this stream
 belongs to, which determines what to do to reset.  This generic
-function is called after a request has been processed.")
+function is called after a request has been processed and must return
+the stream.")
   (:method (server stream)
-    ;; reset to "faithful" format on each iteration
-    ;; and reset bound of stream as well
-    (setf (flexi-stream-external-format stream) +latin-1+
-          (flexi-stream-bound stream) nil)
     ;; turn chunking off at this point
-    (when (server-chunking-p server)
-      (setf (chunked-stream-output-chunking-p (flexi-stream-stream stream)) nil
-            (chunked-stream-input-chunking-p (flexi-stream-stream stream)) nil))))
+    (cond ((typep stream 'chunked-stream)
+           ;; flush the stream first and check if there's unread input
+           ;; which would be an error
+           (setf (chunked-stream-output-chunking-p stream) nil
+                 (chunked-stream-input-chunking-p stream) nil)
+           ;; switch back to bare socket stream
+           (chunked-stream-stream stream))
+          (t stream))))
+
+(defgeneric dispatch-request (server request reply)
+  (:documentation "")
+  (:method (server request reply)
+   (loop for dispatcher in (or (server-dispatch-table server)
+                               *dispatch-table*)
+         for action = (funcall dispatcher request)
+         when action return (funcall action)
+         finally (setf (return-code reply) +http-not-found+))))
 
 (defgeneric process-connection (server socket)
-
   (:documentation "This function is called by the connection manager
 when a new client connection has been established.  Arguments are the
-SERVER object and a usocket socket stream object in SOCKET.  It reads
-the request headers and hands over to PROCESS-REQUEST.  This is done
-in a loop until the stream has to be closed or until a connection
-timeout occurs.")
-
-  (:method :around (server socket)
-    "The around method on process-connection does the error handling"
-    (declare (ignore server socket))
+SERVER object and a usocket socket stream object \(or a LispWorks
+socket handle) in SOCKET.  It reads the request headers and hands over
+to PROCESS-REQUEST.  This is done in a loop until the stream has to be
+closed or until a connection timeout occurs.")
+  (:method :around (*server* socket)
+    "The around method does the error handling."
+    (declare (ignore socket))
+    ;; note that this call also binds *SERVER*
     (handler-bind ((error
                     ;; abort if there's an error which isn't caught inside
                     (lambda (cond)
-                      (log-message *lisp-errors-log-level*
-                                   "Error while processing connection: ~A" cond)                    
+                      (log-message* *lisp-errors-log-level*
+                                    "Error while processing connection: ~A" cond)                    
                       (return-from process-connection)))
                    (warning
                     ;; log all warnings which aren't caught inside
                     (lambda (cond)
-                      (log-message *lisp-warnings-log-level*
-                                   "Warning while processing connection: ~A" cond))))
+                      (log-message* *lisp-warnings-log-level*
+                                    "Warning while processing connection: ~A" cond))))
       (call-next-method)))
-
-  (:method (server socket)
-    (let ((stream (initialize-connection-stream server (usocket:socket-stream socket))))
+  (:method (*server* socket)
+   (let ((*hunchentoot-stream*
+          (initialize-connection-stream *server* (make-socket-stream socket *server*))))
       (unwind-protect
-           (progn
-             ;; Process requests until either the server is shut down,
-             ;; *close-hunchentoot-stream* has been set to t by the
-             ;; handler or the peer fails to send a request.
-             (do ((*close-hunchentoot-stream* t)
-                  (*hunchentoot-stream* stream)
-                  (*server* server))
-                 ((server-shutdown-p server))
-               (multiple-value-bind (headers-in method url-string server-protocol)
-                   (get-request-data stream)
-                 ;; check if there was a request at all
-                 (unless method
-                   (return))
-                 ;; Bind request-special variables, then process the request
-                 (let ((*reply* (make-instance 'reply))
-                       (*session* nil))
-                   (process-request
-                    (make-instance 'request
-                                   :remote-addr (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
-                                   :remote-port (usocket:get-peer-port socket)
-                                   :headers-in headers-in
-                                   :content-stream stream
-                                   :method method
-                                   :uri url-string
-                                   :server-protocol server-protocol)))
-                 (force-output stream)
-                 (reset-connection-stream server stream)
-                 (when *close-hunchentoot-stream*
-                   (return)))))
-        (when stream
-          ;; As we are at the end of the request here, we ignore all
+          ;; process requests until either the server is shut down,
+          ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
+          ;; handler or the peer fails to send a request.
+          (do ((*close-hunchentoot-stream* t))
+              ((server-shutdown-p *server*))
+            (multiple-value-bind (headers-in method url-string server-protocol)
+                (get-request-data *hunchentoot-stream*)
+              ;; check if there was a request at all
+              (unless method
+                (return))
+              ;; bind per-request special variables, then process the
+              ;; request - note that *SERVER* was bound above already
+              (let ((*reply* (make-instance 'reply))
+                    (*session* nil))
+                (multiple-value-bind (remote-addr remote-port)
+                    (get-peer-address-and-port socket)
+                  (process-request (make-instance (server-request-class *server*)
+                                                  :remote-addr remote-addr
+                                                  :remote-port remote-port
+                                                  :headers-in headers-in
+                                                  :content-stream *hunchentoot-stream*
+                                                  :method method
+                                                  :uri url-string
+                                                  :server-protocol server-protocol))))
+              (force-output *hunchentoot-stream*)
+              (setq *hunchentoot-stream* (reset-connection-stream *server* *hunchentoot-stream*))
+              (when *close-hunchentoot-stream*
+                (return))))
+        (when *hunchentoot-stream*
+          ;; as we are at the end of the request here, we ignore all
           ;; errors that may occur while flushing and/or closing the
           ;; stream.
           (ignore-errors
-            (force-output stream)
-            (close stream :abort t)))))))
+            (force-output *hunchentoot-stream*)
+            (close *hunchentoot-stream* :abort t)))))))
 
 (defun process-request (request)
   "This function is called by PROCESS-CONNECTION after the incoming
@@ -443,11 +486,9 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                       (split "\\s*,\\*" transfer-encodings)))
               (when (member "chunked" transfer-encodings :test #'equalp)
                 ;; turn chunking on before we read the request body
-                (setf (chunked-stream-input-chunking-p 
-                       (flexi-stream-stream *hunchentoot-stream*)) t))))
+                (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
+                      (chunked-stream-input-chunking-p *hunchentoot-stream*) t))))
           (let* ((*request* request)
-                 (*dispatch-table* (or (server-dispatch-table *server*)
-                                       (funcall *meta-dispatcher* *server*)))
                  backtrace)
             (multiple-value-bind (body error)
                 (catch 'handler-done
@@ -461,11 +502,11 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                                                         *log-lisp-backtraces-p*))
                                                (get-backtrace cond)))
                                     (when *log-lisp-errors-p*
-                                      (log-message *lisp-errors-log-level*
-                                                   "~A~:[~*~;~%~A~]"
-                                                   cond
-                                                   *log-lisp-backtraces-p*
-                                                   backtrace))
+                                      (log-message* *lisp-errors-log-level*
+                                                    "~A~:[~*~;~%~A~]"
+                                                    cond
+                                                    *log-lisp-backtraces-p*
+                                                    backtrace))
                                     ;; if the headers were already sent
                                     ;; the error happens within the body
                                     ;; and we have to close the stream
@@ -476,15 +517,15 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                                  (warning
                                   (lambda (cond)
                                     (when *log-lisp-warnings-p*
-                                      (log-message *lisp-warnings-log-level*
-                                                   "~A~:[~*~;~%~A~]"
-                                                   cond
-                                                   *log-lisp-backtraces-p*
-                                                   backtrace)))))
+                                      (log-message* *lisp-warnings-log-level*
+                                                    "~A~:[~*~;~%~A~]"
+                                                    cond
+                                                    *log-lisp-backtraces-p*
+                                                    backtrace)))))
                     ;; skip dispatch if bad request
                     (when (eql (return-code) +http-ok+)
                       ;; now do the work
-                      (dispatch-request *dispatch-table*))))
+                      (dispatch-request *server* *request* *reply*))))
               (when error
                 (setf (return-code *reply*)
                       +http-internal-server-error+))
@@ -499,7 +540,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
             t))
       (dolist (path *tmp-files*)
         (when (and (pathnamep path) (probe-file path))
-          ;; The handler may have chosen to (re)move the uploaded
+          ;; the handler may have chosen to (re)move the uploaded
           ;; file, so ignore errors that happen during deletion.
           (ignore-errors
             (delete-file path)))))))

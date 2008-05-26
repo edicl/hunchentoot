@@ -124,22 +124,25 @@ NAME. Search is case-sensitive."
   (cdr (assoc name (cookies-out reply) :test #'string=)))
 
 (defgeneric (setf header-out) (new-value name &optional reply)
-
+  (:documentation "Changes the current value of the outgoing http
+header named NAME \(a keyword or a string).  If a header with this
+name doesn't exist, it is created.")
   (:method (new-value (name symbol) &optional (reply *reply*))
-    (let ((entry (assoc name (headers-out reply))))
-      (if entry
-          (setf (cdr entry) new-value)
-          (setf (slot-value reply 'headers-out)
-                (acons name new-value (headers-out reply))))
-      new-value))
-
+   ;; the default method
+   (let ((entry (assoc name (headers-out reply))))
+     (if entry
+       (setf (cdr entry) new-value)
+       (setf (slot-value reply 'headers-out)
+             (acons name new-value (headers-out reply))))
+     new-value))
   (:method (new-value (name string) &optional (reply *reply*))
-    (setf (header-out (make-keyword name :destructivep nil) reply) new-value))
-
+   "If NAME is a string, it is converted to a keyword first."
+   (setf (header-out (as-keyword name :destructivep nil) reply) new-value))
   (:method :after (new-value (name (eql :content-length)) &optional (reply *reply*))
-    (check-type new-value integer)
-    (setf (slot-value reply 'content-length) new-value))
-
+   "Special case for the `Content-Length' header."
+   (check-type new-value integer)
+   (setf (slot-value reply 'content-length) new-value))
   (:method :after (new-value (name (eql :content-type)) &optional (reply *reply*))
-    (check-type new-value string)
-    (setf (slot-value reply 'content-type) new-value)))
+   "Special case for the `Content-Type' header."
+   (check-type new-value string)
+   (setf (slot-value reply 'content-type) new-value)))

@@ -44,27 +44,17 @@
     </p>
     <p>
       Hunchentoot talks with its front-end or with the client over
-      TCP/IP sockets and uses multiprocessing to handle several
-      requests at the same time.  Therefore, it cannot be implemented
-      completely in 
+      TCP/IP sockets and optionally uses multiprocessing to handle
+      several requests at the same time.  Therefore, it cannot be
+      implemented completely in
       <a href="http://www.lispworks.com/documentation/HyperSpec/Front/index.htm">portable
-        Common Lisp</a>.  It currently works with 
+        Common Lisp</a>.  It currently works "natively" with 
       <a href="http://www.lispworks.com/">LispWorks</a> (which is the
-      main development and testing platform), 
-      <a href="http://www.cons.org/cmucl/">CMUCL</a> (with MP support),
-      <a href="http://sbcl.sourceforge.net/">SBCL</a> (with Unicode
-      and 
-      <a href="http://abstractstuff.livejournal.com/26811.html">thread</a>
-      <a href="http://common-lisp.net/pipermail/tbnl-devel/2006-November/000780.html">support</a>),
-      <a href="http://www.clozure.com/clozurecl.html">Clozure CL</a>,
-      and <a href="http://www.franz.com/products/allegrocl/">Allegro
-        Common Lisp</a>.  (Note: You can use Hunchentoot with 
-      <a href="http://clisp.cons.org">CLISP</a> or with versions of CMUCL
-      or SBCL without threads, for example on Windows, but this is not
-      recommended except for development purposes.)  Porting to other
-      CL implementations shouldn't be too hard, see the files
-      <code>port-xxx.lisp</code> and <code>unix-xxx.lisp</code> which
-      comprise all the implementation-specific code.
+      main development and testing platform), and additionally on all
+      Lisps which are supported by the compatibility
+      layers <a href="http://common-lisp.net/project/usocket/">usocket</a>
+      and <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
+      Threads</a>.
     </p>
     <p>
       Hunchentoot comes with a 
@@ -103,30 +93,45 @@
       <li>Kevin Rosenberg's <a href="http://www.cliki.net/cl-base64">CL-BASE64</a>,</li>
       <li>Janis Dzerins' <a href="http://common-lisp.net/project/rfc2388/">RFC2388</a>,</li>
       <li>Peter Seibel's <a href="http://weitz.de/cl-fad/">CL-FAD</a>,</li>
+      <li>Erik Huelsmann's <a href="http://common-lisp.net/project/usocket">usocket</a> (unless you're using LispWorks),</li>
+      <li>Greg Pfeil's <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
+          Threads</a> (unless you're using LispWorks),
+      </li>
       <li>
         David Lichteblau's <a href="http://common-lisp.net/project/cl-plus-ssl/">CL+SSL</a>
         (unless you're using LispWorks),
       </li>
       <li>
         and my own <a href="http://weitz.de/flexi-streams/">FLEXI-STREAMS</a> (0.12.0 or higher),
-        <a href="http://weitz.de/chunga/">Chunga</a>, <a href="http://weitz.de/cl-ppcre/">
+        <a href="http://weitz.de/chunga/">Chunga</a> (0.5.0 or higher), <a href="http://weitz.de/cl-ppcre/">
           CL-PPCRE</a>, and <a href="http://weitz.de/url-rewrite/">URL-REWRITE</a> (plus
         <a href="http://weitz.de/cl-who/">CL-WHO</a> for the <a href="#example">example code</a>). 
       </li>
     </ul>
 
     Make sure to use the <em>newest</em> versions of all of these
-    libraries (which might themselves depend on other libraries)!
-    Note: You can compile Hunchentoot without SSL support - and thus
-    without the need to have CL+SSL - if you add
+    libraries (which might themselves depend on other libraries) - try
+    the repository versions if you're in doubt.  Note: You can compile
+    Hunchentoot without SSL support - and thus without the need to
+    have CL+SSL - if you add
     <code>:HUNCHENTOOT-NO-SSL</code> to
     <a href="http://www.lispworks.com/documentation/HyperSpec/Body/v_featur.htm">
       <code>*FEATURES*</code></a> <em>before</em> you compile it.
     <p>
+      Hunchentoot will only work with Lisps where
+      the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_c.htm#character_code">character
+      codes</a> of
+      all <a href="http://en.wikipedia.org/wiki/ISO_8859-1">Latin-1</a>
+      characters coincide with their
+      Unicode <a href="http://en.wikipedia.org/wiki/Code_point">code
+      points</a> (which is the case for all current implementations I
+      know).
+    </p>
+    <p>
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 0.15.6.
+      The current version is 1.0.0.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via
@@ -162,9 +167,8 @@
       <a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html">mod_proxy</a>
       module with a configuration that looks like this:
 
-      <pre><a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html#proxypass" class="noborder">ProxyPass</a> /hunchentoot http://127.0.0.1:3000/hunchentoot
-        <a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html#proxypassreverse" class="noborder">ProxyPassReverse</a> /hunchentoot http://127.0.0.1:3000/hunchentoot
-      </pre>
+<pre><a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html#proxypass" class="noborder">ProxyPass</a> /hunchentoot http://127.0.0.1:3000/hunchentoot
+<a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html#proxypassreverse" class="noborder">ProxyPassReverse</a> /hunchentoot http://127.0.0.1:3000/hunchentoot</pre>
 
       This will tunnel all requests where the URI path begins with
       <code>"/hunchentoot"</code> to a (Hunchentoot) server listening on
@@ -210,9 +214,8 @@
       To run the example, enter the following code into your listener:
     </p>
 
-    <pre>(<a class="noborder" href="http://common-lisp.net/~mmommer/asdf-howto.shtml#sec11">asdf:oos</a> 'asdf:load-op :hunchentoot-test)
-      (hunchentoot:<a class="noborder" href="#start-server">start-server</a> :port 4242)
-    </pre>
+<pre>(<a class="noborder" href="http://common-lisp.net/~mmommer/asdf-howto.shtml#sec11">asdf:oos</a> 'asdf:load-op :hunchentoot-test)
+(hunchentoot:<a class="noborder" href="#start-server">start-server</a> :port 4242)</pre>
 
     You should now be able to point your browser at
     <code>http://localhost:4242/hunchentoot/test</code> and see
@@ -324,10 +327,9 @@
       <clix:function name="start-server">
         <clix:lambda-list>
           <clix:lkw>key</clix:lkw> port address dispatch-table name
-          input-chunking-p connection-timeout setuid setgid
-          access-logger message-logger
-          ssl-certificate-file ssl-privatekey-file
-          ssl-privatekey-password
+          request-class input-chunking-p connection-timeout setuid
+          setgid access-logger message-logger ssl-certificate-file
+          ssl-privatekey-file ssl-privatekey-password
         </clix:lambda-list>
         <clix:returns>
           server
@@ -351,12 +353,20 @@
             machine.  This is the default.
           </p>
           <p>
-            <clix:arg>dispatch-table</clix:arg> can either be a
+            The <clix:arg>request-class</clix:arg> argument determines
+            which class of request objects is created when a request
+            comes in and should be (a symbol naming) a class which
+            inherits from <clix:ref>REQUEST</clix:ref>.  The default is the symbol
+            <code>REQUEST</code>.
+          </p>
+          <p>
+            <clix:arg>dispatch-table</clix:arg> should be a
             <a href="#*dispatch-table*">dispatch table</a> which is to
             be used by this server or <code>NIL</code> which means that
-            at request time <a href="#*meta-dispatcher*">
-              <code>*META-DISPATCHER*</code></a> will be called to retrieve
-            a dispatch table.
+            the value of the global variable <a href="#*dispatch-table*">
+            <code>*DISPATCH-TABLE*</code></a> at request time will be
+            used.  This argument is of course meaningless if you
+            implement your own dispatch mechanism.
           </p>
           <p>
             <clix:arg>name</clix:arg> should be a symbol which can be used
@@ -388,34 +398,33 @@
             limit.
           </p>
           <p>
-            <clix:arg>access-logger</clix:arg> specifies a function
-            that Hunchentoot should call in order to log requests to
-            the server.  The function must accept the keyword
-            arguments RETURN-CODE, CONTENT and CONTENT-LENGTH which
-            are set to the HTTP response code, the content sent back
-            to the client and the length of the content,
+            <clix:arg>access-logger</clix:arg> specifies a designator
+            for a function that Hunchentoot should call in order to
+            log requests to the server.  The function must accept the
+            keyword arguments RETURN-CODE, CONTENT and CONTENT-LENGTH
+            which are set to the HTTP response code, the content sent
+            back to the client and the length of the content,
             respectively.  The function may use standard request
             accessors to determine additional information about the
             request and its outcome.  By default, Hunchentoot sets
             this parameter to the name of a function that logs to a
-            file.  See <clix:ref>log</clix:ref> for further
-            information.  Set this parameter to NIL in order to
+            file.  See <clix:ref>ACCESS-LOG-FILE</clix:ref> for further
+            information.  Set this parameter to <code>NIL</code> in order to
             suppress access logging altogether.
           </p>
           <p>
             <clix:arg>message-logger</clix:arg> specifies a function
             that Hunchentoot should call in order to log an error or
             other event.  The function must accept at least two
-            arguments, the message severity code (one of :EMERG,
-            :ALERT, :CRIT, :ERROR, :WARNING, :NOTICE, :INFO and
-            :DEBUG) and a format string, in standard FORMAT syntax.
-            Additional arguments may be passed and will be forwarded
-            to FORMAT when generating the message string.  By
-            default, Hunchentoot sets this parameter to the name of
+            arguments, the message severity code (one of <code>:INFO</code>,
+            <code>:WARNING</code>, or <code>:ERROR</code>) Additional
+            arguments may be passed and will be forwarded
+            to <code>FORMAT</code> when generating the message string.
+            By default, Hunchentoot sets this parameter to the name of
             a function that logs to a file.
-            See <clix:ref>log</clix:ref> for further information.
-            Set this parameter to NIL in order to suppress message
-            logging altogether.
+            See <clix:ref>log-file</clix:ref> for further information.  Set
+            this parameter to <code>NIL</code> in order to suppress
+            message logging altogether.
           </p>
           <p>
             On Unix you can use <clix:arg>setuid</clix:arg>
@@ -493,7 +502,7 @@
           of <clix:ref>START-SERVER</clix:ref> and can be changed at
           runtime.  It can be set to NIL which means that the server
           doesn't have its own dispatch table
-          and <clix:ref>*META-DISPATCHER*</clix:ref> should be called
+          and <clix:ref>*DISPATCH-TABLE*</clix:ref> should be used
           instead.
         </clix:description>
       </clix:accessor>
@@ -561,8 +570,6 @@
 
       <clix:special-variable name="*dispatch-table*">
         <clix:description>
-          The return value of the initial value
-          of <clix:ref>*META-DISPATCHER*</clix:ref>.
           <p>
             This is a list
             of <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_f.htm#function_designator">function
@@ -611,23 +618,6 @@
           by <clix:ref>DEFAULT-DISPATCHER</clix:ref>. The default value is
           a function which unconditonally shows a short Hunchentoot info
           page.
-        </clix:description>
-      </clix:special-variable>
-
-      <clix:special-variable name="*meta-dispatcher*">
-        <clix:description>
-          The value of this variable should be a function of one
-          argument.  It is called with the current Hunchentoot server
-          instance (unless the server
-          has <a href="#server-dispatch-table">its own dispatch
-            table</a>) and must return a dispatch table suitable for
-          Hunchentoot.  The initial value is a function which always
-          unconditionally returns <clix:ref>*DISPATCH-TABLE*</clix:ref>.
-          <p>
-            This can obviously be used to assign different dispatch
-            tables to different servers (and is useless if you only have
-            one server).
-          </p>
         </clix:description>
       </clix:special-variable>
 
@@ -746,13 +736,11 @@
             <a href="http://www.lispworks.com/documentation/HyperSpec/Body/03_de.htm">destructuring
               lambda list</a>
           </p>
-          <pre>  (name &amp;key uri server-names default-parameter-type default-request-type).
-          </pre>
+          <pre>(name &amp;key uri server-names default-parameter-type default-request-type).</pre>
           <clix:arg>lambda-list</clix:arg> is a list the elements of which
           are either a symbol <clix:arg>var</clix:arg> or a list matching
           the destructuring lambda list
-          <pre>  (var &amp;key real-name parameter-type init-form request-type).
-          </pre>
+          <pre>(var &amp;key real-name parameter-type init-form request-type).</pre>
           The resulting handler will be a Lisp function with the
           name <clix:arg>name</clix:arg> and keyword parameters named by
           the <clix:arg>var</clix:arg> symbols.
@@ -856,8 +844,7 @@
             In the case of <code>'ARRAY</code>, all GET/POST parameters
             which have a name like the result of
           </p>
-          <pre>  (format nil "~A[~A]" real-name n)
-          </pre>
+          <pre>(format nil "~A[~A]" real-name n)</pre>
           where <clix:arg>n</clix:arg> is a non-negative integer, will be
           assembled into an array where the <clix:arg>n</clix:arg>th element
           will be set accordingly, after conversion to the inner type.
@@ -871,15 +858,13 @@
           <p>
             The full form of a <code>'HASH-TABLE</code> parameter type is
           </p>
-          <pre>  (hash-table inner-type key-type test-function),
-          </pre>
+          <pre>(hash-table inner-type key-type test-function)</pre>
           but <clix:arg>key-type</clix:arg>
           and <clix:arg>test-function</clix:arg> can be left out in which
           case they default to <code>'STRING</code>
           and <code>'EQUAL</code>, respectively.  For this parameter type,
           all GET/POST parameters which have a name like the result of
-          <pre>  (format nil "~A{~A}" real-name key)
-          </pre>
+          <pre>(format nil "~A{~A}" real-name key)</pre>
           (where <clix:arg>key</clix:arg> is a string that doesn't contain
           curly brackets) will become the values (after conversion
           to <clix:arg>inner-type</clix:arg>) of a hash table with test
@@ -968,9 +953,24 @@
         similar to environment variables in CGI scripts.)
       </p>
 
+      <clix:class name="request">
+        <clix:description>
+          Objects of this class hold all the information about
+          incoming requests and are used by Hunchentoot for the
+          dispatch mechanism, amongst other things.  You should not
+          mess with the slots of these objects directly, but you can
+          subclass <clix:ref>REQUEST</clix:ref> in order to implement
+          your own behaviour.  See for example
+          the <clix:arg>request-class</clix:arg> keyword argument
+          of <clix:ref>START-SERVER</clix:ref>, the
+          function <clix:ref>DISPATCH-REQUEST</clix:ref>, and the
+          variable <clix:ref>*REQUEST*</clix:ref>.
+        </clix:description>
+      </clix:class>
+
       <clix:special-variable name="*request*">
         <clix:description>
-          Holds the current <code>REQUEST</code> object.
+          Holds the current <clix:ref>REQUEST</clix:ref> object.
         </clix:description>
       </clix:special-variable>
 
@@ -1080,8 +1080,7 @@
           a <a href="http://www.faqs.org/rfcs/rfc2388.html">
             <code>multipart/form-data</code>
           </a> form, the value of this function is a three-element list
-          <pre>  (path file-name content-type)
-          </pre>
+          <pre>(path file-name content-type)</pre>
           where <clix:arg>path</clix:arg> is a pathname denoting the place
           were the uploaded file was
           stored, <clix:arg>file-name</clix:arg> (a string) is the file
@@ -1610,13 +1609,14 @@
       <clix:function name="send-headers">
         <clix:returns>stream</clix:returns>
         <clix:description>
-          Sends the initial status line and all headers as determined by
-          the <code>REPLY</code> object <clix:ref>*REPLY*</clix:ref>.
-          Returns
-          a <a href="http://weitz.de/flexi-streams/#flexi-streams">flexi
-            stream</a> to which the body of the reply can be written.
-          Once this function has been called, further changes
-          to <clix:ref>*REPLY*</clix:ref> don't have any effect.  Also,
+          Sends the initial status line and all headers as determined
+          by the <code>REPLY</code>
+          object <clix:ref>*REPLY*</clix:ref>.  Returns
+          a <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_b.htm#binary">binary</a>
+          to which the body of the reply can be written.  Once this
+          function has been called, further changes
+          to <clix:ref>*REPLY*</clix:ref> don't have any effect.
+          Also,
           <a href="#log">automatic handling of errors</a> (i.e. sending
           the corresponding status code to the browser, etc.) is turned
           off for this request.  Likewise, functions
@@ -1642,12 +1642,7 @@
           Gets and sets the external format of the <code>REPLY</code>
           object <clix:arg>reply</clix:arg>.  This external format is used
           when character content is written to the client after the
-          headers have been sent.  In particular, it is the external
-          format of the stream returned
-          by <clix:ref>SEND-HEADERS</clix:ref> (but of course you can
-          change it because it's
-          a <a href="http://weitz.de/flexi-streams/#flexi-streams">flexi
-            stream</a>).
+          headers have been sent.
           <p>
             The initial value for each request is the value
             of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>.
@@ -1725,35 +1720,34 @@
       defined like this:
 
       <pre>(defclass cookie ()
-        ((name :initarg :name
-        :reader <a class="noborder" name="cookie-name">cookie-name</a>
-        :type string
-        :documentation "The name of the cookie - a string.")
-        (value :initarg :value
-        :accessor <a class="noborder" name="cookie-value">cookie-value</a>
-        :initform ""
-        :documentation "The value of the cookie. Will be URL-encoded when sent to the browser.")
-        (expires :initarg :expires
-        :initform nil
-        :accessor <a class="noborder" name="cookie-expires">cookie-expires</a>
-        :documentation "The time (a universal time) when the cookie expires (or NIL).")
-        (path :initarg :path
-        :initform nil
-        :accessor <a class="noborder" name="cookie-path">cookie-path</a>
-        :documentation "The path this cookie is valid for (or NIL).")
-        (domain :initarg :domain
-        :initform nil
-        :accessor <a class="noborder" name="cookie-domain">cookie-domain</a>
-        :documentation "The domain this cookie is valid for (or NIL).")
-        (secure :initarg :secure
-        :initform nil
-        :accessor <a class="noborder" name="cookie-secure">cookie-secure</a>
-        :documentation "A generalized boolean denoting whether this is a secure cookie.")
-        (http-only :initarg :http-only
-        :initform nil
-        :accessor <a class="noborder" name="cookie-http-only">cookie-http-only</a>
-        :documentation "A generalized boolean denoting whether this is a <a href="http://msdn2.microsoft.com/en-us/library/ms533046.aspx">HttpOnly</a> cookie.")))
-      </pre>
+  ((name :initarg :name
+         :reader <a class="noborder" name="cookie-name">cookie-name</a>
+         :type string
+         :documentation "The name of the cookie - a string.")
+   (value :initarg :value
+          :accessor <a class="noborder" name="cookie-value">cookie-value</a>
+          :initform ""
+          :documentation "The value of the cookie. Will be URL-encoded when sent to the browser.")
+   (expires :initarg :expires
+            :initform nil
+            :accessor <a class="noborder" name="cookie-expires">cookie-expires</a>
+            :documentation "The time (a universal time) when the cookie expires (or NIL).")
+   (path :initarg :path
+         :initform nil
+         :accessor <a class="noborder" name="cookie-path">cookie-path</a>
+         :documentation "The path this cookie is valid for (or NIL).")
+   (domain :initarg :domain
+           :initform nil
+           :accessor <a class="noborder" name="cookie-domain">cookie-domain</a>
+           :documentation "The domain this cookie is valid for (or NIL).")
+   (secure :initarg :secure
+           :initform nil
+           :accessor <a class="noborder" name="cookie-secure">cookie-secure</a>
+           :documentation "A generalized boolean denoting whether this is a secure cookie.")
+   (http-only :initarg :http-only
+              :initform nil
+              :accessor <a class="noborder" name="cookie-http-only">cookie-http-only</a>
+              :documentation "A generalized boolean denoting whether this is a <a href="http://msdn2.microsoft.com/en-us/library/ms533046.aspx">HttpOnly</a> cookie.")))</pre>
 
       The <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_r.htm#reader">reader</a>
       <clix:ref>COOKIE-NAME</clix:ref> and
@@ -2114,10 +2108,7 @@
       that logfile analysis using standard tools is possible.
       Errors during request processing are logged to a separate
       file.  The default locations of the log files are
-      implementation dependent.  On most Unix based systems, they
-      are put into the <code>/tmp/</code> directory, whereas on most
-      Windows based systems, <code>C:\</code> will be used.
-
+      implementation dependent.
       <p>
         If you intend to use Hunchentoots default logging facility,
         please note that the log files are kept open forever.  If
@@ -2130,7 +2121,7 @@
 
       <p>
         The default logging behavior of Hunchentoot can be modified
-        by supplying the ACCESS-LOGGER and MESSAGE-LOGGER arguments
+        by supplying the <clix:arg>access-logger</clix:arg> and <clix:arg>message-logger</clix:arg> arguments
         to the <clix:ref>START-SERVER</clix:ref> function.
       </p>
 
@@ -2143,7 +2134,7 @@
       <clix:accessor name="log-file">
         <clix:returns>pathname</clix:returns>
         <clix:description>
-          This function can be used to query and set the location of
+          These functions can be used to query and set the location of
           the error log file.
         </clix:description>
       </clix:accessor>
@@ -2151,7 +2142,7 @@
       <clix:accessor name="access-log-file">
         <clix:returns>pathname</clix:returns>
         <clix:description>
-          This function can be used to query and set the location of
+          These functions can be used to query and set the location of
           the access log file.
         </clix:description>
       </clix:accessor>
@@ -2160,15 +2151,12 @@
         <clix:lambda-list>log-level format <clix:lkw>rest</clix:lkw> args</clix:lambda-list>
         <clix:returns>|</clix:returns>
         <clix:description>
-          Writes a message to <a href="#log-file">the current
-            message log file</a>. <clix:arg>log-level</clix:arg>
-          should be one of the
-          keywords <code>:EMERG</code>, <code>:ALERT</code>, <code>:CRIT</code>,
-          <code>:ERROR</code>, <code>:WARNING</code>, <code>:NOTICE</code>, <code>:INFO</code>,
-          or <code>:DEBUG</code> which correspond to the various
-          Apache log levels. <clix:arg>log-level</clix:arg> can also
-          be <code>NIL</code>.  The log level is written to the log
-          file unless it's <code>NIL</code>.
+          Writes a message to <a href="#log-file">the current message
+            log file</a>. <clix:arg>log-level</clix:arg> should be a
+            keyword denoting a log
+            level. <clix:arg>log-level</clix:arg> can also
+            be <code>NIL</code>.  The log level is written to the log
+            file unless it's <code>NIL</code>.
           <clix:arg>format</clix:arg> and <clix:arg>args</clix:arg> are used
           as with
           <a href="http://www.lispworks.com/documentation/HyperSpec/Body/f_format.htm">
@@ -2294,7 +2282,7 @@
       to use the debugger of your Lisp implementation.  In order to
       prevent Hunchentoot from catching errors detected during request
       execution, use
-      the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/v_break_.htm#STbreak-on-signalsST">*break-on-signals*</a>
+      the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/v_break_.htm"><code>*BREAK-ON-SIGNALS*</code></a>
       special variable.
 
       <p>
@@ -2315,36 +2303,6 @@
       <p>
         Good luck... :)
       </p>
-
-      <clix:special-variable name="*catch-errors-p*">
-        <clix:description>
-          If the value of this variable is <code>NIL</code> (the default
-          is <code>T</code>), then errors which happen while a request
-          is handled aren't <a href="#log">caught as usual</a>, but
-          instead your
-          Lisp's <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_d.htm#debugger">debugger</a>
-          is <a href="http://www.lispworks.com/documentation/HyperSpec/Body/f_invoke.htm">invoked</a>.
-          This variable should obviously always be set to
-          a <em>true</em> value in a production environment.
-          See <clix:ref>MAYBE-INVOKE-DEBUGGER</clix:ref> if you want to
-          fine-tune this behaviour.
-        </clix:description>
-      </clix:special-variable>
-
-      <clix:function generic="true" name="maybe-invoke-debugger">
-        <clix:lambda-list>condition</clix:lambda-list>
-        <clix:returns>|</clix:returns>
-        <clix:description>
-          This generic function is called whenever a
-          <a href="http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm">condition</a>
-          <clix:arg>condition</clix:arg> is signaled in Hunchentoot.  You
-          might want to specialize it on specific condition classes for
-          debugging purposes.  The default
-          method <a href="http://www.lispworks.com/documentation/HyperSpec/Body/f_invoke.htm">invokes
-            the debugger</a> with <clix:arg>condition</clix:arg> if
-          <clix:ref>*CATCH-ERRORS-P*</clix:ref> is <code>NIL</code>.
-        </clix:description>
-      </clix:function>
 
       <clix:special-variable name="*header-stream*">
         <clix:description>
@@ -2623,41 +2581,12 @@
           <code>MP::STARTUP-IDLE-AND-TOP-LEVEL-LOOPS</code></a>.)
       </li>
       <li>
-        Hunchentoot is faster if handlers return the data to send
-        back to the client as string rather than having the handlers
-        write to the response stream themselves.  The reason for
-        this is that, if the response is returned from the handler
-        as a string, it can be converted to the right external
-        format using a single call to FLEXI-STREAMS:STRING-TO-OCTETS
-        rather than having to pass FLEXI-STREAMS character by
-        character.  Be aware that memory consumption with this
-        aproach is higher.
-      </li>
-      <li>
-        In the same vein, it is preferable to read the request body
-        in one go, using RAW-POST-DATA instead of reading the
-        request body using a FLEXI-STREAM.  Usually, this is
-        automatically done right by Hunchentoot to read POST data,
-        and you should only use the WANT-STREAM keyword argument to
-        the RAW-POST-DATA in rare circumstances.
-      </li>
-      <li>
-        All text output sent from <a href="#handlers">handlers</a>
-        directly to the response stream directly goes through two
-        layers
-        of <a href="http://www.nhplace.com/kent/CL/Issues/stream-definition-by-user.html">Gray
-          streams</a> by default
-        (<a href="http://weitz.de/flexi-streams/">FLEXI-STREAMS</a>
-        and <a href="http://weitz.de/chunga/">Chunga</a>).  This
-        isn't an issue for small to medium-sized pages, but can be
-        for large ones.  There are several ways to cope with this
-        - <a href="http://common-lisp.net/pipermail/tbnl-devel/2007-March/001093.html">return
-          binary data from
-          handlers</a>, <a href="http://common-lisp.net/pipermail/tbnl-devel/2007-March/001099.html">bypass
-          FLEXI-STREAMS</a>, etc.  Try it, and if you <em>really</em>
-        think that Hunchentoot is too slow for what you're trying to
-        do and what you'll need, ask on the <a href="#mail">mailing
-          list</a> and we'll try to help.
+        It is preferable to read the request body in one go,
+        using <clix:ref>RAW-POST-DATA</clix:ref> instead of reading
+        the request body using a flexi stream.  Usually, this is
+        automatically done right by Hunchentoot to read POST data, and
+        you should only use the <clix:arg>want-stream</clix:arg> keyword argument to the
+        <clix:ref>RAW-POST-DATA</clix:ref> in rare circumstances.
       </li>
     </ul>
   </clix:chapter>
@@ -2715,13 +2644,18 @@
       most of TBNL and replaces it completely.
     </p>
     <p>
-      Hunchentoot_X.X.X, released in May 2008, moved to using the
-      usocket network portability library and bordeaux-threads for
-      threading, thereby removing most of the platform dependent
-      code in the Hunchentoot code.  Threading behavior was made
-      controlable by the THREADED keyword argument
-      to <clix:ref>START-SERVER</clix:ref>.  mod_lisp support was
-      removed in this released due to the lack of interest.
+      Hunchentoot 1.0.0, released in May 2008, is again a major
+      rewrite and should be considered work in progress.  It moved to
+      using the usocket network portability library and Bordeaux
+      Threads for threading, thereby removing most of the platform
+      dependent code in the Hunchentoot code.  Threading behavior was
+      made controllable by the <clix:arg>threaded</clix:arg> keyword
+      argument
+      to <clix:ref>START-SERVER</clix:ref>.  <a href="http://www.cliki.net/mod_lisp">mod_lisp</a>
+      support was removed in this release to simplify the code base
+      and due to the lack of interest. A significant part of the 1.0.0
+      redesign was done
+      by <a href="http://netzhansa.blogspot.com/">Hans Hübner</a>.
     </p>
   </clix:chapter>
 
@@ -2737,24 +2671,29 @@
 
   <clix:chapter name="ack" title="Acknowledgements">
 
-    Thanks to Jeff Caldwell - TBNL would not have been released without his
-    efforts. Thanks to <a href="http://www.fractalconcept.com/">Marc
-      Battyani</a> for mod_lisp and
-    to <a href="http://www.swiss.ai.mit.edu/~cph/">Chris Hanson</a> for
-    mod_lisp2. Thanks to <a href="http://www.cliki.net/Stefan%20Scholl">Stefan
-      Scholl</a> and Travis Cross for various additions and fixes to TBNL,
-    to <a href="http://www.foldr.org/~michaelw/">Michael Weber</a> for initial
-    file upload code, and to <a href="http://www.ltn.lv/~jonis/">Janis
-      Dzerins</a> for
+    Thanks to Jeff Caldwell - TBNL would not have been released
+    without his efforts. Thanks
+    to <a href="http://www.fractalconcept.com/">Marc Battyani</a> for
+    mod_lisp and to <a href="http://www.swiss.ai.mit.edu/~cph/">Chris
+    Hanson</a> for mod_lisp2. Thanks
+    to <a href="http://www.cliki.net/Stefan%20Scholl">Stefan
+    Scholl</a> and Travis Cross for various additions and fixes to
+    TBNL, to <a href="http://www.foldr.org/~michaelw/">Michael
+    Weber</a> for initial file upload code, and
+    to <a href="http://www.ltn.lv/~jonis/">Janis Dzerins</a> for
     his <a href="http://common-lisp.net/project/rfc2388/">RFC 2388
-      code</a>. Thanks to Bob Hutchison for his code for multiple front-ends
-    (which made me realize that TBNL was already pretty close to a "real" web
-    server) and the initial UTF-8 example.  Thanks to John
+    code</a>. Thanks to Bob Hutchison for his code for multiple
+    front-ends (which made me realize that TBNL was already pretty
+    close to a "real" web server) and the initial UTF-8 example.
+    Thanks to <a href="http://netzhansa.blogspot.com/">Hans Hübner</a>
+    for a lot of architectural and implementation enhancements for the
+    1.0.0 release and also for transferring the documentation to sane
+    XHTML.  Thanks to John
     Foderaro's <a href="http://opensource.franz.com/aserve/index.html">AllegroServe</a>
-    for inspiration.  Thanks to <a href="http://www.htg1.de/">Uwe von Loh</a>
-    for
+    for inspiration.  Thanks to <a href="http://www.htg1.de/">Uwe von
+    Loh</a> for
     the <a href="http://www.htg1.de/hunchentoot/hunchentoot.html">Hunchentoot
-      logo</a>.
+    logo</a>.
     
     <p>
       Hunchentoot originally used code
