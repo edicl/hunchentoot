@@ -216,7 +216,7 @@ the stream to write to."
     ;; write all headers from the REPLY object
     (loop for (key . value) in (headers-out)
        when value
-       do (write-header-line (string-capitalize key) value))
+       do (write-header-line (as-capitalized-string key) value))
     ;; now the cookies
     (loop for (nil . cookie) in (cookies-out)
        do (write-header-line "Set-Cookie" (stringify-cookie cookie)))
