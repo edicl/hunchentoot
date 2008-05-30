@@ -34,21 +34,21 @@
 setuid\(2)."
   (let ((errno (ccl::setuid uid)))
     (unless (zerop errno)
-      (error "setuid failed with errno ~A." errno))))
+      (parameter-error "setuid failed with errno ~A." errno))))
 
 (defun setgid (gid)
   "Sets the effective group ID of the current process to GID -
 see setgid\(2)."
   (let ((errno (ccl::setgid gid)))
     (unless (zerop errno)
-      (error "setgid failed with errno ~A." errno))))
+      (parameter-error "setgid failed with errno ~A." errno))))
 
 (defun get-uid-from-name (name)
   "Returns the UID for the user named NAME."
   (declare (ignore name))
-  (error "GET-UID-FROM-NAME not yet implemented for OpenMCL.  Please send patches..."))
+  (not-implemented 'get-uid-from-name))
   
 (defun get-gid-from-name (name)
   "Returns the GID for the group named NAME."
   (declare (ignore name))
-  (error "GET-GID-FROM-NAME not yet implemented for OpenMCL.  Please send patches..."))
+  (not-implemented 'get-gid-from-name))

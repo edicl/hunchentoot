@@ -45,7 +45,7 @@ that the corresponding socket timeout value will not be set."
   #+:sbcl
   ;; add other Lisps here if necessary
   (unless (eql read-timeout write-timeout)
-    (error "Read and write timeouts for socket must be equal."))
+    (parameter-error "Read and write timeouts for socket must be equal."))
   #+:clisp
   (when read-timeout
     (socket:socket-options (usocket:socket usocket) :SO-RCVTIMEO read-timeout))
@@ -64,5 +64,5 @@ that the corresponding socket timeout value will not be set."
   (setf (sb-impl::fd-stream-timeout (usocket:socket-stream usocket))
         (coerce read-timeout 'single-float))
   #-(or :clisp :allegro :openmcl :sbcl :lispworks)
-  (warn "Timeouts not implemented for ~A." (lisp-implementation-type)))
+  (not-implemented 'set-timeouts))
 

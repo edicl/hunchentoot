@@ -37,7 +37,7 @@
   "Sets the effective user ID of the current process to UID - see
 setuid\(2)."
   (unless (zerop (%setuid uid))
-    (error "setuid failed: ~A" (lw:get-unix-error (lw:errno-value)))))
+    (parameter-error "setuid failed: ~A" (lw:get-unix-error (lw:errno-value)))))
 
 (fli:define-foreign-function (%setgid "setgid")
     ((gid :int))
@@ -47,7 +47,7 @@ setuid\(2)."
   "Sets the effective group ID of the current process to GID -
 see setgid\(2)."
   (unless (zerop (%setgid gid))
-    (error "setgid failed: ~A" (lw:get-unix-error (lw:errno-value)))))
+    (parameter-error "setgid failed: ~A" (lw:get-unix-error (lw:errno-value)))))
 
 (fli:define-c-struct passwd
   (name (:pointer :char))
@@ -68,8 +68,8 @@ see setgid\(2)."
     (when (fli:null-pointer-p passwd)
       (let ((errno (lw:errno-value)))
         (cond ((zerop errno)
-               (error "User ~S not found." name))
-              (t (error "getpwnam failed: ~A" (lw:get-unix-error errno))))))
+               (parameter-error "User ~S not found." name))
+              (t (parameter-error "getpwnam failed: ~A" (lw:get-unix-error errno))))))
     (fli:foreign-slot-value passwd 'uid)))
 
 (fli:define-c-struct group
@@ -88,6 +88,6 @@ see setgid\(2)."
     (when (fli:null-pointer-p group)
       (let ((errno (lw:errno-value)))
         (cond ((zerop errno)
-               (error "Group ~S not found." name))
-              (t (error "getgrnam failed: ~A" (lw:get-unix-error errno))))))
+               (parameter-error "Group ~S not found." name))
+              (t (parameter-error "getgrnam failed: ~A" (lw:get-unix-error errno))))))
     (fli:foreign-slot-value group 'gid)))

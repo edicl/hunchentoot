@@ -35,7 +35,7 @@ setuid\(2)."
   (multiple-value-bind (return-value errno)
       (unix:unix-setuid uid)
     (unless (and return-value (zerop return-value))
-      (error "setuid failed: ~A" (unix:get-unix-error-msg errno)))))
+      (parameter-error "setuid failed: ~A" (unix:get-unix-error-msg errno)))))
 
 (defun setgid (gid)
   "Sets the effective group ID of the current process to GID -
@@ -43,7 +43,7 @@ see setgid\(2)."
   (multiple-value-bind (return-value errno)
       (unix:unix-setgid gid)
     (unless (and return-value (zerop return-value))
-      (error "setgid failed: ~A" (unix:get-unix-error-msg errno)))))
+      (parameter-error "setgid failed: ~A" (unix:get-unix-error-msg errno)))))
 
 (defun get-uid-from-name (name)
   "Returns the UID for the user named NAME."

@@ -29,10 +29,6 @@
 
 (in-package :hunchentoot)
 
-(defun not-implemented (function-name)
-  (error "Function ~A not implemented on ~A."
-         function-name (lisp-implementation-type)))
-
 (defun setuid (uid)  
   "Stub."
   (declare (ignore uid))

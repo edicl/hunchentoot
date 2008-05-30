@@ -45,9 +45,9 @@ see setgid\(2)."
 (defun get-uid-from-name (name)
   "Returns the UID for the user named NAME."
   (excl.osi:pwent-uid  (or (excl.osi:getpwnam name)
-                           (error "User ~S not found." name))))
+                           (parameter-error "User ~S not found." name))))
 
 (defun get-gid-from-name (name)
   "Returns the GID for the group named NAME."
   (excl.osi:grent-gid (or (excl.osi:getgrnam name)
-                          (error "Group ~S not found." name))))
+                          (parameter-error "Group ~S not found." name))))

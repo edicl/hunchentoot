@@ -137,7 +137,7 @@ REQUEST-TYPE is one of :GET, :POST, or :BOTH."
            (compute-hash-table-parameter parameter-name (second parameter-type) parameters
                                          (or (third parameter-type) 'string)
                                          (or (fourth parameter-type) 'equal)))
-          (t (error "Don't know what to do with parameter type ~S." parameter-type)))))
+          (t (parameter-error "Don't know what to do with parameter type ~S." parameter-type)))))
 
 (defun make-defun-parameter (description default-parameter-type default-request-type)
   "Creates a keyword parameter to be used by DEFINE-EASY-HANDLER.

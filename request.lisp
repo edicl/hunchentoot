@@ -180,10 +180,10 @@ alist or NIL if there was no data or the data could not be parsed."
             (parse-rfc2388-form-data content-stream (header-in :content-type))
           (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
             (when (and stray-data (plusp (length stray-data)))
-              (warn "~A octets of stray data after form-data sent by client."
-                    (length stray-data))))))
-    (error (msg)
-      (log-message* :error "While parsing multipart/form-data parameters: ~A" msg)
+              (hunchentoot-warn "~A octets of stray data after form-data sent by client."
+                                (length stray-data))))))
+    (error (condition)
+      (log-message* :error "While parsing multipart/form-data parameters: ~A" condition)
       nil)))
 
 (defun maybe-read-post-parameters (&key (request *request*) force external-format)
@@ -213,8 +213,8 @@ no Content-Length header and input chunking is off.")
                                        (handler-case
                                            (make-external-format charset :eol-style :lf)
                                          (error ()
-                                           (warn "ignoring unknown character set ~
-                                                  ~A in request content type"
+                                           (hunchentoot-warn "Ignoring ~
+unknown character set ~A in request content type."
                                                  charset))))
                                      *hunchentoot-default-external-format*)))
             (setf (slot-value request 'post-parameters)
@@ -379,7 +379,8 @@ returned."
       (handler-case
           (make-external-format (as-keyword charset) :eol-style :lf)
         (error ()
-          (warn "Invalid character set ~S in request has been ignored." charset))))))
+          (hunchentoot-warn "Invalid character set ~S in request has been ignored."
+                            charset))))))
 
 (defun raw-post-data (&key (request *request*) external-format force-text force-binary want-stream)
   "Returns the content sent by the client if there was any \(unless
@@ -412,7 +413,7 @@ mix calls which have different values for WANT-STREAM.
 Note that this function is slightly misnamed because a client can send
 content even if the request method is not POST."
   (when (and force-binary force-text)
-    (error "It doesn't make sense to set both FORCE-BINARY and FORCE-TEXT to a true value."))
+    (parameter-error "It doesn't make sense to set both FORCE-BINARY and FORCE-TEXT to a true value."))
   (unless (or external-format force-binary)
     (setq external-format (or (external-format-from-content-type (header-in :content-type request))
                               (when force-text

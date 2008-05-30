@@ -148,7 +148,7 @@ value.  If either of READ-TIMEOUT or WRITE-TIMEOUT is specified,
 CONNECTION-TIMEOUT is not used and may not be supplied."
   (declare (ignore read-timeout write-timeout))
   (when (and threaded-specified-p connection-manager-class)
-    (error "can't use both THREADED and CONNECTION-MANAGER-CLASS arguments"))
+    (parameter-error "Can't use both THREADED and CONNECTION-MANAGER-CLASS arguments."))
   (unless persistent-connections-specified-p
     (setf (server-persistent-connections-p server) persistent-connections-p))
   (unless (server-connection-manager server)
@@ -162,12 +162,12 @@ CONNECTION-TIMEOUT is not used and may not be supplied."
                  connection-manager-arguments)))
   (if (or read-timeout-provided-p write-timeout-provided-p)
       (when connection-timeout-provided-p
-        (error "can't have both CONNECTION-TIMEOUT and either of READ-TIMEOUT and WRITE-TIMEOUT."))
+        (parameter-error "Can't have both CONNECTION-TIMEOUT and either of READ-TIMEOUT and WRITE-TIMEOUT."))
       (setf (slot-value server 'read-timeout) connection-timeout
             (slot-value server 'write-timeout) connection-timeout)))
 
 (defgeneric server-ssl-p (server)
-  (:documentation "Return non-NIL if SERVER is an SSL server")
+  (:documentation "Returns a true value if SERVER is an SSL server.")
   (:method ((server t))
     nil))
 
@@ -307,7 +307,7 @@ associated with a password."
     (reset-session-secret))
   #+:hunchentoot-no-ssl
   (when ssl-certificate-file
-    (error "Hunchentoot SSL support not compiled in"))
+    (parameter-error "Hunchentoot SSL support is not compiled in."))
   (let ((server (apply #'make-instance
                        #-:hunchentoot-no-ssl
                        (if ssl-certificate-file 'ssl-server 'server)
@@ -547,7 +547,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                                            *show-lisp-backtraces-p*
                                            (escape-for-html (format nil "~A" backtrace))))
                                   (error
-                                   "An error has occured")
+                                   "An error has occured.")
                                   (t body))))
             t))
       (dolist (path *tmp-files*)

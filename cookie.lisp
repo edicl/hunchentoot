@@ -71,7 +71,7 @@ well. See <http://msdn2.microsoft.com/en-us/library/ms533046.aspx>."))
   "Ensure COOKIE has a correct slot-value for NAME."
   (let ((name (getf init-args :name)))
     (unless (http-token-p name)
-      (error "~S is not a legal name for a cookie." name)))
+      (parameter-error "~S is not a legal name for a cookie." name)))
   (call-next-method))
 
 (defun set-cookie* (cookie &optional (reply *reply*))

@@ -156,6 +156,8 @@
            "HEADERS-OUT"
            "HOST"
            "HTTP-TOKEN-P"
+           "HUNCHENTOOT-CONDITION"
+           "HUNCHENTOOT-ERROR"
            "LOG-FILE"
            "LOG-MESSAGE"
            "MAYBE-INVOKE-DEBUGGER"

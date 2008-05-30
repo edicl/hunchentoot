@@ -54,4 +54,4 @@ see setgid\(2)."
   #+:sb-posix-has-getgrnam
   (sb-posix:group-gid (sb-posix:getgrnam name))
   #-:sb-posix-has-getgrnam
-  (error "You need a version of SBCL with SB-POSIX:GETGRNAM \(1.0.10.31 or higher)."))
+  (hunchentoot-error "You need a version of SBCL with SB-POSIX:GETGRNAM \(1.0.10.31 or higher)."))

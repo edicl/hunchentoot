@@ -58,6 +58,7 @@ for diagnostic output.")
                #+:lispworks
                (:file "lispworks")
                (:file "specials")
+               (:file "conditions")
                (:file "mime-types")
                (:file "util")
                (:file "log")

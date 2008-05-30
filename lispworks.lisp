@@ -83,7 +83,8 @@ notation."
   "Returns a stream for the socket SOCKET.  The SERVER argument is
 used to set the timeouts."
   #-:lispworks5
-  (warn "You need LispWorks 5 or higher for write timeouts.")
+  (when (server-write-timeout server)
+    (parameter-error "You need LispWorks 5 or higher for write timeouts."))
   (make-instance 'comm:socket-stream
                  :socket socket
                  :direction :io
