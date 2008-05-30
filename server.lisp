@@ -205,7 +205,8 @@ connections.")
                      input-chunking-p connection-timeout
                      persistent-connections-p
                      read-timeout write-timeout
-                     setuid setgid
+                     #+(and :unix (not :win32)) setuid
+                     #+(and :unix (not :win32)) setgid
                      #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl
                      ssl-certificate-file ssl-privatekey-file ssl-privatekey-password
                      access-logger)
@@ -216,7 +217,6 @@ connections.")
                    threaded
                    input-chunking-p connection-timeout
                    persistent-connections-p
-                   setuid setgid
                    read-timeout write-timeout
                    #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl
                    ssl-privatekey-file ssl-privatekey-password
@@ -315,6 +315,18 @@ associated with a password."
                        'server
                        args)))
     (start server)
+    #+(and :unix (not :win32))
+    (when setgid
+      ;; we must make sure to call setgid before we call setuid or
+      ;; suddenly we aren't root anymore...
+      (etypecase setgid
+        (integer (setgid setgid))
+        (string (setgid (get-gid-from-name setgid)))))
+    #+(and :unix (not :win32))
+    (when setuid
+      (etypecase setuid
+        (integer (setuid setuid))
+        (string (setuid (get-uid-from-name setuid)))))   
     server))
 
 (defun stop-server (server)
