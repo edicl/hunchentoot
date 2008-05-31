@@ -56,7 +56,7 @@ format control and arguments."
   ()
   (:documentation "Like HUNCHENTOOT-WARNING but with formatting capabilities."))
 
-(defun hunchentoot-error (format-control &rest format-arguments)
+(defun hunchentoot-warning (format-control &rest format-arguments)
   "Signals a warning of type HUNCHENTOOT-SIMPLE-WARNING with the
 provided format control and arguments."
   (warn 'hunchentoot-simple-warning
