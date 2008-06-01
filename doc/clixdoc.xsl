@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 
+<!--
+;;; Copyright (c) 2008, Hans Hübner.  All rights reserved.
+
+;;; Redistribution and use in source and binary forms, with or without
+;;; modification, are permitted provided that the following conditions
+;;; are met:
+
+;;;   * Redistributions of source code must retain the above copyright
+;;;     notice, this list of conditions and the following disclaimer.
+
+;;;   * Redistributions in binary form must reproduce the above
+;;;     copyright notice, this list of conditions and the following
+;;;     disclaimer in the documentation and/or other materials
+;;;     provided with the distribution.
+
+;;; THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY EXPRESSED
+;;; OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+;;; WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+;;; ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+;;; DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+;;; GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+;;; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+;;; WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
 <xsl:stylesheet
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
    version="1.0"
@@ -20,7 +48,8 @@
         <style type="text/css">
   body { background-color: #ffffff }
   pre { padding:5px; background-color:#e0e0e0 }
-  h3, h4 { text-decoration: underline; }
+  pre.none { padding:5px; background-color:#ffffff }
+  h3, h4, h5 { text-decoration: underline; }
   a { text-decoration: none; padding: 1px 2px 1px 2px; }
   a:visited { text-decoration: none; padding: 1px 2px 1px 2px; }
   a:hover { text-decoration: none; padding: 1px 1px 1px 1px; border: 1px solid #000000; } 
@@ -33,7 +62,6 @@
   a.noborder:visited { text-decoration: none; padding: 0; } 
   a.noborder:hover { text-decoration: none; border: none; padding: 0; } 
   a.noborder:focus { text-decoration: none; border: none; padding: 0; }  
-  pre.none { padding:5px; background-color:#ffffff }
         </style>
       </head>
       <body>
