@@ -77,6 +77,7 @@
     <p>
       <xsl:choose>
         <xsl:when test="@generic = 'true'">[Generic function]</xsl:when>
+        <xsl:when test="@specialized = 'true'">[Method]</xsl:when>
         <xsl:when test="@macro = 'true'">[Macro]</xsl:when>
         <xsl:otherwise>[Function]</xsl:otherwise>
       </xsl:choose>
@@ -101,16 +102,49 @@
 
   <xsl:template match="clix:reader">
     <p>
-      [Reader]<br/>
+      <xsl:choose>
+        <xsl:when test="@generic = 'true'">[Generic reader]</xsl:when>
+        <xsl:when test="@specialized = 'true'">[Specialized reader]</xsl:when>
+        <xsl:otherwise>[Reader]</xsl:otherwise>
+      </xsl:choose>
+      <br/>
       <a class="none">
         <xsl:attribute name="name">
           <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
         </xsl:attribute>
         <b><xsl:value-of select="@name"/></b>
         <xsl:value-of select="' '"/>
-        <i><xsl:value-of select="@class"/></i>
-        =&gt;
-        <i><xsl:value-of select="clix:returns"/></i>
+        <i><xsl:apply-templates select="clix:lambda-list"/></i>
+        <xsl:if test="clix:returns">
+          =&gt;
+          <i><xsl:value-of select="clix:returns"/></i>
+        </xsl:if>
+      </a>
+      <blockquote>
+        <xsl:apply-templates select="clix:description"/>
+      </blockquote>
+    </p>
+  </xsl:template>
+
+  <xsl:template match="clix:writer">
+    <p>
+      <xsl:choose>
+        <xsl:when test="@generic = 'true'">[Generic writer]</xsl:when>
+        <xsl:when test="@specialized = 'true'">[Specialized writer]</xsl:when>
+        <xsl:otherwise>[Writer]</xsl:otherwise>
+      </xsl:choose>
+      <br/>
+      <a class="none">
+        <xsl:attribute name="name">
+          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
+        </xsl:attribute>
+        <tt>(setf (</tt><b><xsl:value-of select="@name"/></b>
+        <xsl:value-of select="' '"/>
+        <i><xsl:apply-templates select="clix:lambda-list"/></i><tt>) <i>new-value</i>)</tt>
+        <xsl:if test="clix:returns">
+          =&gt;
+          <i><xsl:value-of select="clix:returns"/></i>
+        </xsl:if>
       </a>
       <blockquote>
         <xsl:apply-templates select="clix:description"/>
@@ -120,7 +154,12 @@
 
   <xsl:template match="clix:accessor">
     <p>
-      [Accessor]<br/>
+      <xsl:choose>
+        <xsl:when test="@generic = 'true'">[Generic accessor]</xsl:when>
+        <xsl:when test="@specialized = 'true'">[Specialized accessor]</xsl:when>
+        <xsl:otherwise>[Accessor]</xsl:otherwise>
+      </xsl:choose>
+      <br/>
       <a class="none">
         <xsl:attribute name="name">
           <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
@@ -171,6 +210,21 @@
     </p>
   </xsl:template>
 
+  <xsl:template match="clix:condition">
+    <p>
+      [Condition type]<br/>
+      <a class="none">
+        <xsl:attribute name="name">
+          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
+        </xsl:attribute>
+        <b><xsl:value-of select="@name"/></b>
+      </a>
+      <blockquote>
+        <xsl:apply-templates select="clix:description"/>
+      </blockquote>
+    </p>
+  </xsl:template>
+
   <xsl:template match="clix:symbol">
     <p>
       [Symbol]<br/>
@@ -187,6 +241,21 @@
   </xsl:template>
 
   <xsl:template match="clix:constant">
+    <p>
+      [Constant]<br/>
+      <a class="none">
+        <xsl:attribute name="name">
+          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
+        </xsl:attribute>
+        <b><xsl:value-of select="@name"/></b>
+      </a>
+      <blockquote>
+        <xsl:apply-templates select="clix:description"/>
+      </blockquote>
+    </p>
+  </xsl:template>
+
+  <xsl:template match="clix:listed-constant">
     <a class="none">
       <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
       <b><xsl:value-of select="@name"/></b>
@@ -198,11 +267,16 @@
     <!-- Display a list of constants with a common description -->
     <p>
       [Constants]<br/>
-      <xsl:apply-templates select="clix:constant"/>
+      <xsl:apply-templates select="clix:listed-constant"/>
       <blockquote>
         <xsl:apply-templates select="clix:description"/>
       </blockquote>
     </p>
+  </xsl:template>
+
+  <xsl:template match="clix:qualifier">
+    <!-- method qualifier -->
+    <tt><xsl:value-of select="text()"/></tt>
   </xsl:template>
 
   <xsl:template match="clix:lkw">
@@ -236,7 +310,7 @@
 
   <xsl:template match="clix:chapter">
     <h3>
-      <a>
+      <a class="none">
         <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
         <xsl:value-of select="@title"/>
       </a>
@@ -281,7 +355,7 @@
 
   <xsl:template match="clix:index">
     <ul>
-      <xsl:for-each select="(//clix:function | //clix:reader | //clix:accessor | //clix:class | //clix:constant | //clix:special-variable | //clix:symbol)">
+      <xsl:for-each select="(//clix:function | //clix:reader | //clix:writer | //clix:accessor | //clix:class | //clix:condition | //clix:constant | //clix:listed-constant | //clix:special-variable | //clix:symbol)">
         <xsl:sort select="@name"/>
         <li>
           <xsl:call-template name="internal-reference">
