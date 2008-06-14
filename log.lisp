@@ -127,8 +127,8 @@ response."
   (with-log-file (stream *access-log-file*)
     (format stream "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] \"~A ~A~@[?~A~] ~
                     ~A\" ~A ~:[~*-~;~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
-            (remote-addr)
-            (header-in :x-forwarded-for)
+            (remote-addr*)
+            (header-in* :x-forwarded-for)
             (authorization)
             (request-method*)
             (script-name*)

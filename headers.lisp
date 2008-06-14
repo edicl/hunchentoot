@@ -86,7 +86,7 @@ the stream to write to."
   (raw-post-data :force-binary t)
   (let* ((return-code (return-code))
          (chunkedp (and (server-output-chunking-p *server*)
-                        (eq (server-protocol) :http/1.1)
+                        (eq (server-protocol request) :http/1.1)
                         ;; only turn chunking on if the content
                         ;; length is unknown at this point...
                         (null (or (content-length) content-provided-p))
@@ -95,7 +95,7 @@ the stream to write to."
                         ;; own content
                         (member return-code *approved-return-codes*)))
          (reason-phrase (reason-phrase return-code))
-         (request-method (request-method))
+         (request-method (request-method request))
          (head-request-p (eq request-method :head))
          content-modified-p)
     (multiple-value-bind (keep-alive-p keep-alive-requested-p)
@@ -116,7 +116,7 @@ the stream to write to."
       (cond (keep-alive-p
              (setf *close-hunchentoot-stream* nil)
              (when (and (server-read-timeout *server*)
-                        (or (not (eq (server-protocol) :http/1.1))
+                        (or (not (eq (server-protocol request) :http/1.1))
                             keep-alive-requested-p))
                ;; persistent connections are implicitly assumed for
                ;; HTTP/1.1, but we return a 'Keep-Alive' header if the

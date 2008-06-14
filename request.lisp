@@ -270,10 +270,12 @@ the part behind the question mark \(i.e. the GET parameters)."
 object REQUEST."
   (get-parameters request))
 
+(defmethod post-parameters :before ((request request))
+  (maybe-read-post-parameters :request request))
+
 (defun post-parameters* (&optional (request *request*))
   "Returns an alist of the POST parameters associated with the REQUEST
 object REQUEST."
-  (maybe-read-post-parameters :request request)
   (post-parameters request))
 
 (defun headers-in* (&optional (request *request*))
