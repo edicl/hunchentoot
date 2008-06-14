@@ -111,7 +111,7 @@ handle are defined in specials.lisp."
 (defun header-out-set-p (name &optional (reply *reply*))
   "Returns a true value if the outgoing http header named NAME has
 been specified already.  NAME should be a keyword or a string."
-  (assoc name (headers-out reply)))
+  (assoc* name (headers-out reply)))
 
 (defun header-out (name &optional (reply *reply*))
   "Returns the current value of the outgoing http header named NAME.

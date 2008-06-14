@@ -131,22 +131,15 @@ cease to be valid."
 doesn't know."
   (gethash return-code *http-reason-phrase-map*))
 
-(defgeneric assoc (thing alist &key &allow-other-keys)
-  (:documentation "LIKE CL:ASSOC, but 'does the right thing' if THING
-is a string or a symbol."))
-
-(defmethod assoc ((thing symbol) alist &key &allow-other-keys)
-  "Version of ASSOC for symbols, always uses EQ as test function."
-  (cl:assoc thing alist :test #'eq))
-
-(defmethod assoc ((thing string) alist &key (test #'string-equal))
-  "Version of ASSOC for strings, uses STRING-EQUAL as default test
-function."
-  (cl:assoc thing alist :test test))
-
-(defmethod assoc (thing alist &key (test #'eql))
-  "Default method - uses EQL as default test like CL:ASSOC."
-  (cl:assoc thing alist :test test))
+(defgeneric assoc* (thing alist)
+  (:documentation "Similar to CL:ASSOC, but 'does the right thing' if
+THING is a string or a symbol.")
+  (:method ((thing symbol) alist)
+   (assoc thing alist :test #'eq))
+  (:method ((thing string) alist)
+   (assoc thing alist :test #'string-equal))
+  (:method (thing alist)
+   (assoc thing alist :test #'eql)))
 
 (defun md5-hex (string)
   "Calculates the md5 sum of the string STRING and returns it as a hex string."
@@ -307,20 +300,20 @@ to be the corresponding header value as a string."
                          ;; try to return something meaningful
                          (values "application" "octet-stream" nil))))
             (parameters (read-name-value-pairs stream))
-            (charset (cdr (assoc "charset" parameters)))
+            (charset (cdr (assoc "charset" parameters :test #'string=)))
             (charset
              (when (string-equal type "text")
                charset)))
        (values type subtype charset)))))
 
-(defun keep-alive-p ()
+(defun keep-alive-p (request)
   "Returns a true value unless the incoming request's headers or the
 server's PERSISTENT-CONNECTIONS-P setting obviate a keep-alive reply.
 The second return value denotes whether the client has explicitly
 asked for a persistent connection."
   (let ((connection-values
          ;; the header might consist of different values separated by commas
-         (when-let (connection-header (header-in :connection))
+         (when-let (connection-header (header-in :connection request))
            (split "\\s*,\\s*" connection-header))))
     (flet ((connection-value-p (value)
              "Checks whether the string VALUE is one of the
@@ -328,9 +321,9 @@ values of the `Connection' header."
              (member value connection-values :test #'string-equal)))
       (let ((keep-alive-requested-p (connection-value-p "keep-alive")))
         (values (and (server-persistent-connections-p *server*)
-                     (or (and (eq (server-protocol) :http/1.1)
+                     (or (and (eq (server-protocol request) :http/1.1)
                               (not (connection-value-p "close")))
-                         (and (eq (server-protocol) :http/1.0)
+                         (and (eq (server-protocol request) :http/1.0)
                               keep-alive-requested-p)))
                 keep-alive-requested-p)))))
 

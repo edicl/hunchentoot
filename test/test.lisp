@@ -86,7 +86,7 @@
               (:body
                (:h2 (hunchentoot-link)
                 " page with Basic Authentication")
-               (info-table (header-in "Authorization")
+               (info-table (header-in* :authorization)
                            (authorization))))))
           (t
            (require-authorization)))))
@@ -120,19 +120,19 @@
         (info-table (host)
                     (server-address *server*)
                     (server-port)
-                    (remote-addr)
-                    (remote-port)
+                    (remote-addr*)
+                    (remote-port*)
                     (real-remote-addr)
-                    (request-method)
-                    (script-name)
-                    (query-string)
-                    (get-parameters)
-                    (headers-in)
-                    (cookies-in)
+                    (request-method*)
+                    (script-name*)
+                    (query-string*)
+                    (get-parameters*)
+                    (headers-in*)
+                    (cookies-in*)
                     (user-agent)
                     (referer)
-                    (request-uri)
-                    (server-protocol)))))))
+                    (request-uri*)
+                    (server-protocol*)))))))
 
 (defun oops ()
   (with-html
@@ -161,7 +161,7 @@
        " cookie test")
       (:p "You might have to reload this page to see the cookie value.")
       (info-table (cookie-in "pumpkin")
-                  (mapcar #'car (cookies-in)))))))
+                  (mapcar #'car (cookies-in*)))))))
 
 (defun session-test ()
   (let ((new-foo-value (post-parameter "new-foo-value")))
@@ -200,7 +200,7 @@ time or try with cookies disabled.")
             :value (or (session-value 'bar) ""))))
       (info-table *session-cookie-name*
                   (cookie-in *session-cookie-name*)
-                  (mapcar #'car (cookies-in))
+                  (mapcar #'car (cookies-in*))
                   (session-value 'foo)
                   (session-value 'bar))))))
 
@@ -224,7 +224,7 @@ and see what's happening.")
            (:input :type :text
             :name "foo")))
       (case method
-        (:get (info-table (query-string)
+        (:get (info-table (query-string*)
                           (map 'list #'char-code (get-parameter "foo"))
                           (get-parameter "foo")))
         (:post (info-table (raw-post-data)
@@ -286,7 +286,7 @@ and see what's happening.")
       (setq post-parameter-p t))
     (when post-parameter-p
       ;; redirect so user can safely use 'Back' button
-      (redirect (script-name))))
+      (redirect (script-name*))))
   (no-cache)
   (with-html
     (:html

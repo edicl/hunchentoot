@@ -121,9 +121,9 @@ REQUEST-TYPE is one of :GET, :POST, or :BOTH."
                               (:both #'parameter)))
         (parameters (and (listp parameter-type)
                          (case request-type
-                           (:get (get-parameters))
-                           (:post (post-parameters))
-                           (:both (append (get-parameters) (post-parameters)))))))
+                           (:get (get-parameters*))
+                           (:post (post-parameters*))
+                           (:both (append (get-parameters*) (post-parameters*)))))))
     (cond ((atom parameter-type)
            (compute-simple-parameter parameter-name parameter-type parameter-reader))
           ((and (null (cddr parameter-type))

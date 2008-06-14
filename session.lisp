@@ -61,8 +61,8 @@ cookie value or as a GET parameter.")
                :documentation "The incoming 'User-Agent' header that
 was sent when this session was created.")
    (remote-addr :initform (real-remote-addr *request*)
-              :reader session-remote-addr
-              :documentation "The remote IP address of the client when
+                :reader session-remote-addr
+                :documentation "The remote IP address of the client when
 this sessions was started as returned by REAL-REMOTE-ADDR.")
    (session-start :initform (get-universal-time)
                   :reader session-start
@@ -137,7 +137,7 @@ SESSION-TOO-OLD-P."
   "Returns the value associated with SYMBOL from the session object
 SESSION \(the default is the current session) if it exists."
   (when session
-    (let ((found (assoc symbol (session-data session))))
+    (let ((found (assoc symbol (session-data session) :test #'eq)))
       (values (cdr found) found))))
 
 (defsetf session-value (symbol &optional session)
@@ -150,7 +150,7 @@ there's no session for the current request."
     (with-unique-names (place %session)
       `(with-recursive-lock-held (*session-data-lock*)
          (let* ((,%session (or ,session (start-session)))
-                (,place (assoc ,symbol (session-data ,%session))))
+                (,place (assoc ,symbol (session-data ,%session) :test #'eq)))
            (cond
              (,place
               (setf (cdr ,place) ,new-value))

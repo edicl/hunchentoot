@@ -31,36 +31,47 @@
 
 (defclass request ()
   ((headers-in :initarg :headers-in
-               :documentation "An alist of the incoming headers.")
+               :documentation "An alist of the incoming headers."
+               :reader headers-in)
    (method :initarg :method
-           :documentation "The request method as a keyword.")
+           :documentation "The request method as a keyword."
+           :reader request-method)
    (uri :initarg :uri
-           :documentation "The request URI as a string.")
+        :documentation "The request URI as a string."
+        :reader request-uri)
    (server-protocol :initarg :server-protocol
-                    :documentation "The HTTP protocol as a keyword.")
+                    :documentation "The HTTP protocol as a keyword."
+                    :reader server-protocol)
    (remote-addr :initarg :remote-addr
                 :documentation "The IP address of the client that
-initiated this request.")
+initiated this request."
+                :reader remote-addr)
    (remote-port :initarg :remote-port
                 :documentation "The TCP port number of the client
-socket from which this request originated.")
+socket from which this request originated."
+                :reader remote-port)
    (content-stream :initarg :content-stream
                    :reader content-stream
                    :documentation "A stream from which the request
 body can be read if there is one.")
    (cookies-in :initform nil
-               :documentation "An alist of the cookies sent by the client.")
+               :documentation "An alist of the cookies sent by the client."
+               :reader cookies-in)
    (get-parameters :initform nil
                    :documentation "An alist of the GET parameters sent
-by the client.")
+by the client."
+                   :reader get-parameters)
    (post-parameters :initform nil
                     :documentation "An alist of the POST parameters
-sent by the client.")
+sent by the client."
+                    :reader post-parameters)
    (script-name :initform nil
                 :documentation "The URI requested by the client without
-the query string.")
+the query string."
+                :reader script-name)
    (query-string :initform nil
-                 :documentation "The query string of this request.")
+                 :documentation "The query string of this request."
+                 :reader query-string)
    (session :initform nil
             :accessor session
             :documentation "The session object associated with this
@@ -111,7 +122,8 @@ object.  Returns just the stream if WANT-STREAM is true.  If there's a
 Content-Length header, it is assumed, that ALREADY-READ octets have
 already been read."
   (let* ((headers-in (headers-in request))
-         (content-length (when-let (content-length-header (cdr (assoc :content-length headers-in)))
+         (content-length (when-let (content-length-header (cdr (assoc :content-length headers-in
+                                                                      :test #'eq)))
                            (parse-integer content-length-header :junk-allowed t)))
          (content-stream (content-stream request)))
     (setf (slot-value request 'raw-post-data)
@@ -161,7 +173,8 @@ slot values are computed in this :AFTER method."
           (setq get-parameters
                 (form-url-encoded-list-to-alist (split "&" query-string))
                 cookies-in
-                (form-url-encoded-list-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in)))
+                (form-url-encoded-list-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
+                                                                                  :test #'eq)))
                                                 +utf-8+)
                 session (session-verify request)
                 *session* session))
@@ -177,7 +190,7 @@ alist or NIL if there was no data or the data could not be parsed."
   (handler-case
       (let ((content-stream (make-flexi-stream (content-stream request) :external-format +latin-1+)))
         (prog1
-            (parse-rfc2388-form-data content-stream (header-in :content-type))
+            (parse-rfc2388-form-data content-stream (header-in :content-type request))
           (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
             (when (and stray-data (plusp (length stray-data)))
               (hunchentoot-warn "~A octets of stray data after form-data sent by client."
@@ -196,18 +209,18 @@ EXTERNAL-FORMAT specifies the external format of the data in the
 request body.  By default, the encoding is determined from the
 Content-Type header of the request or from
 *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT* if none is found."
-  (when (and (header-in :content-type)
-             (member (request-method) *methods-for-post-parameters* :test #'eq)
+  (when (and (header-in :content-type request)
+             (member (request-method request) *methods-for-post-parameters* :test #'eq)
              (or force
                  (not (slot-value request 'raw-post-data))))
-    (unless (or (header-in :content-length)
+    (unless (or (header-in :content-length request)
                 (input-chunking-p))
       (log-message* :warning "Can't read request body because there's ~
 no Content-Length header and input chunking is off.")
       (return-from maybe-read-post-parameters nil))
     (handler-case
         (multiple-value-bind (type subtype charset)
-              (parse-content-type (header-in :content-type))
+              (parse-content-type (header-in :content-type request))
           (let ((external-format (or external-format
                                      (when charset
                                        (handler-case
@@ -239,44 +252,48 @@ REQUEST.  This only makes sense if you're switching external formats
 during the request."
   (maybe-read-post-parameters :request request :force t :external-format external-format)
   (setf (slot-value request 'get-parameters)
-        (form-url-encoded-list-to-alist (split "&" (slot-value request 'query-string)) external-format))
+        (form-url-encoded-list-to-alist (split "&" (query-string request)) external-format))
   (values))
                                                 
-(defun script-name (&optional (request *request*))
+(defun script-name* (&optional (request *request*))
   "Returns the file name of the REQUEST object REQUEST. That's the
 requested URI without the query string \(i.e the GET parameters)."
-  (slot-value request 'script-name))
+  (script-name request))
 
-(defun query-string (&optional (request *request*))
+(defun query-string* (&optional (request *request*))
   "Returns the query string of the REQUEST object REQUEST. That's
 the part behind the question mark \(i.e. the GET parameters)."
-  (slot-value request 'query-string))
+  (query-string request))
 
-(defun get-parameters (&optional (request *request*))
+(defun get-parameters* (&optional (request *request*))
   "Returns an alist of the GET parameters associated with the REQUEST
 object REQUEST."
-  (slot-value request 'get-parameters))
+  (get-parameters request))
 
-(defun post-parameters (&optional (request *request*))
+(defun post-parameters* (&optional (request *request*))
   "Returns an alist of the POST parameters associated with the REQUEST
 object REQUEST."
   (maybe-read-post-parameters :request request)
-  (slot-value request 'post-parameters))
+  (post-parameters request))
 
-(defun headers-in (&optional (request *request*))
+(defun headers-in* (&optional (request *request*))
   "Returns an alist of the incoming headers associated with the
 REQUEST object REQUEST."
-  (slot-value request 'headers-in))
+  (headers-in request))
 
-(defun cookies-in (&optional (request *request*))
+(defun cookies-in* (&optional (request *request*))
   "Returns an alist of all cookies associated with the REQUEST object
 REQUEST."
-  (slot-value request 'cookies-in))
+  (cookies-in request))
 
-(defun header-in (name &optional (request *request*))
+(defgeneric header-in (name request)
+  (:method (name request)
+   (cdr (assoc* name (headers-in request)))))
+
+(defun header-in* (name &optional (request *request*))
   "Returns the incoming header with name NAME.  NAME can be a keyword
 \(recommended) or a string."
-  (cdr (assoc name (headers-in request))))
+  (header-in name request))
 
 (defun authorization (&optional (request *request*))
   "Returns as two values the user and password \(if any) as encoded in
@@ -291,13 +308,13 @@ the 'AUTHORIZATION' header.  Returns NIL if there is no such header."
           (split ":" (base64:base64-string-to-string (subseq authorization start)))
         (values user password)))))
 
-(defun remote-addr (&optional (request *request*))
+(defun remote-addr* (&optional (request *request*))
   "Returns the address the current request originated from."
-  (slot-value request 'remote-addr))
+  (remote-addr request))
 
-(defun remote-port (&optional (request *request*))
+(defun remote-port* (&optional (request *request*))
   "Returns the port the current request originated from."
-  (slot-value request 'remote-port))
+  (remote-port request))
 
 (defun real-remote-addr (&optional (request *request*))
   "Returns the 'X-Forwarded-For' incoming http header as the
@@ -313,17 +330,17 @@ Otherwise returns the value of REMOTE-ADDR as the only value."
   "Returns the 'Host' incoming http header value."
   (header-in :host request))
 
-(defun request-uri (&optional (request *request*))
+(defun request-uri* (&optional (request *request*))
   "Returns the request URI."
-  (slot-value request 'uri))
+  (request-uri request))
 
-(defun request-method (&optional (request *request*))
+(defun request-method* (&optional (request *request*))
   "Returns the request method as a Lisp keyword."
-  (slot-value request 'method))
+  (request-method request))
 
-(defun server-protocol (&optional (request *request*))
+(defun server-protocol* (&optional (request *request*))
   "Returns the request protocol as a Lisp keyword."
-  (slot-value request 'server-protocol))
+  (server-protocol request))
 
 (defun user-agent (&optional (request *request*))
   "Returns the 'User-Agent' http header."
@@ -430,7 +447,7 @@ content even if the request method is not POST."
 REQUEST \(the default is the current request) if it exists.  The
 second return value is true if such a value was found."
   (when request
-    (let ((found (assoc symbol (aux-data request))))
+    (let ((found (assoc symbol (aux-data request) :test #'eq)))
       (values (cdr found) found))))
 
 (defsetf aux-request-value (symbol &optional request)
@@ -441,7 +458,7 @@ associated with SYMBOL it will be replaced."
   (with-rebinding (symbol)
     (with-unique-names (place %request)
       `(let* ((,%request (or ,request *request*))
-              (,place (assoc ,symbol (aux-data ,%request))))
+              (,place (assoc ,symbol (aux-data ,%request) :test #'eq)))
          (cond
            (,place
             (setf (cdr ,place) ,new-value))

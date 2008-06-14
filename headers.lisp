@@ -70,28 +70,9 @@ writes them directly to the client as an HTTP header line.")
   (:method (key value)
     (write-header-line key (princ-to-string value))))
 
-#-with-step-instrumentation
-(defmacro with-step-instrumentation ((report-label) &body body)
-  (declare (ignore report-label))
-  `(macrolet ((note-step (name)
-                (declare (ignore name))))
-     ,@body))
-
-#+with-step-instrumentation
-(defmacro with-step-instrumentation ((report-label) &body body)
-  (with-unique-names (start-time stamps)
-    `(let ((,start-time (prof::get-real-time))
-           ,stamps)
-       (macrolet ((note-step (name)
-                    `(push (cons ',name (prof::get-real-time)) ,',stamps)))
-         (multiple-value-prog1
-             (progn ,@body)
-           (format *trace-output* "step instrumentation for ~A~%" ,report-label)
-           (dolist (stamp (nreverse ,stamps))
-             (format *trace-output* "~A ~A~%" (car stamp) (prof::format-time (- (cdr stamp)
-                                                                                ,start-time)))))))))
-
-(defun start-output (&optional (content nil content-provided-p))
+(defun start-output (&key (content nil content-provided-p)
+                          (request *request*)
+                          (reply *reply*))
   "Sends all headers and maybe the content body to
 *HUNCHENTOOT-STREAM*.  Returns immediately and does nothing if called
 more than once per request.  Handles the supported return codes
@@ -118,7 +99,7 @@ the stream to write to."
          (head-request-p (eq request-method :head))
          content-modified-p)
     (multiple-value-bind (keep-alive-p keep-alive-requested-p)
-        (keep-alive-p)
+        (keep-alive-p request)
       (when keep-alive-p
         (setq keep-alive-p
               ;; use keep-alive if there's a way for the client to
@@ -283,7 +264,7 @@ protocol of the request."
          (maybe-write-to-header-stream first-line)
          (let ((headers (and protocol (read-http-headers stream *header-stream*))))
            (unless protocol (setq protocol "HTTP/0.9"))
-           (when (equalp (cdr (assoc :expect headers)) "100-continue")
+           (when (equalp (cdr (assoc :expect headers :test #'eq)) "100-continue")
              ;; handle 'Expect: 100-continue' header
              (let ((continue-line
                     (format nil "HTTP/1.1 ~D ~A"

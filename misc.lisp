@@ -100,7 +100,7 @@ function stored in *DEFAULT-HANDLER*."
 (defun default-handler ()
   "The handler that is supposed to serve the request if no other
 handler is called."
-  (log-message* :info "Default handler called for script ~A" (script-name))
+  (log-message* :info "Default handler called for script ~A" (script-name*))
   (format nil "<html><head><title>Hunchentoot</title></head><body><h2>Hunchentoot Default Page</h2><p>This is the Hunchentoot default page. You're most likely seeing it because the server administrator hasn't set up a custom default page yet.</p><p>Hunchentoot is a web server written in <a href='http://www.lisp.org/'>Common Lisp</a>.  More info about Hunchentoot can be found at <a href='http://weitz.de/hunchentoot/'>http://weitz.de/hunchentoot/</a>.</p></p><p><hr>~A</p></body></html>"
           (address-string)))
 
@@ -187,7 +187,7 @@ it'll be the content type used for all files in the folder."
             (pathname-type base-path))
     (parameter-error "~S is supposed to denote a directory." base-path))
   (flet ((handler ()
-           (let* ((script-name (url-decode (script-name)))
+           (let* ((script-name (url-decode (script-name*)))
                   (script-path (enough-url (regex-replace-all "\\\\" script-name "/")
                                            uri-prefix))
                   (script-path-directory (pathname-directory script-path)))

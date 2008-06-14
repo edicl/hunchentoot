@@ -130,10 +130,10 @@ response."
             (remote-addr)
             (header-in :x-forwarded-for)
             (authorization)
-            (request-method)
-            (script-name)
-            (query-string)
-            (server-protocol)
+            (request-method*)
+            (script-name*)
+            (query-string*)
+            (server-protocol*)
             return-code
             content
             content-length

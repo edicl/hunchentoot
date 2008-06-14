@@ -541,14 +541,14 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
               (when error
                 (setf (return-code *reply*)
                       +http-internal-server-error+))
-              (start-output (cond ((and error *show-lisp-errors-p*)
-                                   (format nil "<pre>~A~:[~*~;~%~%~A~]</pre>"
-                                           (escape-for-html (format nil "~A" error))
-                                           *show-lisp-backtraces-p*
-                                           (escape-for-html (format nil "~A" backtrace))))
-                                  (error
-                                   "An error has occured.")
-                                  (t body))))
+              (start-output :content (cond ((and error *show-lisp-errors-p*)
+                                            (format nil "<pre>~A~:[~*~;~%~%~A~]</pre>"
+                                                    (escape-for-html (format nil "~A" error))
+                                                    *show-lisp-backtraces-p*
+                                                    (escape-for-html (format nil "~A" backtrace))))
+                                           (error
+                                            "An error has occured.")
+                                           (t body))))
             t))
       (dolist (path *tmp-files*)
         (when (and (pathnamep path) (probe-file path))
