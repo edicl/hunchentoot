@@ -78,6 +78,11 @@
     </p>
   </blockquote>
 
+  <font color="red"><b>Note that the development version is pretty
+  much in flux and this HTML documentation is not in sync with it.  If
+  in doubt, check which symbols are exported, look at their
+  docstrings, read the source, curse...</b></font>
+
   <h3>
     <a class="none" name="contents">Contents</a>
   </h3>
