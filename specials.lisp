@@ -220,21 +220,10 @@ occurs.  Will only have an effect if *LOG-LISP-ERRORS-P* or
 (defvar *lisp-warnings-log-level* :warning
   "Log level for Lisp warnings.")
 
-(defvar *log-dir* 
-  #+:allegro (system:temporary-directory)
-  #+:lispworks (pathname (or (get-env-variable-as-directory "TEMP")
-                             (get-env-variable-as-directory "TMP")
-                             #+:win32 "C:/"
-                             #-:win32 "/tmp/"))
-  #-(or :allegro :lispworks) #p"/tmp/"
-  "Directory to place log files in.")
-
-(defvar *log-pathname* (#-:openmcl load-time-value #+:openmcl identity
-                        (merge-pathnames "hunchentoot-error.log" *log-dir*))
+(defvar *log-pathname* #P"hunchentoot-error.log"
   "The error log file to use.")
 
-(defvar *access-log-pathname* (#-:openmcl load-time-value #+:openmcl identity
-                               (merge-pathnames "hunchentoot-access.log" *log-dir*))
+(defvar *access-log-pathname* #P"hunchentoot-access.log"
   "The access log file to use.")
 
 (defvar-unbound *session*
