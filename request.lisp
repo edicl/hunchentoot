@@ -183,12 +183,12 @@ slot values are computed in this :AFTER method."
         ;; we assume it's not our fault...
         (setf (return-code) +http-bad-request+)))))
 
-(defun parse-multipart-form-data (&optional (request *request*) (external-format *hunchentoot-default-external-format*))
+(defun parse-multipart-form-data (&optional (request *request*))
   "Parse the REQUEST body as multipart/form-data, assuming that its
 content type has already been verified.  Returns the form data as
 alist or NIL if there was no data or the data could not be parsed."
   (handler-case
-      (let ((content-stream (make-flexi-stream (content-stream request) :external-format external-format)))
+      (let ((content-stream (make-flexi-stream (content-stream request) :external-format +latin-1+)))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type request))
           (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
@@ -238,7 +238,7 @@ unknown character set ~A in request content type."
                           external-format))
                         ((and (string-equal type "multipart")
                               (string-equal subtype "form-data"))
-                         (prog1 (parse-multipart-form-data request external-format)
+                         (prog1 (parse-multipart-form-data request)
                            (setf (slot-value request 'raw-post-data) t)))))))
       (error (condition)
         (log-message* :error "Error when reading POST parameters from body: ~A" condition)
