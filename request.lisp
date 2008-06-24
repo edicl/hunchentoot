@@ -92,7 +92,18 @@ can subclass REQUEST in order to implement your own behaviour.  See
 for example the REQUEST-CLASS keyword argument of START-SERVER and the
 function DISPATCH-REQUEST."))
 
-(defun parse-rfc2388-form-data (stream content-type-header)
+(defun convert-hack (string external-format)
+  "The rfc2388 package is buggy in that it operates on a character
+stream and thus only accepts encodings which are 8 bit transparent.
+In order to support different encodings for parameter values
+submitted, we post process whatever string values the rfc2388 package
+has returned."
+  (let ((octets (make-array (length string) :element-type '(unsigned-byte 8))))
+    (dotimes (i (length string))
+      (setf (aref octets i) (char-code (aref string i))))
+    (flex:octets-to-string octets :external-format external-format)))
+
+(defun parse-rfc2388-form-data (stream content-type-header external-format)
   "Creates an alist of POST parameters from the stream STREAM which is
 supposed to be of content type 'multipart/form-data'."
   (let* ((parsed-content-type-header (rfc2388:parse-header content-type-header :value))
@@ -113,7 +124,7 @@ supposed to be of content type 'multipart/form-data'."
                             (list contents
                                   (rfc2388:get-file-name headers)
                                   (rfc2388:content-type part :as-string t))
-                            contents))))))
+                            (convert-hack contents external-format)))))))
 
 (defun get-post-data (&key (request *request*) want-stream (already-read 0))
   "Reads the request body from the stream and stores the raw contents
@@ -183,14 +194,14 @@ slot values are computed in this :AFTER method."
         ;; we assume it's not our fault...
         (setf (return-code) +http-bad-request+)))))
 
-(defun parse-multipart-form-data (&optional (request *request*))
+(defun parse-multipart-form-data (request external-format)
   "Parse the REQUEST body as multipart/form-data, assuming that its
 content type has already been verified.  Returns the form data as
 alist or NIL if there was no data or the data could not be parsed."
   (handler-case
       (let ((content-stream (make-flexi-stream (content-stream request) :external-format +latin-1+)))
         (prog1
-            (parse-rfc2388-form-data content-stream (header-in :content-type request))
+            (parse-rfc2388-form-data content-stream (header-in :content-type request) external-format)
           (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
             (when (and stray-data (plusp (length stray-data)))
               (hunchentoot-warn "~A octets of stray data after form-data sent by client."
@@ -238,7 +249,7 @@ unknown character set ~A in request content type."
                           external-format))
                         ((and (string-equal type "multipart")
                               (string-equal subtype "form-data"))
-                         (prog1 (parse-multipart-form-data request)
+                         (prog1 (parse-multipart-form-data request external-format)
                            (setf (slot-value request 'raw-post-data) t)))))))
       (error (condition)
         (log-message* :error "Error when reading POST parameters from body: ~A" condition)
