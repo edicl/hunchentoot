@@ -71,8 +71,7 @@ writes them directly to the client as an HTTP header line.")
     (write-header-line key (princ-to-string value))))
 
 (defun start-output (&key (content nil content-provided-p)
-                          (request *request*)
-                          (reply *reply*))
+                          (request *request*))
   "Sends all headers and maybe the content body to
 *HUNCHENTOOT-STREAM*.  Returns immediately and does nothing if called
 more than once per request.  Handles the supported return codes
@@ -163,10 +162,10 @@ the stream to write to."
                            "The server could not verify that you are authorized to access the document requested.  Either you supplied the wrong credentials \(e.g., bad password), or your browser doesn't understand how to supply the credentials required.")
                           ((#.+http-forbidden+)
                            (format nil "You don't have permission to access ~A on this server."
-                                   (script-name)))
+                                   (script-name*)))
                           ((#.+http-not-found+)
                            (format nil "The requested URL ~A was not found on this server."
-                                   (script-name)))
+                                   (script-name*)))
                           ((#.+http-bad-request+)
                            "Your browser sent a request that this server could not understand.")
                           (otherwise ""))
