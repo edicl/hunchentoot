@@ -98,10 +98,8 @@ stream and thus only accepts encodings which are 8 bit transparent.
 In order to support different encodings for parameter values
 submitted, we post process whatever string values the rfc2388 package
 has returned."
-  (let ((octets (make-array (length string) :element-type '(unsigned-byte 8))))
-    (dotimes (i (length string))
-      (setf (aref octets i) (char-code (aref string i))))
-    (flex:octets-to-string octets :external-format external-format)))
+  (flex:octets-to-string (map '(vector (unsigned-byte 8) *) 'char-code string)
+                         :external-format external-format))
 
 (defun parse-rfc2388-form-data (stream content-type-header external-format)
   "Creates an alist of POST parameters from the stream STREAM which is
