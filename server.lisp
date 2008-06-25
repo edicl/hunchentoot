@@ -401,6 +401,7 @@ belongs to, which determines what to do to reset.  This generic
 function is called after a request has been processed and must return
 the stream.")
   (:method (server stream)
+    (declare (ignore server))
     ;; turn chunking off at this point
     (cond ((typep stream 'chunked-stream)
            ;; flush the stream first and check if there's unread input

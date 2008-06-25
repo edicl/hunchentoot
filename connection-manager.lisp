@@ -70,11 +70,12 @@ will be called directly."))
   (:documentation "Terminate all threads that are currently associated
 with the connection manager, if any.")
   (:method (manager)
-   #+:lispworks
-   (when-let (listener (server-listener (server manager)))
-     ;; kill the main listener process, see LW documentation for
-     ;; COMM:START-UP-SERVER
-     (mp:process-kill listener))))
+    (declare (ignore manager))
+    #+:lispworks
+    (when-let (listener (server-listener (server manager)))
+      ;; kill the main listener process, see LW documentation for
+      ;; COMM:START-UP-SERVER
+      (mp:process-kill listener))))
 
 (defclass single-threaded-connection-manager (connection-manager)
   ()
