@@ -125,11 +125,12 @@ using the message logger of *SERVER* \(if there is one)."
 *ACCESS-LOG-FILE* with information about the current request and
 response."
   (with-log-file (stream *access-log-file*)
-    (format stream "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] \"~A ~A~@[?~A~] ~
+    (format stream "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] [~A] \"~A ~A~@[?~A~] ~
                     ~A\" ~A ~:[~*-~;~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
             (remote-addr*)
             (header-in* :x-forwarded-for)
             (authorization)
+            (iso-time)
             (request-method*)
             (script-name*)
             (query-string*)
