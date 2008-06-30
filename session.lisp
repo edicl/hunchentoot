@@ -240,37 +240,41 @@ is returned \(and updated). Otherwise NIL is returned."
       (return-from session-verify nil))
     (destructuring-bind (id-string session-string)
         (split ":" session-identifier :limit 2)
-      (let* ((id (and (scan "^\\d+$" id-string)
-                      (parse-integer id-string
-                                     :junk-allowed t)))
-             (session (and id
-                           (get-stored-session id)))
+      (let* ((id (parse-integer id-string))
+             (session (get-stored-session id))
              (user-agent (user-agent request))
              (remote-addr (remote-addr request)))
-        (unless (and session
-                     session-string
-                     (string= session-string
-                              (session-string session))
-                     (string= session-string
-                              (encode-session-string id
-                                                     user-agent
-                                                     (real-remote-addr request)
-                                                     (session-start session))))
-          (when *reply*
-            (cond ((null session)
-                    (log-message* :info
-                                  "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                                  session-identifier user-agent remote-addr))
-                  (t
-                    (log-message* :warning
-                                  "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                                  session-identifier user-agent remote-addr))))
-          (when session
-            (remove-session session))
-          (return-from session-verify nil))
-        (incf (slot-value session 'session-counter))
-        (setf (slot-value session 'last-click) (get-universal-time))
-        session))))
+        (cond
+          ((and session
+                (string= session-string
+                         (session-string session))
+                (string= session-string
+                         (encode-session-string id
+                                                user-agent
+                                                (real-remote-addr request)
+                                                   (session-start session))))
+           ;; The session key presented by the client is valid.
+           (incf (slot-value session 'session-counter))
+           (setf (slot-value session 'last-click) (get-universal-time))
+           session)
+          (session
+           ;; The session ID pointed to an existing session, but the
+           ;; session string did not match the expected session
+           ;; string.  Report to the log file, remove the session to
+           ;; make sure that it can't be used again.  The original
+           ;; legitimate user will be required to log in again.
+           (log-message* :warning
+                         "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                         session-identifier user-agent remote-addr)
+           (remove-session session)
+           nil)
+          (t
+           ;; No session was found under the ID given, presumably
+           ;; because it has expired.
+           (log-message* :info
+                         "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                         session-identifier user-agent remote-addr)
+           nil))))))
 
 (defun reset-sessions ()
   "Removes ALL stored sessions and creates a new session secret."
