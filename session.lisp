@@ -252,7 +252,7 @@ is returned \(and updated). Otherwise NIL is returned."
                          (encode-session-string id
                                                 user-agent
                                                 (real-remote-addr request)
-                                                   (session-start session))))
+                                                (session-start session))))
            ;; The session key presented by the client is valid.
            (incf (slot-value session 'session-counter))
            (setf (slot-value session 'last-click) (get-universal-time))
