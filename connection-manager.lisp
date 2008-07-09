@@ -89,17 +89,10 @@ thread that invoked the START-SERVER function."))
   (process-connection (server manager) socket))
 
 (defclass one-thread-per-connection-manager (connection-manager)
-  ((workers :initform nil
-            :accessor connection-manager-workers
-            :documentation "A list of currently active worker
-threads."))
+  ()
   (:documentation "Connection manager that starts one thread for
 listening to incoming requests and one thread for each incoming
 connection."))
-
-(defmethod print-object ((manager one-thread-per-connection-manager) stream)
-  (print-unreadable-object (manager stream :type t)
-    (format stream "~A worker~:P" (length (connection-manager-workers manager)))))
 
 (defmethod execute-listener ((manager one-thread-per-connection-manager))
   #+:lispworks
@@ -119,30 +112,16 @@ connection."))
              (zerop (mod *worker-counter* *cleanup-interval*)))
     (when *cleanup-function*
       (funcall *cleanup-function*)))
-  ;; start a worker thread for this connection and remember it
-  (push (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
-                                         (multiple-value-list
-                                          (get-peer-address-and-port handle)))
-                                 nil #'process-connection
-                                 (server manager) handle)
-        (connection-manager-workers manager)))
+  (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
+                                   (multiple-value-list
+                                    (get-peer-address-and-port handle)))
+                           nil #'process-connection
+                           (server manager) handle))
 
 #-:lispworks
 (defmethod handle-incoming-connection ((manager one-thread-per-connection-manager) socket)
-  (push (bt:make-thread (lambda ()
-                          (process-connection (server manager) socket))
-                        :name (format nil "Hunchentoot worker \(client: ~A:~A)"
-                                      (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
-                                      (usocket:get-peer-port socket)))
-        (connection-manager-workers manager)))
-
-#+:lispworks
-(defmethod shutdown ((manager one-thread-per-connection-manager))
-  ;; kill all worker threads
-  (dolist (worker (connection-manager-workers manager))
-    (ignore-errors
-      (when (mp:process-alive-p worker)
-        (mp:process-kill worker)))
-    (mp:process-allow-scheduling))
-  ;; finally, kill main listener
-  (call-next-method))
+  (bt:make-thread (lambda ()
+                    (process-connection (server manager) socket))
+                  :name (format nil "Hunchentoot worker \(client: ~A:~A)"
+                                (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
+                                (usocket:get-peer-port socket))))
