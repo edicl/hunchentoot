@@ -462,6 +462,15 @@ closed or until a connection timeout occurs.")
               ;; request - note that *SERVER* was bound above already
               (let ((*reply* (make-instance 'reply))
                     (*session* nil))
+                (when (server-input-chunking-p *server*)
+                  (let ((transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
+                    (when transfer-encodings
+                      (setq transfer-encodings
+                            (split "\\s*,\\*" transfer-encodings)))
+                    (when (member "chunked" transfer-encodings :test #'equalp)
+                      ;; turn chunking on before we read the request body
+                      (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
+                            (chunked-stream-input-chunking-p *hunchentoot-stream*) t))))
                 (multiple-value-bind (remote-addr remote-port)
                     (get-peer-address-and-port socket)
                   (process-request (make-instance (server-request-class *server*)
@@ -491,66 +500,56 @@ dispatches to a handler, and finally sends the output to the client
 using START-OUTPUT.  If all goes as planned, the function returns T."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
-        (progn
-          (when (server-input-chunking-p *server*)
-            (let ((transfer-encodings (header-in :transfer-encoding request)))
-              (when transfer-encodings
-                (setq transfer-encodings
-                      (split "\\s*,\\*" transfer-encodings)))
-              (when (member "chunked" transfer-encodings :test #'equalp)
-                ;; turn chunking on before we read the request body
-                (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
-                      (chunked-stream-input-chunking-p *hunchentoot-stream*) t))))
-          (let* ((*request* request)
-                 backtrace)
-            (multiple-value-bind (body error)
-                (catch 'handler-done
-                  (handler-bind ((error
-                                  (lambda (cond)
-                                    ;; only generate backtrace if needed
-                                    (setq backtrace
-                                          (and (or (and *show-lisp-errors-p*
-                                                        *show-lisp-backtraces-p*)
-                                                   (and *log-lisp-errors-p*
-                                                        *log-lisp-backtraces-p*))
-                                               (get-backtrace cond)))
-                                    (when *log-lisp-errors-p*
-                                      (log-message* *lisp-errors-log-level*
-                                                    "~A~:[~*~;~%~A~]"
-                                                    cond
-                                                    *log-lisp-backtraces-p*
-                                                    backtrace))
-                                    ;; if the headers were already sent
-                                    ;; the error happens within the body
-                                    ;; and we have to close the stream
-                                    (when *headers-sent*
-                                      (setq *close-hunchentoot-stream* t))
-                                    (throw 'handler-done
-                                           (values nil cond))))
-                                 (warning
-                                  (lambda (cond)
-                                    (when *log-lisp-warnings-p*
-                                      (log-message* *lisp-warnings-log-level*
-                                                    "~A~:[~*~;~%~A~]"
-                                                    cond
-                                                    *log-lisp-backtraces-p*
-                                                    backtrace)))))
-                    ;; skip dispatch if bad request
-                    (when (eql (return-code) +http-ok+)
-                      ;; now do the work
-                      (dispatch-request *server* *request* *reply*))))
-              (when error
-                (setf (return-code *reply*)
-                      +http-internal-server-error+))
-              (start-output :content (cond ((and error *show-lisp-errors-p*)
-                                            (format nil "<pre>~A~:[~*~;~%~%~A~]</pre>"
-                                                    (escape-for-html (format nil "~A" error))
-                                                    *show-lisp-backtraces-p*
-                                                    (escape-for-html (format nil "~A" backtrace))))
-                                           (error
-                                            "An error has occured.")
-                                           (t body))))
-            t))
+        (let* ((*request* request)
+               backtrace)
+          (multiple-value-bind (body error)
+              (catch 'handler-done
+                (handler-bind ((error
+                                (lambda (cond)
+                                  ;; only generate backtrace if needed
+                                  (setq backtrace
+                                        (and (or (and *show-lisp-errors-p*
+                                                      *show-lisp-backtraces-p*)
+                                                 (and *log-lisp-errors-p*
+                                                      *log-lisp-backtraces-p*))
+                                             (get-backtrace cond)))
+                                  (when *log-lisp-errors-p*
+                                    (log-message* *lisp-errors-log-level*
+                                                  "~A~:[~*~;~%~A~]"
+                                                  cond
+                                                  *log-lisp-backtraces-p*
+                                                  backtrace))
+                                  ;; if the headers were already sent
+                                  ;; the error happens within the body
+                                  ;; and we have to close the stream
+                                  (when *headers-sent*
+                                    (setq *close-hunchentoot-stream* t))
+                                  (throw 'handler-done
+                                         (values nil cond))))
+                               (warning
+                                (lambda (cond)
+                                  (when *log-lisp-warnings-p*
+                                    (log-message* *lisp-warnings-log-level*
+                                                  "~A~:[~*~;~%~A~]"
+                                                  cond
+                                                  *log-lisp-backtraces-p*
+                                                  backtrace)))))
+                  ;; skip dispatch if bad request
+                  (when (eql (return-code) +http-ok+)
+                    ;; now do the work
+                    (dispatch-request *server* *request* *reply*))))
+            (when error
+              (setf (return-code *reply*)
+                    +http-internal-server-error+))
+            (start-output :content (cond ((and error *show-lisp-errors-p*)
+                                          (format nil "<pre>~A~:[~*~;~%~%~A~]</pre>"
+                                                  (escape-for-html (format nil "~A" error))
+                                                  *show-lisp-backtraces-p*
+                                                  (escape-for-html (format nil "~A" backtrace))))
+                                         (error
+                                          "An error has occured.")
+                                         (t body))))
+          t)
       (dolist (path *tmp-files*)
         (when (and (pathnamep path) (probe-file path))
           ;; the handler may have chosen to (re)move the uploaded
