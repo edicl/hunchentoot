@@ -63,6 +63,9 @@ that the corresponding socket timeout value will not be set."
   #+:sbcl
   (setf (sb-impl::fd-stream-timeout (usocket:socket-stream usocket))
         (coerce read-timeout 'single-float))
-  #-(or :clisp :allegro :openmcl :sbcl :lispworks)
+  #+:cmu
+  (setf (lisp::fd-stream-timeout (usocket:socket-stream usocket))
+        (coerce read-timeout 'integer))
+  #-(or :clisp :allegro :openmcl :sbcl :lispworks :cmu)
   (not-implemented 'set-timeouts))
 
