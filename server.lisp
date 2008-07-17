@@ -81,9 +81,13 @@ socket timeouts.")
 responsible for listening to new connections and scheduling them for
 execution.")
    #+:lispworks
-   (listener :accessor server-listener
-             :documentation "The Lisp process which listens for
-incoming requests.")
+   (acceptor :accessor server-acceptor
+             :documentation "The Lisp process which accepts incoming
+             requests.")
+   #-:lispworks
+   (listen-socket :accessor server-listen-socket
+                  :documentation "The listen socket for incoming
+                  connections.")
    (server-shutdown-p :initform nil
                       :accessor server-shutdown-p
                       :documentation "Flag that makes the server
@@ -191,13 +195,16 @@ CONNECTION-TIMEOUT is not used and may not be supplied."
   (:documentation "Start the SERVER so that it begins accepting
 connections.")
   (:method ((server server))
-    (execute-listener (server-connection-manager server))))
+    (start-listening server)
+    (execute-acceptor (server-connection-manager server))))
 
 (defgeneric stop (server)
   (:documentation "Stop the SERVER so that it does no longer accept requests.")
   (:method ((server server))
    (setf (server-shutdown-p server) t)
-   (shutdown (server-connection-manager server))))
+   (shutdown (server-connection-manager server))
+   #-:lispworks
+   (usocket:socket-close (server-listen-socket server))))
 
 (defun start-server (&rest args
                      &key port address dispatch-table name
@@ -339,51 +346,66 @@ associated with a password."
   "Time in seconds to wait for a new connection to arrive before
 performing a cleanup run.")
 
-(defgeneric listen-for-connections (server)
+(defgeneric start-listening (server)
   (:documentation "Sets up a listen socket for the given SERVER and
-listens for incoming connections.  In a loop, accepts a connection and
+enables it to listen for incoming connections.  This function is
+called from the thread that starts the server initially and may return
+errors resulting from the listening operation. (like 'address in use'
+or similar).")
+  (:method ((server server))
+    #+:lispworks
+    (multiple-value-bind (listener-process startup-condition)
+        (comm:start-up-server :service (server-port server)
+                                :address (server-address server)
+                                :process-name (format nil "Hunchentoot listener \(~A:~A)"
+                                                      (or (server-address server) "*") (server-port server))
+                                ;; this function is called once on startup - we
+                                ;; use it to check for errors
+                                :announce (lambda (socket &optional condition)
+                                            (declare (ignore socket))
+                                            (when condition
+                                              (error condition)))
+                                ;; this function is called whenever a connection
+                                ;; is made
+                                :function (lambda (handle)
+                                            (unless (server-shutdown-p server)
+                                              (handle-incoming-connection
+                                               (server-connection-manager server) handle)))
+                                ;; wait until the server was successfully started
+                                ;; or an error condition is returned
+                                :wait t)
+      (when startup-condition
+        (error startup-condition))
+      (process-stop listener-process)
+      (setf (server-acceptor server) listener-process))
+    #-:lispworks
+    (setf (server-listen-socket server)
+          (usocket:socket-listen (or (server-address server)
+                                     usocket:*wildcard-host*)
+                                 (server-port server)
+                                 :reuseaddress t
+                                 :element-type '(unsigned-byte 8)))))
+
+(defgeneric accept-connections (server)
+  (:documentation "In a loop, accepts a connection and
 dispatches it to the server's connection manager object for processing
 using HANDLE-INCOMING-CONNECTION.")
   (:method ((server server))
-   #+:lispworks
-   (setf (server-listener server)
-         (comm:start-up-server :service (server-port server)
-                               :address (server-address server)
-                               :process-name (format nil "Hunchentoot listener \(~A:~A)"
-                                                     (or (server-address server) "*") (server-port server))
-                               ;; this function is called once on startup - we
-                               ;; use it to check for errors
-                               :announce (lambda (socket &optional condition)
-                                           (declare (ignore socket))
-                                           (when condition
-                                             (error condition)))
-                               ;; this function is called whenever a connection
-                               ;; is made
-                               :function (lambda (handle)
-                                           (unless (server-shutdown-p server)
-                                             (handle-incoming-connection
-                                              (server-connection-manager server) handle)))
-                               ;; wait until the server was successfully started
-                               ;; or an error condition is returned
-                               :wait t))
-   #-:lispworks
-   (usocket:with-socket-listener (listener
-                                  (or (server-address server)
-                                      usocket:*wildcard-host*)
-                                  (server-port server)
-                                  :reuseaddress t
-                                  :element-type '(unsigned-byte 8))
-     (do ((new-connection-p (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
-                            (usocket:wait-for-input listener :timeout +new-connection-wait-time+)))
-         ((server-shutdown-p server))
-       (when new-connection-p
-         (let ((client-connection (usocket:socket-accept listener)))
-           (when client-connection
-             (set-timeouts client-connection
-                           (server-read-timeout server)
-                           (server-write-timeout server))
-             (handle-incoming-connection (server-connection-manager server)
-                                         client-connection))))))))
+    #+:lispworks
+    (process-unstop (server-acceptor server))
+    #-:lispworks
+    (usocket:with-server-socket (listener (server-listen-socket server))
+      (do ((new-connection-p (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
+                             (usocket:wait-for-input listener :timeout +new-connection-wait-time+)))
+          ((server-shutdown-p server))
+        (when new-connection-p
+          (let ((client-connection (usocket:socket-accept listener)))
+            (when client-connection
+              (set-timeouts client-connection
+                            (server-read-timeout server)
+                            (server-write-timeout server))
+              (handle-incoming-connection (server-connection-manager server)
+                                          client-connection))))))))
 
 (defgeneric initialize-connection-stream (server stream) 
  (:documentation "Wraps the given STREAM with all the additional

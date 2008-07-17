@@ -531,6 +531,7 @@
 
       <clix:special-variable name="*cleanup-interval*">
         <clix:description>
+          (Lispworks only)
           Should be <code>NIL</code> or a positive integer.  The system
           calls <clix:ref>*CLEANUP-FUNCTION*</clix:ref>
           whenever <clix:ref>*CLEANUP-INTERVAL*</clix:ref> new worker
@@ -541,13 +542,13 @@
 
       <clix:special-variable name="*cleanup-function*">
         <clix:description>
+          (Lispworks only)
           The function (with no arguments) which is called
           if <clix:ref>*CLEANUP-INTERVAL*</clix:ref> is
           not <code>NIL</code>.  The initial value is a function which
           calls
           <code>(<a href="http://www.lispworks.com/documentation/lw50/LWRM/html/lwref-166.htm">HCL</a>:<a href="http://www.lispworks.com/documentation/lw50/LWRM/html/lwref-212.htm">
-              <code>MARK-AND-SWEEP</code> </a> 2)</code> on LispWorks and
-          does nothing on other Lisps.
+              <code>MARK-AND-SWEEP</code> </a> 2)</code>.
           <p>
             On LispWorks this is necessary because each <em>worker</em>
             (which is created to handle an incoming http request and

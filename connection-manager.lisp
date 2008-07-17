@@ -40,11 +40,11 @@ connection manager works for."))
   (:documentation "Base class for all connection managers classes.
 Its purpose is to carry the back pointer to the server instance."))
 
-(defgeneric execute-listener (connection-manager)
+(defgeneric execute-acceptor (connection-manager)
   (:documentation
    "This function is called once Hunchentoot has performed all initial
 processing to start listening for incoming connections.  It does so by
-calling the LISTEN-FOR-CONNECTIONS functions of the server, taken from
+calling the ACCEPT-CONNECTIONS functions of the server, taken from
 the SERVER slot of the connection manager instance.
 
 In a multi-threaded environment, the connection manager starts a new
@@ -70,7 +70,6 @@ will be called directly."))
   (:documentation "Terminate all threads that are currently associated
 with the connection manager, if any.")
   (:method (manager)
-    (declare (ignore manager))
     #+:lispworks
     (when-let (listener (server-listener (server manager)))
       ;; kill the main listener process, see LW documentation for
@@ -82,27 +81,37 @@ with the connection manager, if any.")
   (:documentation "Connection manager that runs synchronously in the
 thread that invoked the START-SERVER function."))
 
-(defmethod execute-listener ((manager single-threaded-connection-manager))
-  (listen-for-connections (server manager)))
+(defmethod execute-acceptor ((manager single-threaded-connection-manager))
+  (accept-connections (server manager)))
 
 (defmethod handle-incoming-connection ((manager single-threaded-connection-manager) socket)
   (process-connection (server manager) socket))
 
 (defclass one-thread-per-connection-manager (connection-manager)
-  ()
+  ((acceptor-process :accessor acceptor-process
+                     :documentation "Process that accepts incoming
+                     connections and dispatches them to new processes
+                     for request execution."))
   (:documentation "Connection manager that starts one thread for
 listening to incoming requests and one thread for each incoming
 connection."))
 
-(defmethod execute-listener ((manager one-thread-per-connection-manager))
+(defmethod execute-acceptor ((manager one-thread-per-connection-manager))
   #+:lispworks
-  (listen-for-connections (server manager))
+  (accept-connections (server manager))
   #-:lispworks
-  (bt:make-thread (lambda ()
-                    (listen-for-connections (server manager)))
-                  :name (format nil "Hunchentoot listener \(~A:~A)"
-                                (or (server-address (server manager)) "*")
-                                (server-port (server manager)))))
+  (setf (acceptor-process manager)
+        (bt:make-thread (lambda ()
+                          (accept-connections (server manager)))
+                        :name (format nil "Hunchentoot acceptor \(~A:~A)"
+                                      (or (server-address (server manager)) "*")
+                                      (server-port (server manager))))))
+
+#-:lispworks
+(defmethod shutdown ((manager one-thread-per-connection-manager))
+  (loop
+     while (bt:thread-alive-p (acceptor-process manager))
+     do (sleep 1)))
 
 #+:lispworks
 (defmethod handle-incoming-connection ((manager one-thread-per-connection-manager) handle)
