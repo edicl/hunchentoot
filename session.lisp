@@ -29,7 +29,7 @@
 
 (in-package :hunchentoot)
 
-(defvar *session-data-lock* (make-recursive-lock "session-data-lock")
+(defvar *session-data-lock* (make-lock "session-data-lock")
   "A lock to prevent two threads from modifying *SESSION-DATA* at the
 same time.")
 
@@ -123,7 +123,7 @@ ENCODE-SESSION-STRING."
 (defun session-gc ()
   "Removes sessions from *session-data* which are too old - see
 SESSION-TOO-OLD-P."
-  (with-recursive-lock-held (*session-data-lock*)
+  (with-lock-held (*session-data-lock*)
     (setq *session-data*
             (loop for id-session-pair in *session-data*
                   for (nil . session) = id-session-pair
@@ -148,7 +148,7 @@ replaced. Will automatically start a session if none was supplied and
 there's no session for the current request."
   (with-rebinding (symbol)
     (with-unique-names (place %session)
-      `(with-recursive-lock-held (*session-data-lock*)
+      `(with-lock-held (*session-data-lock*)
          (let* ((,%session (or ,session (start-session)))
                 (,place (assoc ,symbol (session-data ,%session) :test #'eq)))
            (cond
@@ -189,7 +189,7 @@ case the function will also send a session cookie to the browser."
       (return-from start-session session))
     (setf session (make-instance 'session)
           (session *request*) session)
-    (with-recursive-lock-held (*session-data-lock*)
+    (with-lock-held (*session-data-lock*)
       (setq *session-data* (acons (session-id session) session *session-data*)))
     (set-cookie *session-cookie-name*
                 :value (session-cookie-value session)
@@ -199,7 +199,7 @@ case the function will also send a session cookie to the browser."
 (defun remove-session (session)
   "Completely removes the SESSION object SESSION from Hunchentoot's
 internal session database."
-  (with-recursive-lock-held (*session-data-lock*)
+  (with-lock-held (*session-data-lock*)
     (funcall *session-removal-hook* session)
     (setq *session-data*
             (delete (session-id session) *session-data*
@@ -279,7 +279,7 @@ is returned \(and updated). Otherwise NIL is returned."
 (defun reset-sessions ()
   "Removes ALL stored sessions and creates a new session secret."
   (reset-session-secret)
-  (with-recursive-lock-held (*session-data-lock*)
+  (with-lock-held (*session-data-lock*)
     (loop for (nil . session) in *session-data*
           do (funcall *session-removal-hook* session))
     (setq *session-data* nil))

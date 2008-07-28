@@ -370,16 +370,6 @@ ignored."
   (bt:make-lock name))
 
 #-:lispworks
-(defun make-recursive-lock (name)
-  "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
-  (bt:make-recursive-lock name))
-
-#-:lispworks
-(defmacro with-recursive-lock-held ((lock) &body body)
-  "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
-  `(bt:with-recursive-lock-held (,lock) ,@body))
-
-#-:lispworks
 (defmacro with-lock-held ((lock) &body body)
   "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
   `(bt:with-lock-held (,lock) ,@body))
