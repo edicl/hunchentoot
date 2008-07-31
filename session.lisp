@@ -148,16 +148,16 @@ replaced. Will automatically start a session if none was supplied and
 there's no session for the current request."
   (with-rebinding (symbol)
     (with-unique-names (place %session)
-      `(with-lock-held (*session-data-lock*)
-         (let* ((,%session (or ,session (start-session)))
-                (,place (assoc ,symbol (session-data ,%session) :test #'eq)))
-           (cond
-             (,place
-              (setf (cdr ,place) ,new-value))
-             (t
-              (push (cons ,symbol ,new-value)
-                    (slot-value ,%session 'session-data))
-              ,new-value)))))))
+      `(let ((,%session (or ,session (start-session))))
+         (with-lock-held (*session-data-lock*)
+           (let* ((,place (assoc ,symbol (session-data ,%session) :test #'eq)))
+             (cond
+               (,place
+                (setf (cdr ,place) ,new-value))
+               (t
+                (push (cons ,symbol ,new-value)
+                      (slot-value ,%session 'session-data))
+                ,new-value))))))))
 
 (defun delete-session-value (symbol &optional (session *session*))
   "Removes the value associated with SYMBOL from the current session
