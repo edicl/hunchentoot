@@ -39,7 +39,6 @@
   #+:lispworks
   (:import-from :lw "WITH-UNIQUE-NAMES" "WHEN-LET")
   (:export "*APPROVED-RETURN-CODES*"
-           "*CATCH-ERRORS-P*"
            #+:lispworks
            "*CLEANUP-FUNCTION*"
            #+:lispworks
