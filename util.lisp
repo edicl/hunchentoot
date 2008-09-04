@@ -243,43 +243,45 @@ called from the RFC2388 library when a file is uploaded."
 (defun url-decode (string &optional (external-format *hunchentoot-default-external-format*))
   "Decodes a URL-encoded STRING which is assumed to be encoded using
 the external format EXTERNAL-FORMAT."
-  (loop
-     with vector = (make-array (length string) :element-type 'octet :fill-pointer 0)
-     with i = 0
-     with unicode
-     for char = (aref string i)
-     do (labels ((decode-hex (length)
-                   (prog1
-                       (parse-integer string :start i :end (+ i length) :radix 16)
-                     (incf i length)))
-                 (push-integer (integer)
-                   (vector-push integer vector))
-                 (peek ()
-                   (aref string i))
-                 (advance ()
-                   (setf char (peek))
-                   (incf i)))
-          (cond
-            ((char= #\% char)
-             (advance)
-             (cond
-               ((char= #\u (peek))
-                (unless unicode
-                  (setf unicode t)
-                  (upgrade-vector vector '(integer 0 65535)))
-                (advance)
-                (push-integer (decode-hex 4)))
-               (t
-                (push-integer (decode-hex 2)))))
-            (t
-             (push-integer (char-code (case char
-                                        ((#\+) #\Space)
-                                        (otherwise char))))
-             (advance))))
-     while (< i (length string))
-     finally (return (if unicode
-                         (upgrade-vector vector 'character :converter #'code-char)
-                         (octets-to-string vector :external-format external-format)))))
+  (if (zerop (length string))
+      ""
+      (loop
+         with vector = (make-array (length string) :element-type 'octet :fill-pointer 0)
+         with i = 0
+         with unicode
+         for char = (aref string i)
+         do (labels ((decode-hex (length)
+                       (prog1
+                           (parse-integer string :start i :end (+ i length) :radix 16)
+                         (incf i length)))
+                     (push-integer (integer)
+                       (vector-push integer vector))
+                     (peek ()
+                       (aref string i))
+                     (advance ()
+                       (setf char (peek))
+                       (incf i)))
+              (cond
+                ((char= #\% char)
+                 (advance)
+                 (cond
+                   ((char= #\u (peek))
+                    (unless unicode
+                      (setf unicode t)
+                      (upgrade-vector vector '(integer 0 65535)))
+                    (advance)
+                    (push-integer (decode-hex 4)))
+                   (t
+                    (push-integer (decode-hex 2)))))
+                (t
+                 (push-integer (char-code (case char
+                                            ((#\+) #\Space)
+                                            (otherwise char))))
+                 (advance))))
+         while (< i (length string))
+         finally (return (if unicode
+                             (upgrade-vector vector 'character :converter #'code-char)
+                             (octets-to-string vector :external-format external-format))))))
 
 (defun form-url-encoded-list-to-alist (form-url-encoded-list
                                        &optional (external-format *hunchentoot-default-external-format*))
