@@ -129,8 +129,9 @@ request matches the CL-PPCRE regular expression REGEX."
 denoted by PATH.  Send a content type header corresponding to
 CONTENT-TYPE or \(if that is NIL) tries to determine the content
 type via the file's suffix."
-  (unless (and (fad:file-exists-p path)
-               (not (fad:directory-exists-p path)))
+  (when (or (wild-pathname-p path)
+            (not (fad:file-exists-p path))
+            (fad:directory-exists-p path))
     ;; does not exist
     (setf (return-code) +http-not-found+)
     (throw 'handler-done nil))
