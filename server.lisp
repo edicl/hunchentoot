@@ -399,13 +399,17 @@ using HANDLE-INCOMING-CONNECTION.")
                              (usocket:wait-for-input listener :timeout +new-connection-wait-time+)))
           ((server-shutdown-p server))
         (when new-connection-p
-          (let ((client-connection (usocket:socket-accept listener)))
-            (when client-connection
-              (set-timeouts client-connection
-                            (server-read-timeout server)
-                            (server-write-timeout server))
-              (handle-incoming-connection (server-connection-manager server)
-                                          client-connection))))))))
+          (handler-case
+              (let ((client-connection (usocket:socket-accept listener)))
+                (when client-connection
+                  (set-timeouts client-connection
+                                (server-read-timeout server)
+                                (server-write-timeout server))
+                  (handle-incoming-connection (server-connection-manager server)
+                                              client-connection)))
+            (usocket:connection-aborted-error ()
+              ;; ignore condition
+              )))))))
 
 (defgeneric initialize-connection-stream (server stream) 
  (:documentation "Wraps the given STREAM with all the additional
