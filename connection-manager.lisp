@@ -127,6 +127,7 @@ connection."))
                            nil #'process-connection
                            (server manager) handle))
 
+#-:lispworks
 (defun client-as-string (socket)
   (let ((address (usocket:get-peer-address socket))
         (port (usocket:get-peer-port socket)))
