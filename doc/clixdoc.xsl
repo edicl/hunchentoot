@@ -39,7 +39,7 @@
               omit-xml-declaration="yes"
               doctype-public="-//W3C//DTD HTML 4.0 Strict//EN" />
 
-  <xsl:key name="index-entries" match="clix:*[@name]" use="@name" />
+  <xsl:key name="index-entries" match="clix:*[@name and (name() != 'clix:chapter') and (name() != 'clix:subchapter')]" use="@name" />
 
   <xsl:template match="/clix:documentation">
     <html xmlns="http://www.w3.org/1999/xhtml">
@@ -78,9 +78,10 @@
 
   <xsl:template match="clix:function">
     <p>
+      <xsl:call-template name="make-anchor"/>
       [<xsl:call-template name="nice-entry-type-name"/>]
       <br/>
-      <xsl:call-template name="make-anchor"/>
+      <xsl:call-template name="render-title"/>
       <xsl:value-of select="' '"/>
       <i><xsl:apply-templates select="clix:lambda-list"/></i>
       <xsl:if test="clix:returns">
@@ -95,20 +96,16 @@
 
   <xsl:template match="clix:reader">
     <p>
+      <xsl:call-template name="make-anchor"/>
       [<xsl:call-template name="nice-entry-type-name"/>]
       <br/>
-      <a class="none">
-        <xsl:attribute name="name">
-          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <b><xsl:value-of select="@name"/></b>
-        <xsl:value-of select="' '"/>
-        <i><xsl:apply-templates select="clix:lambda-list"/></i>
-        <xsl:if test="clix:returns">
-          =&gt;
-          <i><xsl:value-of select="clix:returns"/></i>
-        </xsl:if>
-      </a>
+      <xsl:call-template name="render-title"/>
+      <xsl:value-of select="' '"/>
+      <i><xsl:apply-templates select="clix:lambda-list"/></i>
+      <xsl:if test="clix:returns">
+        =&gt;
+        <i><xsl:value-of select="clix:returns"/></i>
+      </xsl:if>
       <blockquote>
         <xsl:apply-templates select="clix:description"/>
       </blockquote>
@@ -117,20 +114,16 @@
 
   <xsl:template match="clix:writer">
     <p>
+      <xsl:call-template name="make-anchor"/>
       [<xsl:call-template name="nice-entry-type-name"/>]
       <br/>
-      <a class="none">
-        <xsl:attribute name="name">
-          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <tt>(setf (</tt><b><xsl:value-of select="@name"/></b>
-        <xsl:value-of select="' '"/>
-        <i><xsl:apply-templates select="clix:lambda-list"/></i><tt>) <i>new-value</i>)</tt>
-        <xsl:if test="clix:returns">
-          =&gt;
-          <i><xsl:value-of select="clix:returns"/></i>
-        </xsl:if>
-      </a>
+      <tt>(setf (</tt><b><xsl:value-of select="@name"/></b>
+      <xsl:value-of select="' '"/>
+      <i><xsl:apply-templates select="clix:lambda-list"/></i><tt>) <i>new-value</i>)</tt>
+      <xsl:if test="clix:returns">
+        =&gt;
+        <i><xsl:value-of select="clix:returns"/></i>
+      </xsl:if>
       <blockquote>
         <xsl:apply-templates select="clix:description"/>
       </blockquote>
@@ -139,97 +132,30 @@
 
   <xsl:template match="clix:accessor">
     <p>
-      [<xsl:call-template name="nice-entry-type-name"/>]
-      <br/>
-      <a class="none">
-        <xsl:attribute name="name">
-          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <b><xsl:value-of select="@name"/></b>
-        <xsl:value-of select="' '"/>
-        <i><xsl:apply-templates select="clix:lambda-list"/></i>
-        =&gt;
-        <i><xsl:value-of select="clix:returns"/></i>
-        <br/>
-        <tt>(setf (</tt><b><xsl:value-of select="@name"/></b>
-        <xsl:value-of select="' '"/>
-        <i><xsl:apply-templates select="clix:lambda-list"/></i><tt>) <i>new-value</i>)</tt>
-      </a>
-      <blockquote>
-        <xsl:apply-templates select="clix:description"/>
-      </blockquote>
-    </p>
-  </xsl:template>
-
-  <xsl:template match="clix:special-variable">
-    <p>
-      [<xsl:call-template name="nice-entry-type-name"/>]
-      <br/>
-      <a class="none">
-        <xsl:attribute name="name">
-          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <b><xsl:value-of select="@name"/></b>
-      </a>
-      <blockquote>
-        <xsl:apply-templates select="clix:description"/>
-      </blockquote>
-    </p>
-  </xsl:template>
-
-  <xsl:template match="clix:class">
-    <p>
-      [<xsl:call-template name="nice-entry-type-name"/>]
-      <br/>
-      <a class="none">
-        <xsl:attribute name="name">
-          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <b><xsl:value-of select="@name"/></b>
-      </a>
-      <blockquote>
-        <xsl:apply-templates select="clix:description"/>
-      </blockquote>
-    </p>
-  </xsl:template>
-
-  <xsl:template match="clix:condition">
-    <p>
-      [<xsl:call-template name="nice-entry-type-name"/>]
-      <br/>
-      <a class="none">
-        <xsl:attribute name="name">
-          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <b><xsl:value-of select="@name"/></b>
-      </a>
-      <blockquote>
-        <xsl:apply-templates select="clix:description"/>
-      </blockquote>
-    </p>
-  </xsl:template>
-
-  <xsl:template match="clix:symbol">
-    <p>
-      [<xsl:call-template name="nice-entry-type-name"/>]
-      <br/>
       <xsl:call-template name="make-anchor"/>
+      [<xsl:call-template name="nice-entry-type-name"/>]
+      <br/>
+      <xsl:call-template name="render-title"/>
+      <xsl:value-of select="' '"/>
+      <i><xsl:apply-templates select="clix:lambda-list"/></i>
+      =&gt;
+      <i><xsl:value-of select="clix:returns"/></i>
+      <br/>
+      <tt>(setf (</tt><b><xsl:value-of select="@name"/></b>
+      <xsl:value-of select="' '"/>
+      <i><xsl:apply-templates select="clix:lambda-list"/></i><tt>) <i>new-value</i>)</tt>
       <blockquote>
         <xsl:apply-templates select="clix:description"/>
       </blockquote>
     </p>
   </xsl:template>
 
-  <xsl:template match="clix:constant">
+  <xsl:template match="clix:special-variable | clix:class | clix:condition | clix:symbol | clix:constant">
     <p>
+      <xsl:call-template name="make-anchor"/>
       [<xsl:call-template name="nice-entry-type-name"/>]
       <br/>
-      <a class="none">
-        <xsl:attribute name="name">
-          <xsl:value-of select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <b><xsl:value-of select="@name"/></b>
-      </a>
+      <xsl:call-template name="render-title"/>
       <blockquote>
         <xsl:apply-templates select="clix:description"/>
       </blockquote>
@@ -237,10 +163,7 @@
   </xsl:template>
 
   <xsl:template match="clix:listed-constant">
-    <a class="none">
-      <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
-      <b><xsl:value-of select="@name"/></b>
-    </a>
+    <xsl:call-template name="render-title"/>
     <br/>
   </xsl:template>
 
@@ -268,19 +191,6 @@
   <xsl:template match="clix:arg">
     <!-- argument reference -->
     <code><i><xsl:value-of select="text()"/></i></code>
-  </xsl:template>
-
-  <xsl:template name="internal-reference">
-    <!-- internal reference -->
-    <xsl:param name="name"/>
-    <code>
-      <a>
-        <xsl:attribute name="href">
-          #<xsl:value-of select="translate($name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-        </xsl:attribute>
-        <xsl:value-of select="$name"/>
-      </a>
-    </code>
   </xsl:template>
 
   <xsl:template match="clix:ref">
@@ -351,14 +261,15 @@
                 <xsl:attribute name="name">
                   <xsl:value-of select="@name"/>
                 </xsl:attribute>
-                <xsl:value-of select="@name"/>
               </a>
+              <xsl:value-of select="@name"/>
               <ul>
                 <xsl:for-each select="key('index-entries', @name)">
                   <xsl:sort select="name()"/>
                   <li>
                     <xsl:call-template name="internal-reference">
-                      <xsl:with-param name="name"><xsl:call-template name="make-anchor-name"/><xsl:value-of select="@name"/></xsl:with-param>
+                      <xsl:with-param name="name"><xsl:call-template name="make-anchor-name"/></xsl:with-param>
+                      <xsl:with-param name="title"><xsl:value-of select="@name"/></xsl:with-param>
                     </xsl:call-template>
                     <span class="entry-type"><xsl:call-template name="nice-entry-type-name"/></span>
                   </li>
@@ -378,6 +289,27 @@
     </xsl:copy>
   </xsl:template>
 
+  <xsl:template name="internal-reference">
+    <!-- internal reference -->
+    <xsl:param name="name"/>
+    <xsl:param name="title"/>
+    <code>
+      <a>
+        <xsl:attribute name="href">
+          #<xsl:value-of select="translate($name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
+        </xsl:attribute>
+        <xsl:choose>
+          <xsl:when test="$title != ''">
+            <xsl:value-of select="$title"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$name"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </a>
+    </code>
+  </xsl:template>
+
   <xsl:template name="make-anchor-name">
     <xsl:choose>
       <xsl:when test="count(key('index-entries', @name)) = 1">
@@ -394,8 +326,11 @@
       <xsl:attribute name="name">
         <xsl:call-template name="make-anchor-name"/>
       </xsl:attribute>
-      <b><xsl:value-of select="@name"/></b>
     </a>
+  </xsl:template>
+
+  <xsl:template name="render-title">
+    <b><xsl:value-of select="@name"/></b>
   </xsl:template>
 
   <xsl:template name="nice-entry-type-name">
@@ -434,6 +369,7 @@
       <xsl:when test="name() = 'clix:condition'">Condition type</xsl:when>
       <xsl:when test="name() = 'clix:symbol'">Symbol</xsl:when>
       <xsl:when test="name() = 'clix:constant'">Constant</xsl:when>
+      <xsl:when test="name() = 'clix:listed-constant'">Constant</xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="name()" />
       </xsl:otherwise>
