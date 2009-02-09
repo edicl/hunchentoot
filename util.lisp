@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: HUNCHENTOOT; Base: 10 -*-
 ;;; $Header: /usr/local/cvsrep/hunchentoot/util.lisp,v 1.35 2008/04/08 14:39:18 edi Exp $
 
-;;; Copyright (c) 2004-2008, Dr. Edmund Weitz. All rights reserved.
+;;; Copyright (c) 2004-2009, Dr. Edmund Weitz. All rights reserved.
 
 ;;; Redistribution and use in source and binary forms, with or without
 ;;; modification, are permitted provided that the following conditions
