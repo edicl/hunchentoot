@@ -71,10 +71,10 @@ is called directly."))
 with the connection manager, if any.")
   (:method (manager)
     #+:lispworks
-    (when-let (listener (server-listener (server manager)))
-      ;; kill the main listener process, see LW documentation for
+    (when-let (acceptor (server-acceptor (server manager)))
+      ;; kill the main acceptor process, see LW documentation for
       ;; COMM:START-UP-SERVER
-      (mp:process-kill listener))))
+      (mp:process-kill acceptor))))
 
 (defclass single-threaded-connection-manager (connection-manager)
   ()

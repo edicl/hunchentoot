@@ -83,7 +83,7 @@ execution.")
    #+:lispworks
    (acceptor :accessor server-acceptor
              :documentation "The Lisp process which accepts incoming
-             requests.")
+requests.")
    #-:lispworks
    (listen-socket :accessor server-listen-socket
                   :documentation "The listen socket for incoming
@@ -376,7 +376,7 @@ or similar).")
                                 :wait t)
       (when startup-condition
         (error startup-condition))
-      (process-stop listener-process)
+      (mp:process-stop listener-process)
       (setf (server-acceptor server) listener-process))
     #-:lispworks
     (setf (server-listen-socket server)
@@ -392,7 +392,7 @@ dispatches it to the server's connection manager object for processing
 using HANDLE-INCOMING-CONNECTION.")
   (:method ((server server))
     #+:lispworks
-    (process-unstop (server-acceptor server))
+    (mp:process-unstop (server-acceptor server))
     #-:lispworks
     (usocket:with-server-socket (listener (server-listen-socket server))
       (do ((new-connection-p (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
@@ -407,9 +407,8 @@ using HANDLE-INCOMING-CONNECTION.")
                                 (server-write-timeout server))
                   (handle-incoming-connection (server-connection-manager server)
                                               client-connection)))
-            (usocket:connection-aborted-error ()
-              ;; ignore condition
-              )))))))
+            ;; ignore condition
+            (usocket:connection-aborted-error ())))))))
 
 (defgeneric initialize-connection-stream (server stream) 
  (:documentation "Wraps the given STREAM with all the additional
