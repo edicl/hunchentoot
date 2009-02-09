@@ -395,20 +395,18 @@ using HANDLE-INCOMING-CONNECTION.")
     (mp:process-unstop (server-acceptor server))
     #-:lispworks
     (usocket:with-server-socket (listener (server-listen-socket server))
-      (do ((new-connection-p (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
-                             (usocket:wait-for-input listener :timeout +new-connection-wait-time+)))
-          ((server-shutdown-p server))
-        (when new-connection-p
-          (handler-case
-              (let ((client-connection (usocket:socket-accept listener)))
-                (when client-connection
+      (loop
+         until (server-shutdown-p server)
+         when (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
+         do (handler-case
+                (when-let (client-connection (usocket:socket-accept listener))
                   (set-timeouts client-connection
                                 (server-read-timeout server)
                                 (server-write-timeout server))
                   (handle-incoming-connection (server-connection-manager server)
-                                              client-connection)))
-            ;; ignore condition
-            (usocket:connection-aborted-error ())))))))
+                                              client-connection))
+              ;; ignore condition
+              (usocket:connection-aborted-error ()))))))
 
 (defgeneric initialize-connection-stream (server stream) 
  (:documentation "Wraps the given STREAM with all the additional
