@@ -127,10 +127,16 @@ connection."))
                            nil #'process-connection
                            (server manager) handle))
 
+(defun client-as-string (socket)
+  (let ((address (usocket:get-peer-address socket))
+        (port (usocket:get-peer-port socket)))
+    (when (and address port)
+      (format nil "~A:~A"
+              (usocket:vector-quad-to-dotted-quad address)
+              port))))
+
 #-:lispworks
 (defmethod handle-incoming-connection ((manager one-thread-per-connection-manager) socket)
   (bt:make-thread (lambda ()
                     (process-connection (server manager) socket))
-                  :name (format nil "Hunchentoot worker \(client: ~A:~A)"
-                                (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
-                                (usocket:get-peer-port socket))))
+                  :name (format nil "Hunchentoot worker \(client: ~A)" (client-as-string socket))))
