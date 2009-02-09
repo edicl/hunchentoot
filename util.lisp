@@ -229,59 +229,69 @@ called from the RFC2388 library when a file is uploaded."
                    ((#\") (write-string "\\\"" out))
                    (otherwise (write-char char out)))))))
 
-(defmacro upgrade-vector (vector new-type &key converter (new-length `(array-total-size ,vector)))
-  `(setf ,vector (loop
-                    with new-vector = (make-array ,new-length
-                                                  :element-type ,new-type
-                                                  :fill-pointer (length vector))
-                    for i from 0 below (length ,vector)
-                    do (setf (aref new-vector i) ,(if converter
-                                                      `(funcall ,converter (aref ,vector i))
-                                                      `(aref ,vector i)))
-                    finally (return new-vector))))
+(defmacro upgrade-vector (vector new-type &key converter)
+  "Returns a vector with the same length and the same elements as
+VECTOR \(a variable holding a vector) but having element type
+NEW-TYPE.  If CONVERTER is not NIL, it should designate a function
+which will be applied to each element of VECTOR before the result is
+stored in the new vector.  The resulting vector will have a fill
+pointer set to its end.
+
+The macro also uses SETQ to store the new vector in VECTOR."
+  `(setq ,vector
+         (loop with length = (length ,vector)
+               with new-vector = (make-array length
+                                             :element-type ,new-type
+                                             :fill-pointer length)
+               for i below length
+               do (setf (aref new-vector i) ,(if converter
+                                               `(funcall ,converter (aref ,vector i))
+                                               `(aref ,vector i)))
+               finally (return new-vector))))
 
 (defun url-decode (string &optional (external-format *hunchentoot-default-external-format*))
   "Decodes a URL-encoded STRING which is assumed to be encoded using
 the external format EXTERNAL-FORMAT."
-  (if (zerop (length string))
-      ""
-      (loop
-         with vector = (make-array (length string) :element-type 'octet :fill-pointer 0)
-         with i = 0
-         with unicode
-         for char = (aref string i)
-         do (labels ((decode-hex (length)
-                       (prog1
-                           (parse-integer string :start i :end (+ i length) :radix 16)
-                         (incf i length)))
-                     (push-integer (integer)
-                       (vector-push integer vector))
-                     (peek ()
-                       (aref string i))
-                     (advance ()
-                       (setf char (peek))
-                       (incf i)))
-              (cond
-                ((char= #\% char)
-                 (advance)
-                 (cond
-                   ((char= #\u (peek))
-                    (unless unicode
-                      (setf unicode t)
-                      (upgrade-vector vector '(integer 0 65535)))
-                    (advance)
-                    (push-integer (decode-hex 4)))
-                   (t
-                    (push-integer (decode-hex 2)))))
-                (t
-                 (push-integer (char-code (case char
-                                            ((#\+) #\Space)
-                                            (otherwise char))))
-                 (advance))))
-         while (< i (length string))
-         finally (return (if unicode
-                             (upgrade-vector vector 'character :converter #'code-char)
-                             (octets-to-string vector :external-format external-format))))))
+  (when (zerop (length string))
+    (return-from url-decode ""))
+  (let ((vector (make-array (length string) :element-type 'octet :fill-pointer 0))
+        (i 0)
+        unicodep)
+    (loop
+      (unless (< i (length string))
+        (return))
+      (let ((char (aref string i)))
+       (labels ((decode-hex (length)
+                  (prog1
+                      (parse-integer string :start i :end (+ i length) :radix 16)
+                    (incf i length)))
+                (push-integer (integer)
+                  (vector-push integer vector))
+                (peek ()
+                  (aref string i))
+                (advance ()
+                  (setq char (peek))
+                  (incf i)))
+         (cond
+          ((char= #\% char)
+           (advance)
+           (cond
+            ((char= #\u (peek))
+             (unless unicodep
+               (setq unicodep t)
+               (upgrade-vector vector '(integer 0 65535)))
+             (advance)
+             (push-integer (decode-hex 4)))
+            (t
+             (push-integer (decode-hex 2)))))
+          (t
+           (push-integer (char-code (case char
+                                      ((#\+) #\Space)
+                                      (otherwise char))))
+           (advance))))))
+    (cond (unicodep
+           (upgrade-vector vector 'character :converter #'code-char))
+          (t (octets-to-string vector :external-format external-format)))))
 
 (defun form-url-encoded-list-to-alist (form-url-encoded-list
                                        &optional (external-format *hunchentoot-default-external-format*))
