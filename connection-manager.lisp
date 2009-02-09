@@ -69,7 +69,7 @@ is called directly."))
 (defgeneric shutdown (connection-manager)
   (:documentation "Terminate all threads that are currently associated
 with the connection manager, if any.")
-  (:method (manager)
+  (:method ((manager t))
     #+:lispworks
     (when-let (acceptor (server-acceptor (server manager)))
       ;; kill the main acceptor process, see LW documentation for
