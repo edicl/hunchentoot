@@ -62,9 +62,9 @@ server instance, taken from the SERVER slot in the connection manager
 instance.  The SOCKET argument is passed to START-REQUEST-PROCESSING
 as argument.
 
-In a multi-threaded environment, the connection manager runs the thunk
-in a separate thread.  In a single-threaded environment, the thunk
-will be called directly."))
+In a multi-threaded environment, the connection manager runs this function
+in a separate thread.  In a single-threaded environment, this function
+is called directly."))
 
 (defgeneric shutdown (connection-manager)
   (:documentation "Terminate all threads that are currently associated
