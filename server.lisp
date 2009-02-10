@@ -212,8 +212,6 @@ connections.")
                      input-chunking-p connection-timeout
                      persistent-connections-p
                      read-timeout write-timeout
-                     #+(and :unix (not :win32)) setuid
-                     #+(and :unix (not :win32)) setgid
                      #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl
                      ssl-certificate-file ssl-privatekey-file ssl-privatekey-password
                      access-logger)
@@ -279,12 +277,6 @@ for managing how connections are mapped to threads.  You don't normally
 want to specify this argument unless you want to have non-standard
 threading behavior.   See the documentation for more information.
 
-On Unix you can use SETUID and SETGID to change the UID and GID of the
-process directly after the server has been started.  \(You might want
-to do this if you're using a privileged port like 80.)  SETUID and
-SETGID can be integers \(the actual IDs) or strings \(for the user and
-group name respectively).
-
 MESSAGE-LOGGER is a designator for a function to call to log messages
 by the server.  It must accept a severity level for the message \(one
 of :INFO, :WARNING, or :ERROR), a format string, and an arbitary
@@ -322,18 +314,6 @@ associated with a password."
                        'server
                        args)))
     (start server)
-    #+(and :unix (not :win32))
-    (when setgid
-      ;; we must make sure to call setgid before we call setuid or
-      ;; suddenly we aren't root anymore...
-      (etypecase setgid
-        (integer (setgid setgid))
-        (string (setgid (get-gid-from-name setgid)))))
-    #+(and :unix (not :win32))
-    (when setuid
-      (etypecase setuid
-        (integer (setuid setuid))
-        (string (setuid (get-uid-from-name setuid)))))   
     server))
 
 (defun stop-server (server)
