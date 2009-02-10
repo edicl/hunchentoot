@@ -285,11 +285,11 @@ encode cookie values.")
 (defconstant +buffer-length+ 8192
   "Length of buffers used for internal purposes.")
 
-(defvar-unbound *server*
+(defvar-unbound *acceptor*
   "During the execution of dispatchers and handlers this variable
 is bound to the SERVER object which processes the request.")
 
-(defvar *server-counter* 0
+(defvar *acceptor-counter* 0
   "Internal counter used to generate meaningful names for
 listener threads.")
 

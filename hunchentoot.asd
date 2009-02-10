@@ -71,6 +71,6 @@ for diagnostic output.")
                (:file "headers")
                (:file "set-timeouts")
                (:file "connection-dispatcher")
-               (:file "server")
+               (:file "acceptor")
                #-:hunchentoot-no-ssl
                (:file "ssl")))
