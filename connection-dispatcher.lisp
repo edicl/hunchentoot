@@ -65,13 +65,7 @@ is called directly."))
 
 (defgeneric shutdown (connection-dispatcher)
   (:documentation "Terminate all threads that are currently associated
-with the connection dispatcher, if any.")
-  (:method ((dispatcher t))
-    #+:lispworks
-    (when-let (acceptor (acceptor-acceptor (acceptor dispatcher)))
-      ;; kill the main acceptor process, see LW documentation for
-      ;; COMM:START-UP-SERVER
-      (mp:process-kill acceptor))))
+with the connection dispatcher, if any."))
 
 (defclass single-threaded-connection-dispatcher (connection-dispatcher)
   ()
@@ -87,42 +81,33 @@ thread that invoked the START-SERVER function."))
 (defclass one-thread-per-connection-dispatcher (connection-dispatcher)
   ((acceptor-process :accessor acceptor-process
                      :documentation "Process that accepts incoming
-                     connections and dispatches them to new processes
-                     for request execution."))
+connections and dispatches them to new processes for request
+execution."))
   (:documentation "Connection Dispatcher that starts one thread for
 listening to incoming requests and one thread for each incoming
 connection."))
 
+;; usocket implementation
+
+#-:lispworks
+(defmethod shutdown ((dispatcher connection-dispatcher)))
+
+#-:lispworks
+(defmethod shutdown ((dispatcher one-thread-per-connection-dispatcher))
+  ;; just wait until the acceptor process has finished, then return
+  (loop
+   (unless (bt:thread-alive-p (acceptor-process dispatcher))
+     (return))
+   (sleep 1)))
+
+#-:lispworks
 (defmethod execute-acceptor ((dispatcher one-thread-per-connection-dispatcher))
-  #+:lispworks
-  (accept-connections (acceptor dispatcher))
-  #-:lispworks
   (setf (acceptor-process dispatcher)
         (bt:make-thread (lambda ()
                           (accept-connections (acceptor dispatcher)))
                         :name (format nil "Hunchentoot acceptor \(~A:~A)"
                                       (or (acceptor-address (acceptor dispatcher)) "*")
                                       (acceptor-port (acceptor dispatcher))))))
-
-#-:lispworks
-(defmethod shutdown ((dispatcher one-thread-per-connection-dispatcher))
-  (loop
-     while (bt:thread-alive-p (acceptor-process dispatcher))
-     do (sleep 1)))
-
-#+:lispworks
-(defmethod handle-incoming-connection ((dispatcher one-thread-per-connection-dispatcher) handle)
-  (incf *worker-counter*)
-  ;; check if we need to perform a global GC
-  (when (and *cleanup-interval*
-             (zerop (mod *worker-counter* *cleanup-interval*)))
-    (when *cleanup-function*
-      (funcall *cleanup-function*)))
-  (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
-                                   (multiple-value-list
-                                    (get-peer-address-and-port handle)))
-                           nil #'process-connection
-                           (acceptor dispatcher) handle))
 
 #-:lispworks
 (defun client-as-string (socket)
@@ -138,3 +123,30 @@ connection."))
   (bt:make-thread (lambda ()
                     (process-connection (acceptor dispatcher) socket))
                   :name (format nil "Hunchentoot worker \(client: ~A)" (client-as-string socket))))
+
+;; LispWorks implementation
+
+#+:lispworks
+(defmethod shutdown ((dispatcher connection-dispatcher))
+  (when-let (process (acceptor-process (acceptor dispatcher)))
+    ;; kill the main acceptor process, see LW documentation for
+    ;; COMM:START-UP-SERVER
+    (mp:process-kill process)))
+
+#+:lispworks
+(defmethod execute-acceptor ((dispatcher one-thread-per-connection-dispatcher))
+  (accept-connections (acceptor dispatcher)))
+
+#+:lispworks
+(defmethod handle-incoming-connection ((dispatcher one-thread-per-connection-dispatcher) handle)
+  (incf *worker-counter*)
+  ;; check if we need to perform a global GC
+  (when (and *cleanup-interval*
+             (zerop (mod *worker-counter* *cleanup-interval*)))
+    (when *cleanup-function*
+      (funcall *cleanup-function*)))
+  (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
+                                   (multiple-value-list
+                                    (get-peer-address-and-port handle)))
+                           nil #'process-connection
+                           (acceptor dispatcher) handle))

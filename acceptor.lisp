@@ -32,12 +32,10 @@
 (defclass acceptor ()
   ((port :initarg :port
          :reader acceptor-port
-         :documentation "The port the acceptor is listening on.
-See START-SERVER.")
+         :documentation "The port the acceptor is listening on.")
    (address :initarg :address
             :reader acceptor-address
-            :documentation "The address the acceptor is listening
-on.  See START-SERVER.")
+            :documentation "The address the acceptor is listening on.")
    (name :initarg :name
          :accessor acceptor-name
          :documentation "The optional name of the acceptor, a symbol.")
@@ -46,10 +44,10 @@ on.  See START-SERVER.")
                   :documentation "Determines which class of request
 objects is created when a request comes in and should be \(a symbol
 naming) a class which inherits from REQUEST.")
-   (dispatch-table :initarg :dispatch-table
-                   :accessor acceptor-dispatch-table
-                   :documentation "The dispatch-table used by this
-acceptor.  Can be NIL to denote that *DISPATCH-TABLE* should be used.")
+   (request-dispatcher :initarg :request-dispatcher
+                       :accessor acceptor-request-dispatcher
+                       :documentation "The dispatcher function used by
+this acceptor.")
    (output-chunking-p :initarg :output-chunking-p
                       :reader acceptor-output-chunking-p
                       :documentation "Whether the acceptor may use output chunking.")
@@ -71,28 +69,28 @@ longer than this time are closed by Hunchentoot.  The precise
 semantics of this parameter is determined by the underlying Lisp's
 implementation of socket timeouts.")
    (write-timeout :initarg :write-timeout
-                 :reader acceptor-write-timeout
-                 :documentation "The connection timeout of the acceptor,
+                  :reader acceptor-write-timeout
+                  :documentation "The connection timeout of the acceptor,
 specified in (fractional) seconds.  The precise semantics of this
 parameter is determined by the underlying Lisp's implementation of
 socket timeouts.")
    (connection-dispatcher :initarg :connection-dispatcher
-                       :initform nil
-                       :reader acceptor-connection-dispatcher
-                       :documentation "The connection dispatcher that is
+                          :initform nil
+                          :reader acceptor-connection-dispatcher
+                          :documentation "The connection dispatcher that is
 responsible for listening to new connections and scheduling them for
 execution.")
    #+:lispworks
-   (acceptor :accessor acceptor-acceptor
-             :documentation "The Lisp process which accepts incoming
+   (process :accessor acceptor-process
+            :documentation "The Lisp process which accepts incoming
 requests.")
    #-:lispworks
    (listen-socket :accessor acceptor-listen-socket
                   :documentation "The listen socket for incoming
                   connections.")
    (acceptor-shutdown-p :initform nil
-                      :accessor acceptor-shutdown-p
-                      :documentation "Flag that makes the acceptor
+                        :accessor acceptor-shutdown-p
+                        :documentation "Flag that makes the acceptor
 shutdown itself when set to something other than NIL.")
    (access-logger :initarg :access-logger
                   :accessor acceptor-access-logger
@@ -120,65 +118,11 @@ information to a file."))
    :request-class 'request
    :output-chunking-p t
    :input-chunking-p t
-   :dispatch-table nil
+   :request-dispatcher 'dispatch-request
    :access-logger 'log-access
    :message-logger 'log-message)
   (:documentation "An object of this class contains all relevant
 information about a running Hunchentoot acceptor instance."))
-
-(defmethod initialize-instance :after ((acceptor acceptor)
-                                       &key connection-dispatcher-class
-                                            connection-dispatcher-arguments
-                                            (threaded *supports-threads-p* threaded-specified-p)
-                                            (persistent-connections-p
-                                             threaded
-                                             persistent-connections-specified-p)
-                                            (connection-timeout
-                                             *default-connection-timeout*
-                                             connection-timeout-provided-p)
-                                            (read-timeout nil read-timeout-provided-p)
-                                            (write-timeout nil write-timeout-provided-p))
-  "The CONNECTION-DISPATCHER-CLASS and CONNECTION-DISPATCHER-ARGUMENTS
-arguments to the creation of a acceptor instance determine the
-connection dispatcher instance that is created.  THREADED is the user
-friendly version of the CONNECTION-DISPATCHER-CLASS option.  If it is
-NIL, an unthreaded connection dispatcher is used.  It is an error to
-specify both THREADED and a CONNECTION-DISPATCHER-CLASS argument.
-
-The PERSISTENT-CONNECTIONS-P keyword argument defaults to the value of
-the THREADED keyword argument but can be overridden.
-
-If a neither READ-TIMEOUT nor WRITE-TIMEOUT are specified by the user,
-the acceptor's read and write timeouts default to the CONNECTION-TIMEOUT
-value.  If either of READ-TIMEOUT or WRITE-TIMEOUT is specified,
-CONNECTION-TIMEOUT is not used and may not be supplied."
-  (declare (ignore read-timeout write-timeout))
-  (when (and threaded-specified-p connection-dispatcher-class)
-    (parameter-error "Can't use both THREADED and CONNECTION-DISPATCHER-CLASS arguments."))
-  (unless persistent-connections-specified-p
-    (setf (acceptor-persistent-connections-p acceptor) persistent-connections-p))
-  (unless (acceptor-connection-dispatcher acceptor)
-    (setf (slot-value acceptor 'connection-dispatcher)
-          (apply #'make-instance
-                 (or connection-dispatcher-class
-                     (if threaded
-                         'one-thread-per-connection-dispatcher
-                         'single-threaded-connection-dispatcher))
-                 :acceptor acceptor
-                 connection-dispatcher-arguments)))
-  (if (or read-timeout-provided-p write-timeout-provided-p)
-      (when connection-timeout-provided-p
-        (parameter-error "Can't have both CONNECTION-TIMEOUT and either of READ-TIMEOUT and WRITE-TIMEOUT."))
-      (setf (slot-value acceptor 'read-timeout) connection-timeout
-            (slot-value acceptor 'write-timeout) connection-timeout)))
-
-(defgeneric acceptor-ssl-p (acceptor)
-  (:documentation "Returns a true value if ACCEPTOR is an SSL acceptor.")
-  (:method ((acceptor t))
-    nil))
-
-(defun ssl-p (&optional (acceptor *acceptor*))
-  (acceptor-ssl-p acceptor))
 
 (defmethod print-object ((acceptor acceptor) stream)
   (print-unreadable-object (acceptor stream :type t)
@@ -347,7 +291,7 @@ or similar).")
       (when startup-condition
         (error startup-condition))
       (mp:process-stop listener-process)
-      (setf (acceptor-acceptor acceptor) listener-process))
+      (setf (acceptor-process acceptor) listener-process))
     #-:lispworks
     (setf (acceptor-listen-socket acceptor)
           (usocket:socket-listen (or (acceptor-address acceptor)
@@ -362,7 +306,7 @@ dispatches it to the acceptor's connection dispatcher object for processing
 using HANDLE-INCOMING-CONNECTION.")
   (:method ((acceptor acceptor))
     #+:lispworks
-    (mp:process-unstop (acceptor-acceptor acceptor))
+    (mp:process-unstop (acceptor-process acceptor))
     #-:lispworks
     (usocket:with-acceptor-socket (listener (acceptor-listen-socket acceptor))
       (loop
@@ -405,6 +349,7 @@ the stream.")
            (chunked-stream-stream stream))
           (t stream))))
 
+;;; TODO
 (defgeneric dispatch-request (acceptor request reply)
   (:documentation "")
   (:method (acceptor request reply)
