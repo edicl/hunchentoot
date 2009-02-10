@@ -29,13 +29,10 @@
 
 (in-package :hunchentoot)
 
-;;; The connection-dispatcher protocol defines how Hunchentoot schedules
-;;; request execution to worker threads or for inline execution.
-
 (defclass connection-dispatcher ()
   ((acceptor :initarg :acceptor
-           :reader acceptor
-           :documentation "The Hunchentoot acceptor instance that this
+             :reader acceptor
+             :documentation "The acceptor instance that this
 connection dispatcher works for."))
   (:documentation "Base class for all connection dispatchers classes.
 Its purpose is to carry the back pointer to the acceptor instance."))
@@ -69,9 +66,9 @@ is called directly."))
 (defgeneric shutdown (connection-dispatcher)
   (:documentation "Terminate all threads that are currently associated
 with the connection dispatcher, if any.")
-  (:method ((manager t))
+  (:method ((dispatcher t))
     #+:lispworks
-    (when-let (acceptor (acceptor-acceptor (acceptor manager)))
+    (when-let (acceptor (acceptor-acceptor (acceptor dispatcher)))
       ;; kill the main acceptor process, see LW documentation for
       ;; COMM:START-UP-SERVER
       (mp:process-kill acceptor))))
@@ -81,11 +78,11 @@ with the connection dispatcher, if any.")
   (:documentation "Connection Dispatcher that runs synchronously in the
 thread that invoked the START-SERVER function."))
 
-(defmethod execute-acceptor ((manager single-threaded-connection-dispatcher))
-  (accept-connections (acceptor manager)))
+(defmethod execute-acceptor ((dispatcher single-threaded-connection-dispatcher))
+  (accept-connections (acceptor dispatcher)))
 
-(defmethod handle-incoming-connection ((manager single-threaded-connection-dispatcher) socket)
-  (process-connection (acceptor manager) socket))
+(defmethod handle-incoming-connection ((dispatcher single-threaded-connection-dispatcher) socket)
+  (process-connection (acceptor dispatcher) socket))
 
 (defclass one-thread-per-connection-dispatcher (connection-dispatcher)
   ((acceptor-process :accessor acceptor-process
@@ -96,25 +93,25 @@ thread that invoked the START-SERVER function."))
 listening to incoming requests and one thread for each incoming
 connection."))
 
-(defmethod execute-acceptor ((manager one-thread-per-connection-dispatcher))
+(defmethod execute-acceptor ((dispatcher one-thread-per-connection-dispatcher))
   #+:lispworks
-  (accept-connections (acceptor manager))
+  (accept-connections (acceptor dispatcher))
   #-:lispworks
-  (setf (acceptor-process manager)
+  (setf (acceptor-process dispatcher)
         (bt:make-thread (lambda ()
-                          (accept-connections (acceptor manager)))
+                          (accept-connections (acceptor dispatcher)))
                         :name (format nil "Hunchentoot acceptor \(~A:~A)"
-                                      (or (acceptor-address (acceptor manager)) "*")
-                                      (acceptor-port (acceptor manager))))))
+                                      (or (acceptor-address (acceptor dispatcher)) "*")
+                                      (acceptor-port (acceptor dispatcher))))))
 
 #-:lispworks
-(defmethod shutdown ((manager one-thread-per-connection-dispatcher))
+(defmethod shutdown ((dispatcher one-thread-per-connection-dispatcher))
   (loop
-     while (bt:thread-alive-p (acceptor-process manager))
+     while (bt:thread-alive-p (acceptor-process dispatcher))
      do (sleep 1)))
 
 #+:lispworks
-(defmethod handle-incoming-connection ((manager one-thread-per-connection-dispatcher) handle)
+(defmethod handle-incoming-connection ((dispatcher one-thread-per-connection-dispatcher) handle)
   (incf *worker-counter*)
   ;; check if we need to perform a global GC
   (when (and *cleanup-interval*
@@ -125,7 +122,7 @@ connection."))
                                    (multiple-value-list
                                     (get-peer-address-and-port handle)))
                            nil #'process-connection
-                           (acceptor manager) handle))
+                           (acceptor dispatcher) handle))
 
 #-:lispworks
 (defun client-as-string (socket)
@@ -137,7 +134,7 @@ connection."))
               port))))
 
 #-:lispworks
-(defmethod handle-incoming-connection ((manager one-thread-per-connection-dispatcher) socket)
+(defmethod handle-incoming-connection ((dispatcher one-thread-per-connection-dispatcher) socket)
   (bt:make-thread (lambda ()
-                    (process-connection (acceptor manager) socket))
+                    (process-connection (acceptor dispatcher) socket))
                   :name (format nil "Hunchentoot worker \(client: ~A)" (client-as-string socket))))

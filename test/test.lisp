@@ -119,7 +119,7 @@
          " since its handler was compiled.")
         (info-table (host)
                     (acceptor-address *acceptor*)
-                    (acceptor-port)
+                    (acceptor-port *acceptor*)
                     (remote-addr*)
                     (remote-port*)
                     (real-remote-addr)

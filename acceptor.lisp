@@ -31,9 +31,11 @@
 
 (defclass acceptor ()
   ((port :initarg :port
+         :reader acceptor-port
          :documentation "The port the acceptor is listening on.
 See START-SERVER.")
    (address :initarg :address
+            :reader acceptor-address
             :documentation "The address the acceptor is listening
 on.  See START-SERVER.")
    (name :initarg :name
@@ -182,14 +184,6 @@ CONNECTION-TIMEOUT is not used and may not be supplied."
   (print-unreadable-object (acceptor stream :type t)
     (format stream "\(host ~A, port ~A)"
             (or (acceptor-address acceptor) "*") (acceptor-port acceptor))))
-
-(defun acceptor-address (&optional (acceptor *acceptor*))
-  "Returns the address at which the current request arrived."
-  (slot-value acceptor 'address))
-
-(defun acceptor-port (&optional (acceptor *acceptor*))
-  "Returns the port at which the current request arrived."
-  (slot-value acceptor 'port))
 
 (defgeneric start (acceptor)
   (:documentation "Start the ACCEPTOR so that it begins accepting

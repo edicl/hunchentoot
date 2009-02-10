@@ -374,7 +374,7 @@ inclusion in HTML output."
           (escape-for-html (lisp-implementation-version))
           (or (host *request*) (acceptor-address *acceptor*))
           (scan ":\\d+$" (or (host *request*) ""))
-          (acceptor-port)))
+          (acceptor-port *acceptor*)))
 
 (defun server-name-header ()
   "Returns a string which can be used for 'Server' headers."
