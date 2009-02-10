@@ -64,7 +64,7 @@
 
     (format t "Test POST parameters with foreign characters (Latin-1)~%")
     (http-request "parameter_latin1_post.html"
-                  :method :post :parameters (list (cons "foo" (format nil "H~Chner" #\Latin_Small_Letter_U_With_Diaeresis))))
+                  :method :post :parameters (list (cons "foo" (format nil "H~Chner" #.(code-char 252)))))
     (http-assert-header :content-type "text/html; charset=ISO-8859-1")
     (http-assert-body "(72 252 104 110 101 114)")
     (http-assert-body "&quot;H&#xFC;hner&quot;")
@@ -79,7 +79,7 @@
     (http-request "parameter_utf8_post.html"
                   :method :post
                   :external-format-out :utf-8
-                  :parameters (list (cons "foo" (format nil "H~Chner" #\Latin_Small_Letter_U_With_Diaeresis))))
+                  :parameters (list (cons "foo" (format nil "H~Chner" #.(code-char 252)))))
     (http-assert-header :content-type "text/html; charset=UTF-8")
     (http-assert-body "(72 252 104 110 101 114)")
     (http-assert-body "&quot;H&#xFC;hner&quot;")
