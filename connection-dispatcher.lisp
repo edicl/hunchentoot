@@ -30,8 +30,7 @@
 (in-package :hunchentoot)
 
 (defclass connection-dispatcher ()
-  ((acceptor :initarg :acceptor
-             :reader acceptor
+  ((acceptor :accessor acceptor
              :documentation "The acceptor instance that this
 connection dispatcher works for."))
   (:documentation "Base class for all connection dispatchers classes.

@@ -89,8 +89,8 @@ Hunchentoot and can be accessed by the corresponding handler.
 
 You should not mess with the slots of these objects directly, but you
 can subclass REQUEST in order to implement your own behaviour.  See
-for example the REQUEST-CLASS keyword argument of START-SERVER and the
-function DISPATCH-REQUEST."))
+for example the REQUEST-CLASS slot of the ACCEPTOR class and the
+generic function DISPATCH-REQUEST."))
 
 (defun convert-hack (string external-format)
   "The rfc2388 package is buggy in that it operates on a character

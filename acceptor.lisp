@@ -48,6 +48,11 @@ naming) a class which inherits from REQUEST.")
                        :accessor acceptor-request-dispatcher
                        :documentation "The dispatcher function used by
 this acceptor.")
+   (connection-dispatcher :initarg :connection-dispatcher
+                          :reader acceptor-connection-dispatcher
+                          :documentation "The connection dispatcher that is
+responsible for listening to new connections and scheduling them for
+execution.")
    (output-chunking-p :initarg :output-chunking-p
                       :reader acceptor-output-chunking-p
                       :documentation "Whether the acceptor may use output chunking.")
@@ -74,12 +79,6 @@ implementation of socket timeouts.")
 specified in (fractional) seconds.  The precise semantics of this
 parameter is determined by the underlying Lisp's implementation of
 socket timeouts.")
-   (connection-dispatcher :initarg :connection-dispatcher
-                          :initform nil
-                          :reader acceptor-connection-dispatcher
-                          :documentation "The connection dispatcher that is
-responsible for listening to new connections and scheduling them for
-execution.")
    #+:lispworks
    (process :accessor acceptor-process
             :documentation "The Lisp process which accepts incoming
@@ -116,9 +115,10 @@ information to a file."))
    :port 80
    :name (gensym)
    :request-class 'request
+   :request-dispatcher 'dispatch-request
+   :connection-dispatcher (make-instance 'one-thread-per-connection-dispatcher)
    :output-chunking-p t
    :input-chunking-p t
-   :request-dispatcher 'dispatch-request
    :access-logger 'log-access
    :message-logger 'log-message)
   (:documentation "An object of this class contains all relevant
@@ -130,306 +130,152 @@ information about a running Hunchentoot acceptor instance."))
             (or (acceptor-address acceptor) "*") (acceptor-port acceptor))))
 
 (defgeneric start (acceptor)
-  (:documentation "Start the ACCEPTOR so that it begins accepting
-connections.")
-  (:method ((acceptor acceptor))
-    (start-listening acceptor)
-    (execute-acceptor (acceptor-connection-dispatcher acceptor))))
+  (:documentation "Starts the ACCEPTOR so that it begins accepting
+connections."))
 
 (defgeneric stop (acceptor)
-  (:documentation "Stop the ACCEPTOR so that it does no longer accept requests.")
-  (:method ((acceptor acceptor))
-   (setf (acceptor-shutdown-p acceptor) t)
-   (shutdown (acceptor-connection-dispatcher acceptor))
-   #-:lispworks
-   (usocket:socket-close (acceptor-listen-socket acceptor))))
-
-(defun start-server (&rest args
-                     &key port address dispatch-table name
-                     threaded
-                     input-chunking-p connection-timeout
-                     persistent-connections-p
-                     read-timeout write-timeout
-                     #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl
-                     ssl-certificate-file ssl-privatekey-file ssl-privatekey-password
-                     access-logger)
-  ;; except for SSL-CERTIFICATE-FILE, which is used to determine
-  ;; whether SSL is desired, all arguments are here so that the lambda
-  ;; list is self documenting and ignored otherwise
-  (declare (ignore port address dispatch-table name
-                   threaded
-                   input-chunking-p connection-timeout
-                   persistent-connections-p
-                   read-timeout write-timeout
-                   #-:hunchentoot-no-ssl #-:hunchentoot-no-ssl
-                   ssl-privatekey-file ssl-privatekey-password
-                   access-logger))
-  "Starts a Hunchentoot server and returns the SERVER object \(which
-can be stopped with STOP-SERVER).  PORT is the port the server will be
-listening on - the default is 80 \(or 443 if SSL information is
-provided).  If ADDRESS is a string denoting an IP address, then the
-server only receives connections for that address.  This must be one
-of the addresses associated with the machine and allowed values are
-host names such as \"www.nowhere.com\" and address strings like
-\"204.71.177.75\".  If ADDRESS is NIL, then the server will receive
-connections to all IP addresses on the machine.  This is the default.
-
-DISPATCH-TABLE can either be a dispatch table which is to be used by
-this server or NIL which means that the value of the global variable
-*DISPATCH-TABLE* at request time will be used.  This argument is of
-course meaningless if you implement your own dispatch mechanism.
-
-NAME should be a symbol which can be used to name the server.  This
-name can utilized when defining \"easy handlers\" - see
-DEFINE-EASY-HANDLER.  The default name is an uninterned symbol as
-returned by GENSYM.
-
-The REQUEST-CLASS argument determines which class of request objects
-is created when a request comes in and should be \(a symbol naming) a
-class which inherits from REQUEST.  The default is the symbol REQUEST.
-
-If INPUT-CHUNKING-P is true, the server will accept request bodies
-without a `Content-Length' header if the client uses chunked transfer
-encoding.
-
-If PERSISTENT-CONNECTIONS-P is true, the server will support
-persistent connections and process multiple requests on one incoming
-connection.  If it is false, Hunchentoot will close every connection
-after one request has been processed.  This argument defaults to true
-for threaded and false for non-threaded servers.
-
-CONNECTION-TIMEOUT specifies the connection timeout for client
-connections in \(fractional) seconds - use NIL for no timeout at all.
-This parameter limits the time that Hunchentoot will wait for data to
-be received from or sent to a client.  The details of how this
-parameter works is implementation specific.
-
-READ-TIMEOUT and WRITE-TIMEOUT specify implementation specific
-timeouts for reading from and writing to client sockets.  The exact
-semantics of these two parameters are Lisp implementation specific,
-and not all implementations provide for separate read and write
-timeout parameter setting.
-
-CONNECTION-DISPATCHER-CLASS specifies the name of the class to instantiate
-for managing how connections are mapped to threads.  You don't normally
-want to specify this argument unless you want to have non-standard
-threading behavior.   See the documentation for more information.
-
-MESSAGE-LOGGER is a designator for a function to call to log messages
-by the server.  It must accept a severity level for the message \(one
-of :INFO, :WARNING, or :ERROR), a format string, and an arbitary
-number of formatting arguments.  This slot defaults to the LOG-MESSAGE
-function which writes writes the information to a file.
-
-ACCESS-LOGGER is a designator for a function that is called by the
-server to log requests.  It defaults to the function
-HUNCHENTOOT::LOG-ACCESS and can be overriden for individual servers.
-The function needs to accept the RETURN-CODE, CONTENT and
-CONTENT-LENGTH keyword arguments which are bound by the server to the
-HTTP return code, the CONTENT sent back to the client and the number
-of bytes sent back in the request body to the client.
-HUNCHENTOOT::LOG-ACCESS calls the generic logging function specified
-by LOGGER.
-
-If you want your server to use SSL you must provide the pathname
-designator\(s) SSL-CERTIFICATE-FILE for the certificate file and
-optionally SSL-PRIVATEKEY-FILE for the private key file, both files
-must be in PEM format.  If you only provide the value for
-SSL-CERTIFICATE-FILE it is assumed that both the certificate and the
-private key are in one file.  If your private key needs a password you
-can provide it through the SSL-PRIVATEKEY-PASSWORD keyword argument,
-but this works only on LispWorks - for other Lisps the key must not be
-associated with a password."
-  (unless (boundp '*session-secret*)
-    (reset-session-secret))
-  #+:hunchentoot-no-ssl
-  (when ssl-certificate-file
-    (parameter-error "Hunchentoot SSL support is not compiled in."))
-  (let ((server (apply #'make-instance
-                       #-:hunchentoot-no-ssl
-                       (if ssl-certificate-file 'ssl-acceptor 'acceptor)
-                       #+:hunchentoot-no-ssl
-                       'server
-                       args)))
-    (start server)
-    server))
-
-(defun stop-server (server)
-  "Stops the Hunchentoot server SERVER."
-  (stop server))
-
-;; connection dispatcher API
+  (:documentation "Stops the ACCEPTOR so that it no longer accepts
+requests."))
 
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
 enables it to listen for incoming connections.  This function is
-called from the thread that starts the acceptor initially and may return
-errors resulting from the listening operation. (like 'address in use'
-or similar).")
-  (:method ((acceptor acceptor))
-    #+:lispworks
-    (multiple-value-bind (listener-process startup-condition)
-        (comm:start-up-server :service (acceptor-port acceptor)
-                              :address (acceptor-address acceptor)
-                              :process-name (format nil "Hunchentoot listener \(~A:~A)"
-                                                    (or (acceptor-address acceptor) "*") (acceptor-port acceptor))
-                              ;; this function is called once on startup - we
-                              ;; use it to check for errors
-                              :announce (lambda (socket &optional condition)
-                                          (declare (ignore socket))
-                                          (when condition
-                                            (error condition)))
-                              ;; this function is called whenever a connection
-                              ;; is made
-                              :function (lambda (handle)
-                                          (unless (acceptor-shutdown-p acceptor)
-                                            (handle-incoming-connection
-                                             (acceptor-connection-dispatcher acceptor) handle)))
-                              ;; wait until the acceptor was successfully started
-                              ;; or an error condition is returned
-                              :wait t)
-      (when startup-condition
-        (error startup-condition))
-      (mp:process-stop listener-process)
-      (setf (acceptor-process acceptor) listener-process))
-    #-:lispworks
-    (setf (acceptor-listen-socket acceptor)
-          (usocket:socket-listen (or (acceptor-address acceptor)
-                                     usocket:*wildcard-host*)
-                                 (acceptor-port acceptor)
-                                 :reuseaddress t
-                                 :element-type '(unsigned-byte 8)))))
+called from the thread that starts the acceptor initially and may
+return errors resulting from the listening operation. (like 'address
+in use' or similar)."))
 
 (defgeneric accept-connections (acceptor)
   (:documentation "In a loop, accepts a connection and
 dispatches it to the acceptor's connection dispatcher object for processing
-using HANDLE-INCOMING-CONNECTION.")
-  (:method ((acceptor acceptor))
-    #+:lispworks
-    (mp:process-unstop (acceptor-process acceptor))
-    #-:lispworks
-    (usocket:with-acceptor-socket (listener (acceptor-listen-socket acceptor))
-      (loop
-         until (acceptor-shutdown-p acceptor)
-         when (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
-         do (handler-case
-                (when-let (client-connection (usocket:socket-accept listener))
-                  (set-timeouts client-connection
-                                (acceptor-read-timeout acceptor)
-                                (acceptor-write-timeout acceptor))
-                  (handle-incoming-connection (acceptor-connection-dispatcher acceptor)
-                                              client-connection))
-              ;; ignore condition
-              (usocket:connection-aborted-error ()))))))
+using HANDLE-INCOMING-CONNECTION."))
 
-(defgeneric initialize-connection-stream (acceptor stream) 
+(defgeneric initialize-connection-stream (acceptor stream)
  (:documentation "Wraps the given STREAM with all the additional
 stream classes to support the functionality required by ACCEPTOR.  The
-methods of this generic function must return the stream to use.")
- ;; default method does nothing
- (:method (acceptor stream)
-  (declare (ignore acceptor))
-  stream))
+methods of this generic function must return the stream to use."))
 
 (defgeneric reset-connection-stream (acceptor stream)
   (:documentation "Resets the given STREAM so that it can be used to
 process the next request, ACCEPTOR is the acceptor that this stream
 belongs to, which determines what to do to reset.  This generic
 function is called after a request has been processed and must return
-the stream.")
-  (:method (acceptor stream)
-    (declare (ignore acceptor))
-    ;; turn chunking off at this point
-    (cond ((typep stream 'chunked-stream)
-           ;; flush the stream first and check if there's unread input
-           ;; which would be an error
-           (setf (chunked-stream-output-chunking-p stream) nil
-                 (chunked-stream-input-chunking-p stream) nil)
-           ;; switch back to bare socket stream
-           (chunked-stream-stream stream))
-          (t stream))))
-
-;;; TODO
-(defgeneric dispatch-request (acceptor request reply)
-  (:documentation "")
-  (:method (acceptor request reply)
-   (loop for dispatcher in (or (acceptor-dispatch-table acceptor)
-                               *dispatch-table*)
-         for action = (funcall dispatcher request)
-         when action return (funcall action)
-         finally (setf (return-code reply) +http-not-found+))))
+the stream."))
 
 (defgeneric process-connection (acceptor socket)
-  (:documentation "This function is called by the connection dispatcher
-when a new client connection has been established.  Arguments are the
-ACCEPTOR object and a usocket socket stream object \(or a LispWorks
-socket handle) in SOCKET.  It reads the request headers and hands over
-to PROCESS-REQUEST.  This is done in a loop until the stream has to be
-closed or until a connection timeout occurs.")
-  (:method :around (*acceptor* socket)
-    "The around method does the error handling."
-    (declare (ignore socket))
-    ;; note that this call also binds *ACCEPTOR*
-    (handler-bind ((error
-                    ;; abort if there's an error which isn't caught inside
-                    (lambda (cond)
-                      (log-message* *lisp-errors-log-level*
-                                    "Error while processing connection: ~A" cond)                    
-                      (return-from process-connection)))
-                   (warning
-                    ;; log all warnings which aren't caught inside
-                    (lambda (cond)
-                      (log-message* *lisp-warnings-log-level*
-                                    "Warning while processing connection: ~A" cond))))
-      (call-next-method)))
-  (:method (*acceptor* socket)
-   (let ((*hunchentoot-stream*
-          (initialize-connection-stream *acceptor* (make-socket-stream socket *acceptor*))))
-      (unwind-protect
-          ;; process requests until either the acceptor is shut down,
-          ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
-          ;; handler or the peer fails to send a request.
-          (do ((*close-hunchentoot-stream* t))
-              ((acceptor-shutdown-p *acceptor*))
-            (multiple-value-bind (headers-in method url-string acceptor-protocol)
-                (get-request-data *hunchentoot-stream*)
-              ;; check if there was a request at all
-              (unless method
-                (return))
-              ;; bind per-request special variables, then process the
-              ;; request - note that *ACCEPTOR* was bound above already
-              (let ((*reply* (make-instance 'reply))
-                    (*session* nil))
-                (when (acceptor-input-chunking-p *acceptor*)
-                  (let ((transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
-                    (when transfer-encodings
-                      (setq transfer-encodings
-                            (split "\\s*,\\*" transfer-encodings)))
-                    (when (member "chunked" transfer-encodings :test #'equalp)
-                      ;; turn chunking on before we read the request body
-                      (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
-                            (chunked-stream-input-chunking-p *hunchentoot-stream*) t))))
-                (multiple-value-bind (remote-addr remote-port)
-                    (get-peer-address-and-port socket)
-                  (process-request (make-instance (acceptor-request-class *acceptor*)
-                                                  :remote-addr remote-addr
-                                                  :remote-port remote-port
-                                                  :headers-in headers-in
-                                                  :content-stream *hunchentoot-stream*
-                                                  :method method
-                                                  :uri url-string
-                                                  :server-protocol acceptor-protocol))))
-              (force-output *hunchentoot-stream*)
-              (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
-              (when *close-hunchentoot-stream*
-                (return))))
-        (when *hunchentoot-stream*
-          ;; as we are at the end of the request here, we ignore all
-          ;; errors that may occur while flushing and/or closing the
-          ;; stream.
-          (ignore-errors
-            (force-output *hunchentoot-stream*)
-            (close *hunchentoot-stream* :abort t)))))))
+  (:documentation "This function is called by the connection
+dispatcher when a new client connection has been established.
+Arguments are the ACCEPTOR object and a usocket socket stream object
+\(or a LispWorks socket handle) in SOCKET.  It reads the request
+headers and hands over to PROCESS-REQUEST.  This is done in a loop
+until the stream has to be closed or until a connection timeout
+occurs."))
+
+(defgeneric acceptor-ssl-p (acceptor) 
+  (:documentation "Returns a true value if ACCEPTOR uses SSL
+connections.  The default is to unconditionally return NIL and
+subclasses of ACCEPTOR must specialize this method to signal that
+they're using secure connections."))
+
+;; general implementation
+
+(defmethod start ((acceptor acceptor))
+  (start-listening acceptor)
+  (let ((connection-dispatcher (acceptor-connection-dispatcher acceptor)))
+    (setf (acceptor connection-dispatcher) acceptor)
+    (execute-acceptor connection-dispatcher)))
+
+(defmethod stop ((acceptor acceptor))
+  (setf (acceptor-shutdown-p acceptor) t)
+  (shutdown (acceptor-connection-dispatcher acceptor))
+  #-:lispworks
+  (usocket:socket-close (acceptor-listen-socket acceptor)))
+
+(defmethod initialize-connection-stream (acceptor stream)
+ ;; default method does nothing
+ (declare (ignore acceptor))
+ stream)
+
+(defmethod reset-connection-stream (acceptor stream)
+  (declare (ignore acceptor))
+  ;; turn chunking off at this point
+  (cond ((typep stream 'chunked-stream)
+         ;; flush the stream first and check if there's unread input
+         ;; which would be an error
+         (setf (chunked-stream-output-chunking-p stream) nil
+               (chunked-stream-input-chunking-p stream) nil)
+         ;; switch back to bare socket stream
+         (chunked-stream-stream stream))
+        (t stream)))
+
+(defmethod process-connection :around ((*acceptor* acceptor) (socket t))
+  "The around method is responsible for error handling."
+  (declare (ignore socket))
+  ;; note that this call also binds *ACCEPTOR*
+  (handler-bind ((error
+                  ;; abort if there's an error which isn't caught inside
+                  (lambda (cond)
+                    (log-message* *lisp-errors-log-level*
+                                  "Error while processing connection: ~A" cond)                    
+                    (return-from process-connection)))
+                 (warning
+                  ;; log all warnings which aren't caught inside
+                  (lambda (cond)
+                    (log-message* *lisp-warnings-log-level*
+                                  "Warning while processing connection: ~A" cond))))
+    (call-next-method)))
+
+(defmethod process-connection ((*acceptor* acceptor) (socket t))
+  (let ((*hunchentoot-stream*
+         (initialize-connection-stream *acceptor* (make-socket-stream socket *acceptor*))))
+    (unwind-protect
+        ;; process requests until either the acceptor is shut down,
+        ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
+        ;; handler or the peer fails to send a request.
+        (loop
+         (let ((*close-hunchentoot-stream* t))
+           (when (acceptor-shutdown-p *acceptor*)
+             (return))
+           (multiple-value-bind (headers-in method url-string protocol)
+               (get-request-data *hunchentoot-stream*)
+             ;; check if there was a request at all
+             (unless method
+               (return))
+             ;; bind per-request special variables, then process the
+             ;; request - note that *ACCEPTOR* was bound above already
+             (let ((*reply* (make-instance 'reply))
+                   (*session* nil)
+                   (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
+               (when transfer-encodings
+                 (setq transfer-encodings
+                       (split "\\s*,\\*" transfer-encodings))
+                 (when (member "chunked" transfer-encodings :test #'equalp)
+                   (cond ((acceptor-input-chunking-p *acceptor*)
+                          ;; turn chunking on before we read the request body
+                          (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
+                                (chunked-stream-input-chunking-p *hunchentoot-stream*) t))
+                         (t (hunchentoot-error "Client tried to use ~
+chunked encoding, but acceptor is configured to not use it.")))))
+               (multiple-value-bind (remote-addr remote-port)
+                   (get-peer-address-and-port socket)
+                 (process-request (make-instance (acceptor-request-class *acceptor*)
+                                                 :remote-addr remote-addr
+                                                 :remote-port remote-port
+                                                 :headers-in headers-in
+                                                 :content-stream *hunchentoot-stream*
+                                                 :method method
+                                                 :uri url-string
+                                                 :server-protocol protocol))))
+             (force-output *hunchentoot-stream*)
+             (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
+             (when *close-hunchentoot-stream*
+               (return)))))
+      (when *hunchentoot-stream*
+        ;; as we are at the end of the request here, we ignore all
+        ;; errors that may occur while flushing and/or closing the
+        ;; stream.
+        (ignore-errors
+          (force-output *hunchentoot-stream*)
+          (close *hunchentoot-stream* :abort t))))))
 
 (defun process-request (request)
   "This function is called by PROCESS-CONNECTION after the incoming
@@ -459,7 +305,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                   ;; skip dispatch if bad request
                   (when (eql (return-code) +http-ok+)
                     ;; now do the work
-                    (dispatch-request *acceptor* *request* *reply*))))
+                    (funcall (acceptor-request-dispatcher *acceptor*) *request* *reply*))))
             (when error
               (setf (return-code *reply*)
                     +http-internal-server-error+))
@@ -473,3 +319,79 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
           ;; file, so ignore errors that happen during deletion.
           (ignore-errors
             (delete-file path)))))))
+  
+(defmethod acceptor-ssl-p ((acceptor t))
+  ;; the default is to always answer "no"
+  nil)
+	 	 
+;; usocket implementation
+
+#-:lispworks
+(defmethod start-listening ((acceptor acceptor))
+  (setf (acceptor-listen-socket acceptor)
+        (usocket:socket-listen (or (acceptor-address acceptor)
+                                   usocket:*wildcard-host*)
+                               (acceptor-port acceptor)
+                               :reuseaddress t
+                               :element-type '(unsigned-byte 8))))
+
+#-:lispworks
+(defmethod accept-connections ((acceptor acceptor))
+  (usocket:with-server-socket (listener (acceptor-listen-socket acceptor))
+    (loop
+     (when (acceptor-shutdown-p acceptor)
+       (return))
+     (when (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
+       (handler-case
+           (when-let (client-connection (usocket:socket-accept listener))
+             (set-timeouts client-connection
+                           (acceptor-read-timeout acceptor)
+                           (acceptor-write-timeout acceptor))
+             (handle-incoming-connection (acceptor-connection-dispatcher acceptor)
+                                         client-connection))
+         ;; ignore condition
+         (usocket:connection-aborted-error ()))))))
+
+;; LispWorks implementation
+
+#+:lispworks
+(defmethod start-listening ((acceptor acceptor))
+  (multiple-value-bind (listener-process startup-condition)
+      (comm:start-up-server :service (acceptor-port acceptor)
+                            :address (acceptor-address acceptor)
+                            :process-name (format nil "Hunchentoot listener \(~A:~A)"
+                                                  (or (acceptor-address acceptor) "*")
+                                                  (acceptor-port acceptor))
+                            ;; this function is called once on startup - we
+                            ;; use it to check for errors
+                            :announce (lambda (socket &optional condition)
+                                        (declare (ignore socket))
+                                        (when condition
+                                          (error condition)))
+                            ;; this function is called whenever a connection
+                            ;; is made
+                            :function (lambda (handle)
+                                        (unless (acceptor-shutdown-p acceptor)
+                                          (handle-incoming-connection
+                                           (acceptor-connection-dispatcher acceptor) handle)))
+                            ;; wait until the acceptor was successfully started
+                            ;; or an error condition is returned
+                            :wait t)
+    (when startup-condition
+      (error startup-condition))
+    (mp:process-stop listener-process)
+    (setf (acceptor-process acceptor) listener-process)))
+
+#+:lispworks
+(defmethod accept-connections ((acceptor acceptor))
+  (mp:process-unstop (acceptor-process acceptor)))
+
+;;; TODO
+(defgeneric dispatch-request (request reply)
+  (:documentation "")
+  (:method (request reply)
+   (loop for dispatcher in *dispatch-table*
+         for action = (funcall dispatcher request)
+         when action return (funcall action)
+         finally (setf (return-code reply) +http-not-found+))))
+

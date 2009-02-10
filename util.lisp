@@ -386,6 +386,10 @@ inclusion in HTML output."
 not a chunked stream."
   (chunked-stream-input-chunking-p *hunchentoot-stream*))
 
+(defun ssl-p (&optional (acceptor *acceptor*))
+  "Whether the current connection to the client is secure."
+  (acceptor-ssl-p acceptor))
+
 #-:lispworks
 (defun get-peer-address-and-port (socket)
   "Returns the peer address and port of the socket SOCKET as two
