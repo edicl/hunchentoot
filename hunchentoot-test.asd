@@ -31,5 +31,7 @@
   :components ((:module "test"
                         :serial t
                         :components ((:file "packages")
-                                     (:file "test"))))
-  :depends-on (:hunchentoot :cl-who))
+                                     (:file "test-handlers")
+                                     (:file "script-engine")
+                                     (:file "script"))))
+  :depends-on (:hunchentoot :cl-who :cl-ppcre :drakma))

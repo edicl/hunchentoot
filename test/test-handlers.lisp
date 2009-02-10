@@ -118,8 +118,8 @@
           (fmt "~[~;once~;twice~:;~:*~R times~]" (incf count)))
          " since its handler was compiled.")
         (info-table (host)
-                    (acceptor-address *acceptor*)
-                    (acceptor-port *acceptor*)
+                    (server-address *server*)
+                    (server-port)
                     (remote-addr*)
                     (remote-port*)
                     (real-remote-addr)
@@ -513,10 +513,14 @@ and see what's happening.")
                   "Forbidden \(403) page")))
        (:tr (:td (:a :href "/hunchentoot/test/oops.html"
                   "Error handling")
-             " \(output depends on "
+             " \(output depends on settings like "
              (:a :href "http://weitz.de/hunchentoot/#*show-lisp-errors-p*"
               (:code "*SHOW-LISP-ERRORS-P*"))
-             (fmt " \(currently ~S))" *show-lisp-errors-p*)))
+             (fmt " \(currently ~S) and " *show-lisp-errors-p*)
+             (:a :href "http://weitz.de/hunchentoot/#*show-lisp-backtraces-p*"
+              (:code "*SHOW-LISP-BACKTRACES-P*"))
+             (fmt " \(currently ~S)" *show-lisp-backtraces-p*)
+             ")"))
        (:tr (:td (:a :href "/hunchentoot/foo"
                   "URI handled by")
              " "
