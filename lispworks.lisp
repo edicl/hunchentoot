@@ -79,18 +79,18 @@ notation."
       (comm:get-socket-peer-address socket)
     (values (ignore-errors (comm:ip-address-string peer-addr)) peer-port)))
 
-(defun make-socket-stream (socket server)
-  "Returns a stream for the socket SOCKET.  The SERVER argument is
+(defun make-socket-stream (socket acceptor)
+  "Returns a stream for the socket SOCKET.  The ACCEPTOR argument is
 used to set the timeouts."
   #-:lispworks5
-  (when (server-write-timeout server)
+  (when (acceptor-write-timeout acceptor)
     (parameter-error "You need LispWorks 5 or higher for write timeouts."))
   (make-instance 'comm:socket-stream
                  :socket socket
                  :direction :io
-                 :read-timeout (server-read-timeout server)
+                 :read-timeout (acceptor-read-timeout acceptor)
                  #+:lispworks5 #+:lispworks5
-                 :write-timeout (server-write-timeout server)
+                 :write-timeout (acceptor-write-timeout acceptor)
                  :element-type 'octet))
 
 (defun make-lock (name)

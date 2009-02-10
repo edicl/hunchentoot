@@ -84,7 +84,7 @@ the stream to write to."
   ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
   (raw-post-data :force-binary t)
   (let* ((return-code (return-code))
-         (chunkedp (and (server-output-chunking-p *server*)
+         (chunkedp (and (acceptor-output-chunking-p *acceptor*)
                         (eq (server-protocol request) :http/1.1)
                         ;; only turn chunking on if the content
                         ;; length is unknown at this point...
@@ -114,7 +114,7 @@ the stream to write to."
         (setf (header-out :transfer-encoding) "chunked"))
       (cond (keep-alive-p
              (setf *close-hunchentoot-stream* nil)
-             (when (and (server-read-timeout *server*)
+             (when (and (acceptor-read-timeout *acceptor*)
                         (or (not (eq (server-protocol request) :http/1.1))
                             keep-alive-requested-p))
                ;; persistent connections are implicitly assumed for
@@ -122,7 +122,7 @@ the stream to write to."
                ;; client has explicitly asked for one
                (setf (header-out :connection) "Keep-Alive"
                      (header-out :keep-alive)
-                     (format nil "timeout=~D" (server-read-timeout *server*)))))
+                     (format nil "timeout=~D" (acceptor-read-timeout *acceptor*)))))
             (t (setf (header-out :connection) "Close"))))
     (unless (and (header-out-set-p :server)
                  (null (header-out :server)))
@@ -204,7 +204,7 @@ the stream to write to."
     (write-sequence +crlf+ *hunchentoot-stream*)
     (maybe-write-to-header-stream "")
     ;; access log message
-    (when-let (access-logger (server-access-logger *server*))
+    (when-let (access-logger (acceptor-access-logger *acceptor*))
       (funcall access-logger
                :return-code return-code
                :content content

@@ -29,30 +29,30 @@
 
 (in-package :hunchentoot)
 
-(defclass ssl-server (server)
+(defclass ssl-acceptor (acceptor)
   ((ssl-certificate-file :initarg :ssl-certificate-file
-                         :reader server-ssl-certificate-file
+                         :reader acceptor-ssl-certificate-file
                          :documentation "The namestring of a
 certificate file.")
    (ssl-privatekey-file :initarg :ssl-privatekey-file
-                        :reader server-ssl-privatekey-file
+                        :reader acceptor-ssl-privatekey-file
                         :documentation "The namestring of a private
 key file, or NIL if the certificate file contains the private key.")
    (ssl-privatekey-password #+:lispworks #+:lispworks
                             :initform nil
                             :initarg :ssl-privatekey-password
-                            :reader server-ssl-privatekey-password
+                            :reader acceptor-ssl-privatekey-password
                             :documentation "The password for the
 private key file or NIL."))
   (:default-initargs :port 443 :output-chunking-p nil)
   (:documentation "This class defines additional slots required to
 serve requests by SSL"))
 
-(defmethod initialize-instance :around ((server ssl-server)
+(defmethod initialize-instance :around ((acceptor ssl-acceptor)
                                         &rest args
                                         &key ssl-certificate-file ssl-privatekey-file
                                         &allow-other-keys)
-  (apply #'call-next-method server
+  (apply #'call-next-method acceptor
          :ssl-certificate-file (namestring ssl-certificate-file)
          :ssl-privatekey-file (namestring (or ssl-privatekey-file
                                               #+:lispworks
@@ -60,8 +60,8 @@ serve requests by SSL"))
          args))
 
 #+lispworks
-(defun make-ssl-server-stream (socket-stream &key certificate-file privatekey-file privatekey-password)
-  "Given the server socket stream SOCKET-STREAM attaches SSL to the
+(defun make-ssl-acceptor-stream (socket-stream &key certificate-file privatekey-file privatekey-password)
+  "Given the acceptor socket stream SOCKET-STREAM attaches SSL to the
 stream using the certificate file CERTIFICATE-FILE and the private key
 file PRIVATEKEY-FILE.  Both of these values must be namestrings
 denoting the location of the files.  If PRIVATEKEY-PASSWORD is not NIL
@@ -81,18 +81,18 @@ necessary).  Returns the stream"
     socket-stream))
 
 
-(defmethod server-ssl-p ((server ssl-server))
+(defmethod acceptor-ssl-p ((acceptor ssl-acceptor))
   t)
 
-(defmethod initialize-connection-stream ((server ssl-server) stream)
+(defmethod initialize-connection-stream ((acceptor ssl-acceptor) stream)
   ;; attach SSL to the stream if necessary
-  (call-next-method server
+  (call-next-method acceptor
                     #+:lispworks
-                    (make-ssl-server-stream stream
-                                            :certificate-file (server-ssl-certificate-file server)
-                                            :privatekey-file (server-ssl-privatekey-file server)
-                                            :privatekey-password (server-ssl-privatekey-password server))
+                    (make-ssl-acceptor-stream stream
+                                            :certificate-file (acceptor-ssl-certificate-file acceptor)
+                                            :privatekey-file (acceptor-ssl-privatekey-file acceptor)
+                                            :privatekey-password (acceptor-ssl-privatekey-password acceptor))
                     #-:lispworks
-                    (cl+ssl:make-ssl-server-stream stream
-                                                   :certificate (server-ssl-certificate-file server)
-                                                   :key (server-ssl-privatekey-file server))))
+                    (cl+ssl:make-ssl-acceptor-stream stream
+                                                   :certificate (acceptor-ssl-certificate-file acceptor)
+                                                   :key (acceptor-ssl-privatekey-file acceptor))))

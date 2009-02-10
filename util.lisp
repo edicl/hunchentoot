@@ -357,7 +357,7 @@ asked for a persistent connection."
 values of the `Connection' header."
              (member value connection-values :test #'string-equal)))
       (let ((keep-alive-requested-p (connection-value-p "keep-alive")))
-        (values (and (server-persistent-connections-p *server*)
+        (values (and (acceptor-persistent-connections-p *acceptor*)
                      (or (and (eq (server-protocol request) :http/1.1)
                               (not (connection-value-p "close")))
                          (and (eq (server-protocol request) :http/1.0)
@@ -372,9 +372,9 @@ inclusion in HTML output."
           +implementation-link+
           (escape-for-html (lisp-implementation-type))
           (escape-for-html (lisp-implementation-version))
-          (or (host *request*) (server-address *server*))
+          (or (host *request*) (acceptor-address *acceptor*))
           (scan ":\\d+$" (or (host *request*) ""))
-          (server-port)))
+          (acceptor-port)))
 
 (defun server-name-header ()
   "Returns a string which can be used for 'Server' headers."

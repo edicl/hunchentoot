@@ -289,10 +289,6 @@ encode cookie values.")
   "During the execution of dispatchers and handlers this variable
 is bound to the SERVER object which processes the request.")
 
-(defvar *acceptor-counter* 0
-  "Internal counter used to generate meaningful names for
-listener threads.")
-
 (defvar *worker-counter* 0
   "Internal counter used to generate meaningful names for worker
 threads.")

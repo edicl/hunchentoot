@@ -114,7 +114,7 @@ log level or NIL in which case it is ignored."
 (defun log-message* (log-level format &rest args)
   "Internal function accepting the same arguments as LOG-MESSAGE and
 using the message logger of *SERVER* \(if there is one)."
-  (when-let (message-logger (server-message-logger *server*))
+  (when-let (message-logger (acceptor-message-logger *acceptor*))
     (apply message-logger log-level format args)))
 
 (define-log-file access-log-file *access-log-file* *access-log-pathname*

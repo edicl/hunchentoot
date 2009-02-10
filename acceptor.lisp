@@ -309,7 +309,7 @@ associated with a password."
     (parameter-error "Hunchentoot SSL support is not compiled in."))
   (let ((server (apply #'make-instance
                        #-:hunchentoot-no-ssl
-                       (if ssl-certificate-file 'ssl-server 'server)
+                       (if ssl-certificate-file 'ssl-acceptor 'acceptor)
                        #+:hunchentoot-no-ssl
                        'server
                        args)))
@@ -331,25 +331,25 @@ or similar).")
   (:method ((acceptor acceptor))
     #+:lispworks
     (multiple-value-bind (listener-process startup-condition)
-        (comm:start-up-acceptor :service (acceptor-port acceptor)
-                                :address (acceptor-address acceptor)
-                                :process-name (format nil "Hunchentoot listener \(~A:~A)"
-                                                      (or (acceptor-address acceptor) "*") (acceptor-port acceptor))
-                                ;; this function is called once on startup - we
-                                ;; use it to check for errors
-                                :announce (lambda (socket &optional condition)
-                                            (declare (ignore socket))
-                                            (when condition
-                                              (error condition)))
-                                ;; this function is called whenever a connection
-                                ;; is made
-                                :function (lambda (handle)
-                                            (unless (acceptor-shutdown-p acceptor)
-                                              (handle-incoming-connection
-                                               (acceptor-connection-dispatcher acceptor) handle)))
-                                ;; wait until the acceptor was successfully started
-                                ;; or an error condition is returned
-                                :wait t)
+        (comm:start-up-server :service (acceptor-port acceptor)
+                              :address (acceptor-address acceptor)
+                              :process-name (format nil "Hunchentoot listener \(~A:~A)"
+                                                    (or (acceptor-address acceptor) "*") (acceptor-port acceptor))
+                              ;; this function is called once on startup - we
+                              ;; use it to check for errors
+                              :announce (lambda (socket &optional condition)
+                                          (declare (ignore socket))
+                                          (when condition
+                                            (error condition)))
+                              ;; this function is called whenever a connection
+                              ;; is made
+                              :function (lambda (handle)
+                                          (unless (acceptor-shutdown-p acceptor)
+                                            (handle-incoming-connection
+                                             (acceptor-connection-dispatcher acceptor) handle)))
+                              ;; wait until the acceptor was successfully started
+                              ;; or an error condition is returned
+                              :wait t)
       (when startup-condition
         (error startup-condition))
       (mp:process-stop listener-process)
@@ -479,7 +479,7 @@ closed or until a connection timeout occurs.")
                                                   :content-stream *hunchentoot-stream*
                                                   :method method
                                                   :uri url-string
-                                                  :acceptor-protocol acceptor-protocol))))
+                                                  :server-protocol acceptor-protocol))))
               (force-output *hunchentoot-stream*)
               (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
               (when *close-hunchentoot-stream*
@@ -523,7 +523,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                     (dispatch-request *acceptor* *request* *reply*))))
             (when error
               (setf (return-code *reply*)
-                    +http-internal-acceptor-error+))
+                    +http-internal-server-error+))
             (start-output :content (cond (error
                                           "An error has occured.")
                                          (t body))))

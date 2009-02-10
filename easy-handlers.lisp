@@ -312,7 +312,7 @@ argument is provided."
 defined with DEFINE-EASY-HANDLER, if there is one."
   (loop for (uri server-names easy-handler) in *easy-handler-alist*
         when (and (or (eq server-names t)
-                      (find (server-name *server*) server-names :test #'eq))
+                      (find (acceptor-name *acceptor*) server-names :test #'eq))
                   (cond ((stringp uri)
                          (string= (script-name request) uri))
                         (t (funcall uri request))))
