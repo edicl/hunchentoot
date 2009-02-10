@@ -327,6 +327,10 @@ originated from.")
   #+:lispworks t
   #-:lispworks bt:*supports-threads-p*)
 
+(defconstant +new-connection-wait-time+ 2
+  "Time in seconds to wait for a new connection to arrive before
+performing a cleanup run.")
+
 (pushnew :hunchentoot *features*)
 
 ;; stuff for Nikodemus Siivola's HYPERDOC

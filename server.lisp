@@ -74,10 +74,10 @@ implementation of socket timeouts.")
 specified in (fractional) seconds.  The precise semantics of this
 parameter is determined by the underlying Lisp's implementation of
 socket timeouts.")
-   (connection-manager :initarg :connection-manager
+   (connection-dispatcher :initarg :connection-dispatcher
                        :initform nil
-                       :reader server-connection-manager
-                       :documentation "The connection manager that is
+                       :reader server-connection-dispatcher
+                       :documentation "The connection dispatcher that is
 responsible for listening to new connections and scheduling them for
 execution.")
    #+:lispworks
@@ -125,8 +125,8 @@ information to a file."))
 information about a running Hunchentoot server instance."))
 
 (defmethod initialize-instance :after ((server server)
-                                       &key connection-manager-class
-                                            connection-manager-arguments
+                                       &key connection-dispatcher-class
+                                            connection-dispatcher-arguments
                                             (threaded *supports-threads-p* threaded-specified-p)
                                             (persistent-connections-p
                                              threaded
@@ -136,12 +136,12 @@ information about a running Hunchentoot server instance."))
                                              connection-timeout-provided-p)
                                             (read-timeout nil read-timeout-provided-p)
                                             (write-timeout nil write-timeout-provided-p))
-  "The CONNECTION-MANAGER-CLASS and CONNECTION-MANAGER-ARGUMENTS
+  "The CONNECTION-DISPATCHER-CLASS and CONNECTION-DISPATCHER-ARGUMENTS
 arguments to the creation of a server instance determine the
-connection manager instance that is created.  THREADED is the user
-friendly version of the CONNECTION-MANAGER-CLASS option.  If it is
-NIL, an unthreaded connection manager is used.  It is an error to
-specify both THREADED and a CONNECTION-MANAGER-CLASS argument.
+connection dispatcher instance that is created.  THREADED is the user
+friendly version of the CONNECTION-DISPATCHER-CLASS option.  If it is
+NIL, an unthreaded connection dispatcher is used.  It is an error to
+specify both THREADED and a CONNECTION-DISPATCHER-CLASS argument.
 
 The PERSISTENT-CONNECTIONS-P keyword argument defaults to the value of
 the THREADED keyword argument but can be overridden.
@@ -151,19 +151,19 @@ the server's read and write timeouts default to the CONNECTION-TIMEOUT
 value.  If either of READ-TIMEOUT or WRITE-TIMEOUT is specified,
 CONNECTION-TIMEOUT is not used and may not be supplied."
   (declare (ignore read-timeout write-timeout))
-  (when (and threaded-specified-p connection-manager-class)
-    (parameter-error "Can't use both THREADED and CONNECTION-MANAGER-CLASS arguments."))
+  (when (and threaded-specified-p connection-dispatcher-class)
+    (parameter-error "Can't use both THREADED and CONNECTION-DISPATCHER-CLASS arguments."))
   (unless persistent-connections-specified-p
     (setf (server-persistent-connections-p server) persistent-connections-p))
-  (unless (server-connection-manager server)
-    (setf (slot-value server 'connection-manager)
+  (unless (server-connection-dispatcher server)
+    (setf (slot-value server 'connection-dispatcher)
           (apply #'make-instance
-                 (or connection-manager-class
+                 (or connection-dispatcher-class
                      (if threaded
-                         'one-thread-per-connection-manager
-                         'single-threaded-connection-manager))
+                         'one-thread-per-connection-dispatcher
+                         'single-threaded-connection-dispatcher))
                  :server server
-                 connection-manager-arguments)))
+                 connection-dispatcher-arguments)))
   (if (or read-timeout-provided-p write-timeout-provided-p)
       (when connection-timeout-provided-p
         (parameter-error "Can't have both CONNECTION-TIMEOUT and either of READ-TIMEOUT and WRITE-TIMEOUT."))
@@ -196,13 +196,13 @@ CONNECTION-TIMEOUT is not used and may not be supplied."
 connections.")
   (:method ((server server))
     (start-listening server)
-    (execute-acceptor (server-connection-manager server))))
+    (execute-acceptor (server-connection-dispatcher server))))
 
 (defgeneric stop (server)
   (:documentation "Stop the SERVER so that it does no longer accept requests.")
   (:method ((server server))
    (setf (server-shutdown-p server) t)
-   (shutdown (server-connection-manager server))
+   (shutdown (server-connection-dispatcher server))
    #-:lispworks
    (usocket:socket-close (server-listen-socket server))))
 
@@ -274,7 +274,7 @@ semantics of these two parameters are Lisp implementation specific,
 and not all implementations provide for separate read and write
 timeout parameter setting.
 
-CONNECTION-MANAGER-CLASS specifies the name of the class to instantiate
+CONNECTION-DISPATCHER-CLASS specifies the name of the class to instantiate
 for managing how connections are mapped to threads.  You don't normally
 want to specify this argument unless you want to have non-standard
 threading behavior.   See the documentation for more information.
@@ -340,11 +340,7 @@ associated with a password."
   "Stops the Hunchentoot server SERVER."
   (stop server))
 
-;; connection manager API
-
-(defconstant +new-connection-wait-time+ 2
-  "Time in seconds to wait for a new connection to arrive before
-performing a cleanup run.")
+;; connection dispatcher API
 
 (defgeneric start-listening (server)
   (:documentation "Sets up a listen socket for the given SERVER and
@@ -370,7 +366,7 @@ or similar).")
                                 :function (lambda (handle)
                                             (unless (server-shutdown-p server)
                                               (handle-incoming-connection
-                                               (server-connection-manager server) handle)))
+                                               (server-connection-dispatcher server) handle)))
                                 ;; wait until the server was successfully started
                                 ;; or an error condition is returned
                                 :wait t)
@@ -388,7 +384,7 @@ or similar).")
 
 (defgeneric accept-connections (server)
   (:documentation "In a loop, accepts a connection and
-dispatches it to the server's connection manager object for processing
+dispatches it to the server's connection dispatcher object for processing
 using HANDLE-INCOMING-CONNECTION.")
   (:method ((server server))
     #+:lispworks
@@ -403,7 +399,7 @@ using HANDLE-INCOMING-CONNECTION.")
                   (set-timeouts client-connection
                                 (server-read-timeout server)
                                 (server-write-timeout server))
-                  (handle-incoming-connection (server-connection-manager server)
+                  (handle-incoming-connection (server-connection-dispatcher server)
                                               client-connection))
               ;; ignore condition
               (usocket:connection-aborted-error ()))))))
@@ -445,7 +441,7 @@ the stream.")
          finally (setf (return-code reply) +http-not-found+))))
 
 (defgeneric process-connection (server socket)
-  (:documentation "This function is called by the connection manager
+  (:documentation "This function is called by the connection dispatcher
 when a new client connection has been established.  Arguments are the
 SERVER object and a usocket socket stream object \(or a LispWorks
 socket handle) in SOCKET.  It reads the request headers and hands over

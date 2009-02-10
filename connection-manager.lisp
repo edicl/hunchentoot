@@ -29,46 +29,46 @@
 
 (in-package :hunchentoot)
 
-;;; The connection-manager protocol defines how Hunchentoot schedules
+;;; The connection-dispatcher protocol defines how Hunchentoot schedules
 ;;; request execution to worker threads or for inline execution.
 
-(defclass connection-manager ()
+(defclass connection-dispatcher ()
   ((server :initarg :server
            :reader server
            :documentation "The Hunchentoot server instance that this
-connection manager works for."))
-  (:documentation "Base class for all connection managers classes.
+connection dispatcher works for."))
+  (:documentation "Base class for all connection dispatchers classes.
 Its purpose is to carry the back pointer to the server instance."))
 
-(defgeneric execute-acceptor (connection-manager)
+(defgeneric execute-acceptor (connection-dispatcher)
   (:documentation
    "This function is called once Hunchentoot has performed all initial
 processing to start listening for incoming connections.  It does so by
 calling the ACCEPT-CONNECTIONS functions of the server, taken from
-the SERVER slot of the connection manager instance.
+the SERVER slot of the connection dispatcher instance.
 
-In a multi-threaded environment, the connection manager starts a new
+In a multi-threaded environment, the connection dispatcher starts a new
 thread and calls THUNK in that thread.  In a single-threaded
 environment, the thunk will be called directly."))
 
-(defgeneric handle-incoming-connection (connection-manager socket)
+(defgeneric handle-incoming-connection (connection-dispatcher socket)
   (:documentation
    "This function is called by Hunchentoot to start processing of
 requests on a new incoming connection.  SOCKET is the usocket instance
 that represents the new connection \(or a socket handle on LispWorks).
-The connection manager starts processing requests on the incoming
+The connection dispatcher starts processing requests on the incoming
 connection by calling the START-REQUEST-PROCESSING function of the
-server instance, taken from the SERVER slot in the connection manager
+server instance, taken from the SERVER slot in the connection dispatcher
 instance.  The SOCKET argument is passed to START-REQUEST-PROCESSING
 as argument.
 
-In a multi-threaded environment, the connection manager runs this function
+In a multi-threaded environment, the connection dispatcher runs this function
 in a separate thread.  In a single-threaded environment, this function
 is called directly."))
 
-(defgeneric shutdown (connection-manager)
+(defgeneric shutdown (connection-dispatcher)
   (:documentation "Terminate all threads that are currently associated
-with the connection manager, if any.")
+with the connection dispatcher, if any.")
   (:method ((manager t))
     #+:lispworks
     (when-let (acceptor (server-acceptor (server manager)))
@@ -76,27 +76,27 @@ with the connection manager, if any.")
       ;; COMM:START-UP-SERVER
       (mp:process-kill acceptor))))
 
-(defclass single-threaded-connection-manager (connection-manager)
+(defclass single-threaded-connection-dispatcher (connection-dispatcher)
   ()
-  (:documentation "Connection manager that runs synchronously in the
+  (:documentation "Connection Dispatcher that runs synchronously in the
 thread that invoked the START-SERVER function."))
 
-(defmethod execute-acceptor ((manager single-threaded-connection-manager))
+(defmethod execute-acceptor ((manager single-threaded-connection-dispatcher))
   (accept-connections (server manager)))
 
-(defmethod handle-incoming-connection ((manager single-threaded-connection-manager) socket)
+(defmethod handle-incoming-connection ((manager single-threaded-connection-dispatcher) socket)
   (process-connection (server manager) socket))
 
-(defclass one-thread-per-connection-manager (connection-manager)
+(defclass one-thread-per-connection-dispatcher (connection-dispatcher)
   ((acceptor-process :accessor acceptor-process
                      :documentation "Process that accepts incoming
                      connections and dispatches them to new processes
                      for request execution."))
-  (:documentation "Connection manager that starts one thread for
+  (:documentation "Connection Dispatcher that starts one thread for
 listening to incoming requests and one thread for each incoming
 connection."))
 
-(defmethod execute-acceptor ((manager one-thread-per-connection-manager))
+(defmethod execute-acceptor ((manager one-thread-per-connection-dispatcher))
   #+:lispworks
   (accept-connections (server manager))
   #-:lispworks
@@ -108,13 +108,13 @@ connection."))
                                       (server-port (server manager))))))
 
 #-:lispworks
-(defmethod shutdown ((manager one-thread-per-connection-manager))
+(defmethod shutdown ((manager one-thread-per-connection-dispatcher))
   (loop
      while (bt:thread-alive-p (acceptor-process manager))
      do (sleep 1)))
 
 #+:lispworks
-(defmethod handle-incoming-connection ((manager one-thread-per-connection-manager) handle)
+(defmethod handle-incoming-connection ((manager one-thread-per-connection-dispatcher) handle)
   (incf *worker-counter*)
   ;; check if we need to perform a global GC
   (when (and *cleanup-interval*
@@ -137,7 +137,7 @@ connection."))
               port))))
 
 #-:lispworks
-(defmethod handle-incoming-connection ((manager one-thread-per-connection-manager) socket)
+(defmethod handle-incoming-connection ((manager one-thread-per-connection-dispatcher) socket)
   (bt:make-thread (lambda ()
                     (process-connection (server manager) socket))
                   :name (format nil "Hunchentoot worker \(client: ~A)" (client-as-string socket))))
