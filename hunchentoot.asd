@@ -78,7 +78,7 @@ for diagnostic output.")
                #+(and :sbcl :unix (not :win32)) (:file "unix-sbcl")
                #+(and (not (or :allegro :clisp :cmu :lispworks :openmcl :sbcl)) :unix) (:file "unix-other")
                (:file "set-timeouts")
-               (:file "connection-manager")
+               (:file "connection-dispatcher")
                (:file "server")
                #-:hunchentoot-no-ssl
                (:file "ssl")))
