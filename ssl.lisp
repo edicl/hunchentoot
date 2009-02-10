@@ -60,7 +60,7 @@ serve requests by SSL"))
          args))
 
 #+lispworks
-(defun make-ssl-acceptor-stream (socket-stream &key certificate-file privatekey-file privatekey-password)
+(defun make-ssl-server-stream (socket-stream &key certificate-file privatekey-file privatekey-password)
   "Given the acceptor socket stream SOCKET-STREAM attaches SSL to the
 stream using the certificate file CERTIFICATE-FILE and the private key
 file PRIVATEKEY-FILE.  Both of these values must be namestrings
@@ -88,11 +88,11 @@ necessary).  Returns the stream"
   ;; attach SSL to the stream if necessary
   (call-next-method acceptor
                     #+:lispworks
-                    (make-ssl-acceptor-stream stream
+                    (make-ssl-server-stream stream
                                             :certificate-file (acceptor-ssl-certificate-file acceptor)
                                             :privatekey-file (acceptor-ssl-privatekey-file acceptor)
                                             :privatekey-password (acceptor-ssl-privatekey-password acceptor))
                     #-:lispworks
-                    (cl+ssl:make-ssl-acceptor-stream stream
+                    (cl+ssl:make-ssl-server-stream stream
                                                    :certificate (acceptor-ssl-certificate-file acceptor)
                                                    :key (acceptor-ssl-privatekey-file acceptor))))
