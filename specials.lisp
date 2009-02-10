@@ -198,21 +198,11 @@ purposes.")
 (defvar *show-lisp-errors-p* nil
   "Whether Lisp errors should be shown in HTML output.")
 
-(defvar *show-lisp-backtraces-p* nil
-  "Whether Lisp backtraces should be shown in HTML output when an
-error occurs.  Will only have an effect if *SHOW-LISP-ERRORS-P* is
-also true.")
-
 (defvar *log-lisp-errors-p* t
   "Whether Lisp errors should be logged.")
 
 (defvar *log-lisp-warnings-p* t
   "Whether Lisp warnings should be logged.")
-
-(defvar *log-lisp-backtraces-p* nil
-  "Whether Lisp backtraces should be logged when an error or warning
-occurs.  Will only have an effect if *LOG-LISP-ERRORS-P* or
-*LOG-LISP-BACKTRACES* are also true.")
 
 (defvar *lisp-errors-log-level* :error
   "Log level for Lisp errors.")

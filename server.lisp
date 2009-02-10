@@ -499,25 +499,13 @@ dispatches to a handler, and finally sends the output to the client
 using START-OUTPUT.  If all goes as planned, the function returns T."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
-        (let* ((*request* request)
-               backtrace)
+        (let* ((*request* request))
           (multiple-value-bind (body error)
               (catch 'handler-done
                 (handler-bind ((error
                                 (lambda (cond)
-                                  ;; only generate backtrace if needed
-                                  (setq backtrace
-                                        (and (or (and *show-lisp-errors-p*
-                                                      *show-lisp-backtraces-p*)
-                                                 (and *log-lisp-errors-p*
-                                                      *log-lisp-backtraces-p*))
-                                             (get-backtrace cond)))
                                   (when *log-lisp-errors-p*
-                                    (log-message* *lisp-errors-log-level*
-                                                  "~A~:[~*~;~%~A~]"
-                                                  cond
-                                                  *log-lisp-backtraces-p*
-                                                  backtrace))
+                                    (log-message* *lisp-errors-log-level* "~A" cond))
                                   ;; if the headers were already sent
                                   ;; the error happens within the body
                                   ;; and we have to close the stream
@@ -528,11 +516,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                                (warning
                                 (lambda (cond)
                                   (when *log-lisp-warnings-p*
-                                    (log-message* *lisp-warnings-log-level*
-                                                  "~A~:[~*~;~%~A~]"
-                                                  cond
-                                                  *log-lisp-backtraces-p*
-                                                  backtrace)))))
+                                    (log-message* *lisp-warnings-log-level* "~A" cond)))))
                   ;; skip dispatch if bad request
                   (when (eql (return-code) +http-ok+)
                     ;; now do the work
@@ -540,12 +524,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
             (when error
               (setf (return-code *reply*)
                     +http-internal-server-error+))
-            (start-output :content (cond ((and error *show-lisp-errors-p*)
-                                          (format nil "<pre>~A~:[~*~;~%~%~A~]</pre>"
-                                                  (escape-for-html (format nil "~A" error))
-                                                  *show-lisp-backtraces-p*
-                                                  (escape-for-html (format nil "~A" backtrace))))
-                                         (error
+            (start-output :content (cond (error
                                           "An error has occured.")
                                          (t body))))
           t)
