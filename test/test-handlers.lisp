@@ -198,8 +198,8 @@ time or try with cookies disabled.")
            (:input :type :text
             :name "new-bar-value"
             :value (or (session-value 'bar) ""))))
-      (info-table *session-cookie-name*
-                  (cookie-in *session-cookie-name*)
+      (info-table (session-cookie-name *acceptor*) 
+                  (cookie-in (session-cookie-name *acceptor*))
                   (mapcar #'car (cookies-in*))
                   (session-value 'foo)
                   (session-value 'bar))))))

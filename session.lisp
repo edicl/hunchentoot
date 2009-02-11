@@ -29,9 +29,45 @@
 
 (in-package :hunchentoot)
 
-(defvar *session-data-lock* (make-lock "session-data-lock")
-  "A lock to prevent two threads from modifying *SESSION-DATA* at the
-same time.")
+(defgeneric session-db-lock (acceptor &key (whole-db-p t))
+  (:documentation "A function which returns a lock that will be used
+to prevent concurrent access to sessions.  The first argument will be
+the acceptor that handles the current request, the second argument is
+true if the whole \(current) session database is modified.  If it is
+NIL, only one existing session in the database is modified.
+
+This function can return NIL which means that sessions or session
+databases will be modified without a lock held.  The default is to
+always return a global lock for Lisps that support threads and NIL
+otherwise."))
+
+(defmethod session-db-lock ((acceptor t) &key (whole-db-p t))
+  (declare (ignore whole-db-p))
+  *global-session-db-lock*)
+
+(defmacro with-session-lock-held ((lock) &body body)
+  "This is like WITH-LOCK-HELD except that it will accept NIL as a
+\"lock\" and just execute BODY in this case."
+  (with-unique-names (thunk)
+    (with-rebinding (lock)
+      `(flet ((,thunk () ,@body))
+         (cond (,lock (with-lock-held (,lock) (,thunk)))
+               (t (,thunk)))))))
+
+(defgeneric session-db (acceptor)
+  (:documentation "Returns the current session database which is an
+alist where each car is a session's ID and the cdr is the
+corresponding SESSION object itself.  The default is to use a global
+list for all acceptors."))
+
+(defmethod session-db ((acceptor t))
+  *session-db*)
+
+(defgeneric (setf session-db) (new-value acceptor)
+  (:documentation "Modifies the current session database.  See SESSION-DB."))
+
+(defmethod (setf session-db) (new-value (acceptor t))
+  (setq *session-db* new-value))
 
 (let ((session-id-counter 0))
   (defun get-next-session-id ()
@@ -45,7 +81,6 @@ same time.")
                (zerop (mod (incf global-session-usage-counter)
                            *session-gc-frequency*)))
       (session-gc))))
-
 
 (defclass session ()
   ((session-id :initform (get-next-session-id)
@@ -75,21 +110,17 @@ this sessions was started as returned by REAL-REMOTE-ADDR.")
                  :reader session-data
                  :documentation "Data associated with this session -
 see SESSION-VALUE.")
-   (session-counter :initform 0
-                    :reader session-counter
-                    :documentation "The number of times this session
-has been used.")
    (max-time :initarg :max-time
              :initform *session-max-time*
              :accessor session-max-time
              :type fixnum
              :documentation "The time \(in seconds) after which this
 session expires if it's not used."))
-  (:documentation "SESSION objects are automatically maintained
-by Hunchentoot. They should not be created explicitly with
-MAKE-INSTANCE but implicitly with START-SESSION. Note that
-SESSION objects can only be created when the special variable
-*REQUEST* is bound to a REQUEST object."))
+  (:documentation "SESSION objects are automatically maintained by
+Hunchentoot.  They should not be created explicitly with MAKE-INSTANCE
+but implicitly with START-SESSION.  Note that SESSION objects can only
+be created when the special variable *REQUEST* is bound to a REQUEST
+object."))
 
 (defun encode-session-string (id user-agent remote-addr start)
   "Create a uniquely encoded session string based on the values ID,
@@ -121,16 +152,16 @@ ENCODE-SESSION-STRING."
   (setf (slot-value session 'session-string) (stringify-session session)))
 
 (defun session-gc ()
-  "Removes sessions from *session-data* which are too old - see
-SESSION-TOO-OLD-P."
-  (with-lock-held (*session-data-lock*)
-    (setq *session-data*
-            (loop for id-session-pair in *session-data*
-                  for (nil . session) = id-session-pair
-                  when (session-too-old-p session)
-                    do (funcall *session-removal-hook* session)
-                  else
-                    collect id-session-pair)))
+  "Removes sessions from the current session database which are too
+old - see SESSION-TOO-OLD-P."
+  (with-session-lock-held ((session-db-lock *acceptor*))
+    (setf (session-db *acceptor*)
+          (loop for id-session-pair in (session-db *acceptor*)
+                for (nil . session) = id-session-pair
+                when (session-too-old-p session)
+                do (funcall *session-removal-hook* session)
+                else
+                collect id-session-pair)))
   (values))
 
 (defun session-value (symbol &optional (session *session*))
@@ -149,7 +180,7 @@ there's no session for the current request."
   (with-rebinding (symbol)
     (with-unique-names (place %session)
       `(let ((,%session (or ,session (start-session))))
-         (with-lock-held (*session-data-lock*)
+         (with-session-lock-held ((session-db-lock *acceptor* :whole-db-p nil))
            (let* ((,place (assoc ,symbol (session-data ,%session) :test #'eq)))
              (cond
                (,place
@@ -168,16 +199,29 @@ object if there is one."
                     :key #'car :test #'eq)))
   (values))
 
-(defun session-cookie-value (&optional (session (session *request*)))
-  "Returns a string which can be used to safely restore the
-session if as session has already been established. This is used
-as the value stored in the session cookie or in the corresponding
-GET parameter."
+(defgeneric session-cookie-value (session)
+  (:documentation "Returns a string which can be used to safely
+restore the session SESSION if as session has already been
+established.  This is used as the value stored in the session cookie
+or in the corresponding GET parameter.  A default method is provided
+and there's no reason to change it unless you want to use your own
+session objects."))
+
+(defmethod session-cookie-value ((session session))
   (and session
        (format nil
                "~A:~A"
                (session-id session)
                (session-string session))))
+
+(defgeneric session-cookie-name (acceptor)
+  (:documentation "Returns the name \(a string) of the cookie \(or the
+GET parameter) which is used to store a session on the client side.
+The default is to use the string \"hunchentoot-session\", but you can
+specialize this function if you want another name."))
+
+(defmethod session-cookie-name ((acceptor t))
+  "hunchentoot-session")
 
 (defun start-session ()
   "Returns the current SESSION object. If there is no current session,
@@ -189,9 +233,10 @@ case the function will also send a session cookie to the browser."
       (return-from start-session session))
     (setf session (make-instance 'session)
           (session *request*) session)
-    (with-lock-held (*session-data-lock*)
-      (setq *session-data* (acons (session-id session) session *session-data*)))
-    (set-cookie *session-cookie-name*
+    (with-session-lock-held ((session-db-lock *acceptor*))
+      (setf (session-db *acceptor*)
+            (acons (session-id session) session (session-db *acceptor*))))
+    (set-cookie (session-cookie-name *acceptor*)
                 :value (session-cookie-value session)
                 :path "/")
     (setq *session* session)))
@@ -199,11 +244,11 @@ case the function will also send a session cookie to the browser."
 (defun remove-session (session)
   "Completely removes the SESSION object SESSION from Hunchentoot's
 internal session database."
-  (with-lock-held (*session-data-lock*)
+  (with-session-lock-held ((session-db-lock *acceptor*))
     (funcall *session-removal-hook* session)
-    (setq *session-data*
-            (delete (session-id session) *session-data*
-                    :key #'car :test #'=)))
+    (setf (session-db *acceptor*)
+          (delete (session-id session) (session-db *acceptor*)
+                  :key #'car :test #'=)))
   (values))
 
 (defun session-too-old-p (session)
@@ -217,7 +262,7 @@ the last \(SESSION-MAX-TIME SESSION) seconds."
 session has not expired. Will remove the session if it has expired but
 will not create a new one."
   (let ((session
-          (cdr (assoc id *session-data* :test #'=))))
+         (cdr (assoc id (session-db *acceptor*) :test #'=))))
     (when (and session
                (session-too-old-p session))
       (when *reply*
@@ -226,14 +271,19 @@ will not create a new one."
       (setq session nil))
     session))
 
-(defun session-verify (request)
-  "Tries to get a session identifier from the cookies \(or
-alternatively from the GET parameters) sent by the client. This
+(defgeneric session-verify (request)
+  (:documentation "Tries to get a session identifier from the cookies
+\(or alternatively from the GET parameters) sent by the client.  This
 identifier is then checked for validity against the REQUEST object
-REQUEST. On success the corresponding session object \(if not too old)
-is returned \(and updated). Otherwise NIL is returned."
-  (let ((session-identifier (or (cookie-in *session-cookie-name* request)
-                                (get-parameter *session-cookie-name* request))))
+REQUEST.  On success the corresponding session object \(if not too
+old) is returned \(and updated).  Otherwise NIL is returned.
+
+A default method is provided and you only need to write your own one
+if you want to maintain your own sessions."))
+
+(defmethod session-verify ((request request))
+  (let ((session-identifier (or (cookie-in (session-cookie-name *acceptor*) request)
+                                (get-parameter (session-cookie-name *acceptor*) request))))
     (unless (and session-identifier
                  (stringp session-identifier)
                  (plusp (length session-identifier)))
@@ -245,36 +295,35 @@ is returned \(and updated). Otherwise NIL is returned."
              (user-agent (user-agent request))
              (remote-addr (remote-addr request)))
         (cond
-          ((and session
-                (string= session-string
-                         (session-string session))
-                (string= session-string
-                         (encode-session-string id
-                                                user-agent
-                                                (real-remote-addr request)
-                                                (session-start session))))
-           ;; The session key presented by the client is valid.
-           (incf (slot-value session 'session-counter))
-           (setf (slot-value session 'last-click) (get-universal-time))
-           session)
-          (session
-           ;; The session ID pointed to an existing session, but the
-           ;; session string did not match the expected session
-           ;; string.  Report to the log file, remove the session to
-           ;; make sure that it can't be used again.  The original
-           ;; legitimate user will be required to log in again.
-           (log-message* :warning
-                         "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                         session-identifier user-agent remote-addr)
-           (remove-session session)
-           nil)
-          (t
-           ;; No session was found under the ID given, presumably
-           ;; because it has expired.
-           (log-message* :info
-                         "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                         session-identifier user-agent remote-addr)
-           nil))))))
+         ((and session
+               (string= session-string
+                        (session-string session))
+               (string= session-string
+                        (encode-session-string id
+                                               user-agent
+                                               (real-remote-addr request)
+                                               (session-start session))))
+          ;; The session key presented by the client is valid.
+          (setf (slot-value session 'last-click) (get-universal-time))
+          session)
+         (session
+          ;; The session ID pointed to an existing session, but the
+          ;; session string did not match the expected session
+          ;; string.  Report to the log file, remove the session to
+          ;; make sure that it can't be used again.  The original
+          ;; legitimate user will be required to log in again.
+          (log-message* :warning
+                        "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                        session-identifier user-agent remote-addr)
+          (remove-session session)
+          nil)
+         (t
+          ;; No session was found under the ID given, presumably
+          ;; because it has expired.
+          (log-message* :info
+                        "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                        session-identifier user-agent remote-addr)
+          nil))))))
 
 (defun reset-session-secret ()
   "Sets *SESSION-SECRET* to a new random value. All old sessions will
@@ -283,18 +332,8 @@ cease to be valid."
 
 (defun reset-sessions ()
   "Removes ALL stored sessions."
-  (with-lock-held (*session-data-lock*)
-    (loop for (nil . session) in *session-data*
+  (with-session-lock-held ((session-db-lock *acceptor*))
+    (loop for (nil . session) in (session-db *acceptor*)
           do (funcall *session-removal-hook* session))
-    (setq *session-data* nil))
+    (setq *session-db* nil))
   (values))
-
-(defmacro do-sessions ((var &optional result-form) &body body)
-  "Executes BODY with VAR bound to each existing SESSION object
-consecutively. Returns the values returned by RESULT-FORM unless
-RETURN is executed. The scope of the binding of VAR does not include
-RESULT-FORM."
-  (let ((=temp= (gensym)))
-    `(dolist (,=temp= *session-data* ,result-form)
-      (let ((,var (cdr ,=temp=)))
-        ,@body))))

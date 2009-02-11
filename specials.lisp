@@ -120,10 +120,6 @@ for cookie date format.")
   "The three-character names of the twelve months - needed for cookie
 date format.")
 
-(defvar *session-cookie-name* "hunchentoot-session"
-  "The name of the cookie \(or the GET parameter) which is used to
-store the session on the client side.")
-
 (defvar *rewrite-for-session-urls* t
   "Whether HTML pages should possibly be rewritten for cookie-less
 session-management.")
@@ -161,10 +157,8 @@ Hunchentoot.  The pathname denotes the temporary file to which
 the uploaded file is written.  The hook is called directly before
 the file is created.")
 
-(defvar *session-data* nil
-  "All sessions of all users currently using Hunchentoot.  An
-alist where the car is the session's ID and the cdr is the
-SESSION object itself.")
+(defvar *session-db* nil
+  "The default \(global) session database.")
 
 (defvar *session-max-time* #.(* 30 60)
   "The default time \(in seconds) after which a session times out.")
@@ -312,6 +306,11 @@ originated from.")
 (define-symbol-macro *supports-threads-p*
   #+:lispworks t
   #-:lispworks bt:*supports-threads-p*)
+
+(defvar *global-session-db-lock*
+  (load-time-value (and *supports-threads-p* (make-lock "global-session-db-lock")))
+  "A global lock to prevent two threads from modifying *session-db* at
+the same time \(or NIL for Lisps which don't have threads).")
 
 (defconstant +new-connection-wait-time+ 2
   "Time in seconds to wait for a new connection to arrive before

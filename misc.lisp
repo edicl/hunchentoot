@@ -51,8 +51,8 @@ URL.  Scanners are memoized in SCANNER-HASH once they are created."
                     #\=
                     (:greedy-repetition 0 nil (:inverted-char-class #\&))
                     #\&))))))
-  (defun add-cookie-value-to-url (url &key (cookie-name *session-cookie-name*)
-                                           (value (session-cookie-value))
+  (defun add-cookie-value-to-url (url &key (cookie-name (session-cookie-name *acceptor*))
+                                           (value (session-cookie-value (session *request*)))
                                            (replace-ampersands-p t))
     "Removes all GET parameters named COOKIE-NAME from URL and then
 adds a new GET parameter with the name COOKIE-NAME and the value
@@ -72,8 +72,8 @@ are replaced with '&amp;'. The resulting URL is returned."
       (setq url (regex-replace-all "&" url "&amp;")))
     url))
 
-(defun maybe-rewrite-urls-for-session (html &key (cookie-name *session-cookie-name*)
-                                                 (value (session-cookie-value)))
+(defun maybe-rewrite-urls-for-session (html &key (cookie-name (session-cookie-name *acceptor*))
+                                                 (value (session-cookie-value (session *request*))))
   "Rewrites the HTML page HTML such that the name/value pair
 COOKIE-NAME/COOKIE-VALUE is inserted if the client hasn't sent a
 cookie of the same name but only if *REWRITE-FOR-SESSION-URLS* is
@@ -220,7 +220,7 @@ it'll be the content type used for all files in the folder."
                              (protocol (if (ssl-p) :https :http))
                              (add-session-id (not (or host-provided-p
                                                       (starts-with-scheme-p target)
-                                                      (cookie-in *session-cookie-name*))))
+                                                      (cookie-in (session-cookie-name *acceptor*)))))
                              (code +http-moved-temporarily+))
   "Redirects the browser to TARGET which should be a string.  If
 TARGET is a full URL starting with a scheme, HOST, PORT and PROTOCOL
