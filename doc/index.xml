@@ -108,8 +108,9 @@
       </li>
       <li>
         and my own <a href="http://weitz.de/flexi-streams/">FLEXI-STREAMS</a> (0.12.0 or higher),
-        <a href="http://weitz.de/chunga/">Chunga</a> (0.5.0 or higher), <a href="http://weitz.de/cl-ppcre/">
-          CL-PPCRE</a>, and <a href="http://weitz.de/url-rewrite/">URL-REWRITE</a> (plus
+        <a href="http://weitz.de/chunga/">Chunga</a> (0.5.0 or
+          higher), and <a href="http://weitz.de/cl-ppcre/">
+          CL-PPCRE</a> (plus
         <a href="http://weitz.de/cl-who/">CL-WHO</a> for the <a href="#example">example code</a>). 
       </li>
     </ul>

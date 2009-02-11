@@ -52,9 +52,15 @@ for diagnostic output.")
                :md5
                :rfc2388
                #-:lispworks :usocket
-               #-:lispworks :bordeaux-threads
-               :url-rewrite)
-  :components ((:file "packages")
+               #-:lispworks :bordeaux-threads)
+  :components ((:module url-rewrite
+                :serial t
+                :components ((:file "packages")
+                             (:file "specials")
+                             (:file "primitives")
+                             (:file "util")
+                             (:file "url-rewrite")))
+               (:file "packages")
                #+:lispworks
                (:file "lispworks")
                (:file "specials")
