@@ -137,7 +137,11 @@ session-management.")
   "A fresh random state.")
 
 (defvar-unbound *session-secret*
-  "A random value that's used to encode the public session data.")
+  "A random ASCII string that's used to encode the public session
+data.  This variable is initially unbound and will be set \(using
+RESET-SESSION-SECRET) by the first acceptor which is started.  You can
+prevent this from happening if you set the value yourself before
+starting acceptors.")
 
 (defvar-unbound *hunchentoot-stream*
   "The stream representing the socket Hunchentoot is listening on.")

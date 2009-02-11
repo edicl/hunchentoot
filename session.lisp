@@ -276,9 +276,13 @@ is returned \(and updated). Otherwise NIL is returned."
                          session-identifier user-agent remote-addr)
            nil))))))
 
+(defun reset-session-secret ()
+  "Sets *SESSION-SECRET* to a new random value. All old sessions will
+cease to be valid."
+  (setq *session-secret* (create-random-string 10 36)))
+
 (defun reset-sessions ()
-  "Removes ALL stored sessions and creates a new session secret."
-  (reset-session-secret)
+  "Removes ALL stored sessions."
   (with-lock-held (*session-data-lock*)
     (loop for (nil . session) in *session-data*
           do (funcall *session-removal-hook* session))

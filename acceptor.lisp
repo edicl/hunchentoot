@@ -182,6 +182,11 @@ they're using secure connections."))
 
 ;; general implementation
 
+(defmethod start :before ((acceptor acceptor))
+  (unless (boundp '*session-secret*)
+    (hunchentoot-warn "Session secret is unbound.  Using Lisp's RANDOM function to initialize it.")
+    (reset-session-secret)))
+
 (defmethod start ((acceptor acceptor))
   (start-listening acceptor)
   (let ((connection-dispatcher (acceptor-connection-dispatcher acceptor)))

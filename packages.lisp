@@ -38,7 +38,8 @@
   (:import-from :hunchentoot-asd :*hunchentoot-version*)
   #+:lispworks
   (:import-from :lw "WITH-UNIQUE-NAMES" "WHEN-LET")
-  (:export "*APPROVED-RETURN-CODES*"
+  (:export "*ACCEPTOR*"
+           "*APPROVED-RETURN-CODES*"
            #+:lispworks
            "*CLEANUP-FUNCTION*"
            #+:lispworks
@@ -62,12 +63,12 @@
            "*REPLY*"
            "*REQUEST*"
            "*REWRITE-FOR-SESSION-URLS*"
-           "*ACCEPTOR*"
            "*SESSION*"
            "*SESSION-COOKIE-NAME*"
            "*SESSION-GC-FREQUENCY*"
            "*SESSION-MAX-TIME*"
            "*SESSION-REMOVAL-HOOK*"
+           "*SESSION-SECRET*"
            "*SHOW-LISP-ERRORS-P*"
            "*TMP-DIRECTORY*"
            "*USE-REMOTE-ADDR-FOR-SESSIONS*"
@@ -207,6 +208,7 @@
            "REQUIRE-AUTHORIZATION"
            "RESET-CONNECTION-STREAM"
            "RESET-SESSIONS"
+           "RESET-SESSION-SECRET"
            "RETURN-CODE"
            "RFC-1123-DATE"
            "SCRIPT-NAME"

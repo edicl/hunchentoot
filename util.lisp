@@ -120,11 +120,6 @@ digits."
       (format s "~VR" base
               (random base *the-random-state*)))))
 
-(defun reset-session-secret ()
-  "Sets *SESSION-SECRET* to a new random value. All old sessions will
-cease to be valid."
-  (setq *session-secret* (create-random-string 10 36)))
-
 (defun reason-phrase (return-code)
   "Returns a reason phrase for the HTTP return code RETURN-CODE
 \(which should be an integer) or NIL for return codes Hunchentoot
