@@ -165,8 +165,8 @@ the file is created.")
 
 (defvar *session-gc-frequency* 50
   "A session GC \(see function SESSION-GC) will happen every
-*SESSION-GC-FREQUENCY* requests \(counting only requests which
-use a session) if this variable is not NIL.")
+*SESSION-GC-FREQUENCY* requests \(counting only requests which create
+a new session) if this variable is not NIL.  See SESSION-CREATED.")
 
 (defvar *use-user-agent-for-sessions* t
   "Whether the 'User-Agent' header should be encoded into the session

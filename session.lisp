@@ -69,21 +69,19 @@ list for all acceptors."))
 (defmethod (setf session-db) (new-value (acceptor t))
   (setq *session-db* new-value))
 
+(defgeneric next-session-id (acceptor)
+  (:documentation "Returns the next sequential session ID, an integer,
+which should be unique per session.  The default method uses a simple
+global counter and isn't guarded by a lock.  For a high-performance
+production environment you might consider to use a more robust
+method."))
+
 (let ((session-id-counter 0))
-  (defun get-next-session-id ()
-    "Returns the next sequential session id."
+  (defmethod next-session-id ((acceptor t))
     (incf session-id-counter)))
 
-(let ((global-session-usage-counter 0))
-  (defun count-session-usage ()
-    "Counts session usage globally and triggers session gc if necessary." 
-    (when (and *session-gc-frequency*
-               (zerop (mod (incf global-session-usage-counter)
-                           *session-gc-frequency*)))
-      (session-gc))))
-
 (defclass session ()
-  ((session-id :initform (get-next-session-id)
+  ((session-id :initform (next-session-id (request-acceptor *request*))
                :reader session-id
                :type integer
                :documentation "The unique ID \(an INTEGER) of the session.")
@@ -118,12 +116,10 @@ see SESSION-VALUE.")
 session expires if it's not used."))
   (:documentation "SESSION objects are automatically maintained by
 Hunchentoot.  They should not be created explicitly with MAKE-INSTANCE
-but implicitly with START-SESSION.  Note that SESSION objects can only
-be created when the special variable *REQUEST* is bound to a REQUEST
-object."))
+but implicitly with START-SESSION."))
 
 (defun encode-session-string (id user-agent remote-addr start)
-  "Create a uniquely encoded session string based on the values ID,
+  "Creates a uniquely encoded session string based on the values ID,
 USER-AGENT, REMOTE-ADDR, and START"
   ;; *SESSION-SECRET* is used twice due to known theoretical
   ;; vulnerabilities of MD5 encoding
@@ -223,11 +219,24 @@ specialize this function if you want another name."))
 (defmethod session-cookie-name ((acceptor t))
   "hunchentoot-session")
 
+(defgeneric session-created (acceptor new-session)
+  (:documentation "This function is called whenever a new session has
+been created.  There's a default method which might trigger a session
+GC based on the value of *SESSION-GC-FREQUENCY*."))
+
+(let ((global-session-usage-counter 0))
+  (defmethod session-created ((acceptor t) (session t))
+    "Counts session usage globally and triggers session GC if
+necessary."
+    (when (and *session-gc-frequency*
+               (zerop (mod (incf global-session-usage-counter)
+                           *session-gc-frequency*)))
+      (session-gc))))
+
 (defun start-session ()
   "Returns the current SESSION object. If there is no current session,
 creates one and updates the corresponding data structures. In this
 case the function will also send a session cookie to the browser."
-  (count-session-usage)
   (let ((session (session *request*)))
     (when session
       (return-from start-session session))
@@ -239,6 +248,7 @@ case the function will also send a session cookie to the browser."
     (set-cookie (session-cookie-name *acceptor*)
                 :value (session-cookie-value session)
                 :path "/")
+    (session-created *acceptor* session)
     (setq *session* session)))
 
 (defun remove-session (session)
@@ -303,22 +313,22 @@ if you want to maintain your own sessions."))
                                                user-agent
                                                (real-remote-addr request)
                                                (session-start session))))
-          ;; The session key presented by the client is valid.
+          ;; the session key presented by the client is valid
           (setf (slot-value session 'last-click) (get-universal-time))
           session)
          (session
-          ;; The session ID pointed to an existing session, but the
-          ;; session string did not match the expected session
-          ;; string.  Report to the log file, remove the session to
-          ;; make sure that it can't be used again.  The original
-          ;; legitimate user will be required to log in again.
+          ;; the session ID pointed to an existing session, but the
+          ;; session string did not match the expected session string
           (log-message* :warning
                         "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
                         session-identifier user-agent remote-addr)
+          ;; remove the session to make sure that it can't be used
+          ;; again; the original legitimate user will be required to
+          ;; log in again
           (remove-session session)
           nil)
          (t
-          ;; No session was found under the ID given, presumably
+          ;; no session was found under the ID given, presumably
           ;; because it has expired.
           (log-message* :info
                         "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"

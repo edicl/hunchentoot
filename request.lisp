@@ -30,7 +30,10 @@
 (in-package :hunchentoot)
 
 (defclass request ()
-  ((headers-in :initarg :headers-in
+  ((acceptor :initarg :acceptor
+             :documentation "The acceptor which created this request object."
+             :reader request-acceptor)
+   (headers-in :initarg :headers-in
                :documentation "An alist of the incoming headers."
                :reader headers-in)
    (method :initarg :method
