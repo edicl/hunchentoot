@@ -62,8 +62,7 @@ been created unless the value is NIL.")
   "The function which is called if *CLEANUP-INTERVAL* is not NIL.")
 
 (defvar *worker-counter* 0
-  "Internal counter used to generate meaningful names for worker
-threads.")
+  "Internal counter used to count worker threads.")
 
 (defun cleanup-function ()
   "The default for *CLEANUP-FUNCTION*.  Invokes a GC on 32-bit

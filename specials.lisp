@@ -289,10 +289,6 @@ encode cookie values.")
   "During the execution of dispatchers and handlers this variable
 is bound to the SERVER object which processes the request.")
 
-(defvar *worker-counter* 0
-  "Internal counter used to generate meaningful names for worker
-threads.")
-
 (defvar *default-connection-timeout* 20
   "The default connection timeout used when a Hunchentoot server is
 reading from and writing to a socket stream.")

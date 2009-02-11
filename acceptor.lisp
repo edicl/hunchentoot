@@ -40,7 +40,7 @@
          :accessor acceptor-name
          :documentation "The optional name of the acceptor, a symbol.")
    (request-class :initarg :request-class
-                  :reader acceptor-request-class
+                  :accessor acceptor-request-class
                   :documentation "Determines which class of request
 objects is created when a request comes in and should be \(a symbol
 naming) a class which inherits from REQUEST.")
@@ -54,10 +54,10 @@ this acceptor.")
 responsible for listening to new connections and scheduling them for
 execution.")
    (output-chunking-p :initarg :output-chunking-p
-                      :reader acceptor-output-chunking-p
+                      :accessor acceptor-output-chunking-p
                       :documentation "Whether the acceptor may use output chunking.")
    (input-chunking-p :initarg :input-chunking-p
-                     :reader acceptor-input-chunking-p
+                     :accessor acceptor-input-chunking-p
                      :documentation "Whether the acceptor may use input chunking.")
    (persistent-connections-p :initarg :persistent-connections-p
                              :accessor acceptor-persistent-connections-p
@@ -68,17 +68,17 @@ connections after having processed one request.  This is the default
 for non-threaded acceptors.")
    (read-timeout :initarg :read-timeout
                  :reader acceptor-read-timeout
-                 :documentation "The connection timeout of the acceptor,
-specified in (fractional) seconds.  Connections that are idle for
-longer than this time are closed by Hunchentoot.  The precise
+                 :documentation "The connection timeout of the
+acceptor, specified in \(fractional) seconds.  Connections that are
+idle for longer than this time are closed by Hunchentoot.  The precise
 semantics of this parameter is determined by the underlying Lisp's
-implementation of socket timeouts.")
+implementation of socket timeouts.  NIL means no timeout.")
    (write-timeout :initarg :write-timeout
                   :reader acceptor-write-timeout
-                  :documentation "The connection timeout of the acceptor,
-specified in (fractional) seconds.  The precise semantics of this
-parameter is determined by the underlying Lisp's implementation of
-socket timeouts.")
+                  :documentation "The connection timeout of the
+acceptor, specified in \(fractional) seconds.  The precise semantics
+of this parameter is determined by the underlying Lisp's
+implementation of socket timeouts.  NIL means no timeout.")
    #+:lispworks
    (process :accessor acceptor-process
             :documentation "The Lisp process which accepts incoming
@@ -116,9 +116,13 @@ information to a file."))
    :name (gensym)
    :request-class 'request
    :request-dispatcher 'dispatch-request
-   :connection-dispatcher (make-instance 'one-thread-per-connection-dispatcher)
+   :connection-dispatcher (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-dispatcher)
+                                               (t 'single-threaded-connection-dispatcher)))
    :output-chunking-p t
    :input-chunking-p t
+   :persistent-connections-p t
+   :read-timeout nil
+   :write-timeout nil
    :access-logger 'log-access
    :message-logger 'log-message)
   (:documentation "An object of this class contains all relevant
@@ -131,7 +135,7 @@ information about a running Hunchentoot acceptor instance."))
 
 (defgeneric start (acceptor)
   (:documentation "Starts the ACCEPTOR so that it begins accepting
-connections."))
+connections.  Returns the acceptor."))
 
 (defgeneric stop (acceptor)
   (:documentation "Stops the ACCEPTOR so that it no longer accepts
@@ -141,7 +145,7 @@ requests."))
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
 enables it to listen for incoming connections.  This function is
 called from the thread that starts the acceptor initially and may
-return errors resulting from the listening operation. (like 'address
+return errors resulting from the listening operation \(like 'address
 in use' or similar)."))
 
 (defgeneric accept-connections (acceptor)
@@ -182,7 +186,8 @@ they're using secure connections."))
   (start-listening acceptor)
   (let ((connection-dispatcher (acceptor-connection-dispatcher acceptor)))
     (setf (acceptor connection-dispatcher) acceptor)
-    (execute-acceptor connection-dispatcher)))
+    (execute-acceptor connection-dispatcher))
+  acceptor)
 
 (defmethod stop ((acceptor acceptor))
   (setf (acceptor-shutdown-p acceptor) t)
@@ -191,8 +196,8 @@ they're using secure connections."))
   (usocket:socket-close (acceptor-listen-socket acceptor)))
 
 (defmethod initialize-connection-stream (acceptor stream)
- ;; default method does nothing
  (declare (ignore acceptor))
+ ;; default method does nothing
  stream)
 
 (defmethod reset-connection-stream (acceptor stream)
