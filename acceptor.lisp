@@ -124,7 +124,7 @@ this acceptor."))
    :request-class 'request
    :handler-selector 'list-handler-selector
    :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-taskmaster)
-                                               (t 'single-threaded-taskmaster)))
+                                    (t 'single-threaded-taskmaster)))
    :output-chunking-p t
    :input-chunking-p t
    :persistent-connections-p t
