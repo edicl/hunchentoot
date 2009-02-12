@@ -44,20 +44,37 @@ key file, or NIL if the certificate file contains the private key.")
                             :reader acceptor-ssl-privatekey-password
                             :documentation "The password for the
 private key file or NIL."))
-  (:default-initargs :port 443 :output-chunking-p nil)
+  (:default-initargs
+   :port 443
+   :input-chunking-p nil
+   :output-chunking-p nil)
   (:documentation "This class defines additional slots required to
-serve requests by SSL"))
+serve requests via SSL."))
 
-(defmethod initialize-instance :around ((acceptor ssl-acceptor)
-                                        &rest args
-                                        &key ssl-certificate-file ssl-privatekey-file
-                                        &allow-other-keys)
-  (apply #'call-next-method acceptor
-         :ssl-certificate-file (namestring ssl-certificate-file)
-         :ssl-privatekey-file (namestring (or ssl-privatekey-file
-                                              #+:lispworks
-                                              ssl-certificate-file))
-         args))
+;; general implementation
+
+(defmethod acceptor-ssl-p ((acceptor ssl-acceptor))
+  t)
+
+;; usocket implementation
+
+#-:lispworks
+(defmethod initialize-connection-stream ((acceptor ssl-acceptor) stream)
+  ;; attach SSL to the stream if necessary
+  (call-next-method acceptor
+                    (cl+ssl:make-ssl-server-stream stream
+                                                   :certificate (acceptor-ssl-certificate-file acceptor)
+                                                   :key (acceptor-ssl-privatekey-file acceptor))))
+
+;; LispWorks implementation
+
+#+:lispworks
+(defmethod initialize-instance :after ((acceptor ssl-acceptor) &rest initargs)
+  (declare (ignore initargs))
+  ;; LispWorks can read both from the same file, so we can default one
+  (unless (slot-boundp acceptor 'ssl-privatekey-file)
+    (setf (slot-value acceptor 'ssl-privatekey-file)
+          (acceptor-ssl-certificate-file acceptor))))
 
 #+lispworks
 (defun make-ssl-server-stream (socket-stream &key certificate-file privatekey-file privatekey-password)
@@ -80,19 +97,11 @@ necessary).  Returns the stream"
                      :ctx-configure-callback #'ctx-configure-callback)
     socket-stream))
 
-
-(defmethod acceptor-ssl-p ((acceptor ssl-acceptor))
-  t)
-
+#+:lispworks
 (defmethod initialize-connection-stream ((acceptor ssl-acceptor) stream)
   ;; attach SSL to the stream if necessary
   (call-next-method acceptor
-                    #+:lispworks
                     (make-ssl-server-stream stream
                                             :certificate-file (acceptor-ssl-certificate-file acceptor)
                                             :privatekey-file (acceptor-ssl-privatekey-file acceptor)
-                                            :privatekey-password (acceptor-ssl-privatekey-password acceptor))
-                    #-:lispworks
-                    (cl+ssl:make-ssl-server-stream stream
-                                                   :certificate (acceptor-ssl-certificate-file acceptor)
-                                                   :key (acceptor-ssl-privatekey-file acceptor))))
+                                            :privatekey-password (acceptor-ssl-privatekey-password acceptor))))

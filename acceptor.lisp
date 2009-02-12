@@ -268,6 +268,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
                (multiple-value-bind (remote-addr remote-port)
                    (get-peer-address-and-port socket)
                  (process-request (make-instance (acceptor-request-class *acceptor*)
+                                                 :acceptor *acceptor*
                                                  :remote-addr remote-addr
                                                  :remote-port remote-port
                                                  :headers-in headers-in
@@ -319,7 +320,10 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
             (when error
               (setf (return-code *reply*)
                     +http-internal-server-error+))
-            (start-output :content (cond (error
+            (start-output :content (cond ((and error *show-lisp-errors-p*)
+                                          (format nil "<pre>~A</pre>"
+                                                  (escape-for-html (format nil "~A" error))))
+                                         (error
                                           "An error has occured.")
                                          (t body))))
           t)

@@ -100,7 +100,7 @@ be used for all three of them."
          (setf (log-file-pathname ,special-variable) pathname)))))
 
 (define-log-file log-file *log-file* *log-pathname*
-  "file to use to log general messages.")
+  "File to use to log general messages.")
 
 (defmethod log-message (log-level format &rest args)
   "Sends a formatted message to the file denoted by *LOG-FILE*.
@@ -113,7 +113,7 @@ log level or NIL in which case it is ignored."
 
 (defun log-message* (log-level format &rest args)
   "Internal function accepting the same arguments as LOG-MESSAGE and
-using the message logger of *SERVER* \(if there is one)."
+using the message logger of *ACCEPTOR* \(if there is one)."
   (when-let (message-logger (acceptor-message-logger *acceptor*))
     (apply message-logger log-level format args)))
 
