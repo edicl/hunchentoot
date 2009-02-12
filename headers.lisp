@@ -177,6 +177,7 @@ the stream to write to."
       (write-sequence +crlf+ *hunchentoot-stream*)
       (maybe-write-to-header-stream first-line))
     (when (and (stringp content)
+               (session *request*)
                (not content-modified-p)
                (starts-with-one-of-p (or (content-type) "")
                                      *content-types-for-url-rewrite*))

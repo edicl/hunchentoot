@@ -61,8 +61,9 @@ that the corresponding socket timeout value will not be set."
     (setf (ccl:stream-output-timeout (usocket:socket usocket))
           write-timeout))
   #+:sbcl
-  (setf (sb-impl::fd-stream-timeout (usocket:socket-stream usocket))
-        (coerce read-timeout 'single-float))
+  (when read-timeout
+    (setf (sb-impl::fd-stream-timeout (usocket:socket-stream usocket))
+          (coerce read-timeout 'single-float)))
   #+:cmu
   (setf (lisp::fd-stream-timeout (usocket:socket-stream usocket))
         (coerce read-timeout 'integer))
