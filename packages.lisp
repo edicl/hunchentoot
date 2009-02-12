@@ -117,6 +117,7 @@
            "+HTTP-USE-PROXY+"
            "+HTTP-VERSION-NOT-SUPPORTED+"
            "ABORT-REQUEST-HANDLER"
+           "ACCEPTOR"
            "ACCEPTOR-ACCESS-LOGGER"
            "ACCEPTOR-ADDRESS"
            "ACCEPTOR-HANDLER-SELECTOR"
