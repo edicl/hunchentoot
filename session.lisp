@@ -29,7 +29,7 @@
 
 (in-package :hunchentoot)
 
-(defgeneric session-db-lock (acceptor &key (whole-db-p t))
+(defgeneric session-db-lock (acceptor &key whole-db-p)
   (:documentation "A function which returns a lock that will be used
 to prevent concurrent access to sessions.  The first argument will be
 the acceptor that handles the current request, the second argument is
