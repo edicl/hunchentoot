@@ -44,10 +44,12 @@
                   :documentation "Determines which class of request
 objects is created when a request comes in and should be \(a symbol
 naming) a class which inherits from REQUEST.")
-   (request-dispatcher :initarg :request-dispatcher
-                       :accessor acceptor-request-dispatcher
-                       :documentation "The dispatcher function used by
-this acceptor.")
+   (handler-selector :initarg :handler-selector
+                     :accessor acceptor-handler-selector
+                     :documentation "The handler selector function
+used by this acceptor.  A function which accepts a REQUEST object and
+calls a request handler of its choice \(and returns its return
+value).")
    (connection-dispatcher :initarg :connection-dispatcher
                           :reader acceptor-connection-dispatcher
                           :documentation "The connection dispatcher that is
@@ -121,7 +123,7 @@ this acceptor."))
    :port 80
    :name (gensym)
    :request-class 'request
-   :request-dispatcher 'dispatch-request
+   :handler-selector 'list-handler-selector
    :connection-dispatcher (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-dispatcher)
                                                (t 'single-threaded-connection-dispatcher)))
    :output-chunking-p t
@@ -322,7 +324,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                   ;; skip dispatch if bad request
                   (when (eql (return-code) +http-ok+)
                     ;; now do the work
-                    (funcall (acceptor-request-dispatcher *acceptor*) *request* *reply*))))
+                    (funcall (acceptor-handler-selector *acceptor*) *request*))))
             (when error
               (setf (return-code *reply*)
                     +http-internal-server-error+))
@@ -406,12 +408,12 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
 (defmethod accept-connections ((acceptor acceptor))
   (mp:process-unstop (acceptor-process acceptor)))
 
-;;; TODO
-(defgeneric dispatch-request (request reply)
-  (:documentation "")
-  (:method (request reply)
-   (loop for dispatcher in *dispatch-table*
-         for action = (funcall dispatcher request)
-         when action return (funcall action)
-         finally (setf (return-code reply) +http-not-found+))))
+(defun list-handler-selector (request)
+  "The default handler selector which selects a request handler based
+on a list of individual request dispatchers all of which can either
+return a handler or neglect by returning NIL."
+  (loop for dispatcher in *dispatch-table*
+        for action = (funcall dispatcher request)
+        when action return (funcall action)
+        finally (setf (return-code *reply*) +http-not-found+)))
 

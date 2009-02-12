@@ -128,6 +128,12 @@ request matches the CL-PPCRE regular expression REGEX."
       (and (scan scanner (script-name request))
            handler))))
 
+(defun abort-request-handler (&optional result)
+  "This function can be called by a request handler at any time to
+immediately abort handling the request.  This works as if the handler
+had returned RESULT.  See the source code of REDIRECT for an example."
+  (throw 'handler-done result))
+
 (defun handle-static-file (path &optional content-type)
   "A function which acts like a Hunchentoot handler for the file
 denoted by PATH.  Send a content type header corresponding to
@@ -138,7 +144,7 @@ type via the file's suffix."
             (fad:directory-exists-p path))
     ;; does not exist
     (setf (return-code) +http-not-found+)
-    (throw 'handler-done nil))
+    (abort-request-handler))
   (let ((time (or (file-write-date path) (get-universal-time))))
     (setf (content-type) (or content-type
                              (mime-type path)
@@ -203,7 +209,7 @@ it'll be the content type used for all files in the folder."
                               (loop for component in (rest script-path-directory)
                                     always (stringp component))))
                (setf (return-code) +http-forbidden+)
-               (throw 'handler-done nil))
+               (abort-request-handler))
              (handle-static-file (merge-pathnames script-path base-path) content-type))))
     (create-prefix-dispatcher uri-prefix #'handler)))
 
@@ -248,7 +254,7 @@ redirection code, it will be sent as status code."
       (setq url (add-cookie-value-to-url url :replace-ampersands-p nil)))
     (setf (header-out :location) url
           (return-code *reply*) code)
-    (throw 'handler-done nil)))
+    (abort-request-handler)))
 
 (defun require-authorization (&optional (realm "Hunchentoot"))
   "Sends back appropriate headers to require basic HTTP authentication
@@ -257,4 +263,4 @@ redirection code, it will be sent as status code."
           (format nil "Basic realm=\"~A\"" (quote-string realm))
         (return-code *reply*)
           +http-authorization-required+)
-  (throw 'handler-done nil))
+  (abort-request-handler))

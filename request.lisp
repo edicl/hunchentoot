@@ -397,7 +397,7 @@ TIME."
     (when (and if-modified-since
                (equal if-modified-since time-string))
       (setf (return-code) +http-not-modified+)
-      (throw 'handler-done nil))
+      (abort-request-handler))
     (values)))
 
 (defun external-format-from-content-type (content-type)

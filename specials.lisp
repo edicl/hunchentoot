@@ -255,7 +255,7 @@ initiating another request, which is permissible.)")
   #+:openmcl "http://openmcl.clozure.com/"
   "A link to the website of the underlying Lisp implementation.")
 
-(defvar *dispatch-table* (list 'default-dispatcher)
+(defvar *dispatch-table* (list 'dispatch-easy-handlers 'default-dispatcher)
   "A global list of dispatch functions.")
 
 (defvar *default-handler* 'default-handler

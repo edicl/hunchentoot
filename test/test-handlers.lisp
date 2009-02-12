@@ -161,7 +161,7 @@
        " cookie test")
       (:p "You might have to reload this page to see the cookie value.")
       (info-table (cookie-in "pumpkin")
-                  (mapcar #'car (cookies-in*)))))))
+                  (mapcar 'car (cookies-in*)))))))
 
 (defun session-test ()
   (let ((new-foo-value (post-parameter "new-foo-value")))
@@ -200,7 +200,7 @@ time or try with cookies disabled.")
             :value (or (session-value 'bar) ""))))
       (info-table (session-cookie-name *acceptor*) 
                   (cookie-in (session-cookie-name *acceptor*))
-                  (mapcar #'car (cookies-in*))
+                  (mapcar 'car (cookies-in*))
                   (session-value 'foo)
                   (session-value 'bar))))))
 
@@ -225,10 +225,10 @@ and see what's happening.")
             :name "foo")))
       (case method
         (:get (info-table (query-string*)
-                          (map 'list #'char-code (get-parameter "foo"))
+                          (map 'list 'char-code (get-parameter "foo"))
                           (get-parameter "foo")))
         (:post (info-table (raw-post-data)
-                           (map 'list #'char-code (post-parameter "foo"))
+                           (map 'list 'char-code (post-parameter "foo"))
                            (post-parameter "foo"))))))))
 
 (defun parameter-test-latin1-get ()
@@ -262,7 +262,7 @@ and see what's happening.")
                                        :type nil
                                        :defaults *tmp-test-directory*)))
           ;; strip directory info sent by Windows browsers
-          (when (search "Windows" (user-agent) :test #'char-equal)
+          (when (search "Windows" (user-agent) :test 'char-equal)
             (setq file-name (cl-ppcre:regex-replace ".*\\\\" file-name "")))
           (rename-file path (ensure-directories-exist new-path))
           (push (list new-path file-name content-type) *tmp-test-files*))))))
@@ -328,7 +328,7 @@ and see what's happening.")
   (let* ((path (get-parameter "path"))
          (file-info (and path
                          (find (pathname path) *tmp-test-files*
-                               :key #'first :test #'equal))))
+                               :key 'first :test 'equal))))
     (unless file-info
       (setf (return-code *reply*)
             +http-not-found+)
@@ -444,7 +444,7 @@ and see what's happening.")
                             (:input :type "checkbox"
                              :name "team"
                              :value player
-                             :checked (member player team :test #'string=)
+                             :checked (member player team :test 'string=)
                              (esc player))
                             (:br)))))
             (:tr
@@ -541,7 +541,7 @@ and see what's happening.")
                              :defaults *this-file*)
               "text/plain"))
        (mapcar (lambda (args)
-                 (apply #'create-prefix-dispatcher args))
+                 (apply 'create-prefix-dispatcher args))
                '(("/hunchentoot/test/form-test.html" form-test)
                  ("/hunchentoot/test/forbidden.html" forbidden)
                  ("/hunchentoot/test/info.html" info)
@@ -561,4 +561,4 @@ and see what's happening.")
                  ("/hunchentoot/test/utf8-string.txt" stream-direct-utf-8-string)
                  ("/hunchentoot/test/files/" send-file)
                  ("/hunchentoot/test" menu)))
-       (list #'default-dispatcher)))
+       (list 'default-dispatcher)))
