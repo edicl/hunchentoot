@@ -488,7 +488,7 @@ and see what's happening.")
        (:tr (:td (:a :href "/hunchentoot/test/authorization.html"
                   "Authorization")
              " (user 'nanook', password 'igloo')"))
-       (:tr (:td (:a :href "/hunchentoot/code/test.lisp"
+       (:tr (:td (:a :href "/hunchentoot/code/test-handlers.lisp"
                   "The source code of this test")))
        (:tr (:td (:a :href "/hunchentoot/test/image.jpg"
                   "Binary data, delivered from file")
