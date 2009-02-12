@@ -99,17 +99,23 @@ CONTENT and CONTENT-LENGTH keyword arguments which are used to pass in
 additional information about the request to log.  In addition, it can
 use the standard request accessor functions that are available to
 handler functions to find out more information about the request.
-This slot defaults to the LOG-ACCESS function which logs the
-information to a file in a format that can be parsed by most Apache
-log analysis tools.")
+This slot defaults to a function which logs the information to the
+file determined by *ACCESS-LOG-PATHNAME* \(unless that value is NIL)
+in a format that can be parsed by most Apache log analysis tools.
+
+If the value of this slot is NIL, access logging is turned off for
+this acceptor.")
    (message-logger :initarg :message-logger
                    :accessor acceptor-message-logger
                    :documentation "Designator for a function to call
 to log messages by the acceptor.  It must accept a severity level for
 the message, which will be one of :NOTICE, :INFO, or :WARNING, a
 format string and an arbitary number of formatting arguments.  This
-slot defaults to the LOG-MESSAGE function which writes writes the
-information to a file."))
+slot defaults to a function which writes to the file determined by
+*MESSAGE-LOG-PATHNAME* \(unless that value is NIL).
+
+If the value of this slot is NIL, message logging is turned off for
+this acceptor."))
   (:default-initargs
    :address nil
    :port 80
@@ -123,8 +129,8 @@ information to a file."))
    :persistent-connections-p t
    :read-timeout nil
    :write-timeout nil
-   :access-logger 'log-access
-   :message-logger 'log-message)
+   :access-logger 'log-access-to-file
+   :message-logger 'log-message-to-file)
   (:documentation "An object of this class contains all relevant
 information about a running Hunchentoot acceptor instance."))
 
@@ -224,14 +230,14 @@ they're using secure connections."))
   (handler-bind ((error
                   ;; abort if there's an error which isn't caught inside
                   (lambda (cond)
-                    (log-message* *lisp-errors-log-level*
-                                  "Error while processing connection: ~A" cond)                    
+                    (log-message *lisp-errors-log-level*
+                                 "Error while processing connection: ~A" cond)
                     (return-from process-connection)))
                  (warning
                   ;; log all warnings which aren't caught inside
                   (lambda (cond)
-                    (log-message* *lisp-warnings-log-level*
-                                  "Warning while processing connection: ~A" cond))))
+                    (log-message *lisp-warnings-log-level*
+                                 "Warning while processing connection: ~A" cond))))
     (call-next-method)))
 
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
@@ -301,7 +307,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                 (handler-bind ((error
                                 (lambda (cond)
                                   (when *log-lisp-errors-p*
-                                    (log-message* *lisp-errors-log-level* "~A" cond))
+                                    (log-message *lisp-errors-log-level* "~A" cond))
                                   ;; if the headers were already sent
                                   ;; the error happens within the body
                                   ;; and we have to close the stream
@@ -312,7 +318,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                                (warning
                                 (lambda (cond)
                                   (when *log-lisp-warnings-p*
-                                    (log-message* *lisp-warnings-log-level* "~A" cond)))))
+                                    (log-message *lisp-warnings-log-level* "~A" cond)))))
                   ;; skip dispatch if bad request
                   (when (eql (return-code) +http-ok+)
                     ;; now do the work

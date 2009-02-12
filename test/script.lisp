@@ -96,13 +96,13 @@
                   :basic-authorization '("nanook" "igloo"))
     (http-assert 'status-code 200)
 
-    (format t "Request the zappa image~%")
+    (format t "Request the Zappa image~%")
     (http-request "image.jpg")
     (http-assert-header :content-length (file-length-string #P"fz.jpg"))
     (http-assert-header :content-type "image/jpeg")
     (http-assert 'body (complement #'mismatch) (file-contents #P"fz.jpg"))
 
-    (format t "Request the zappa image from RAM~%")
+    (format t "Request the Zappa image from RAM~%")
     (http-request "image-ram.jpg")
     (http-assert-header :content-length (file-length-string #P"fz.jpg"))
     (http-assert-header :content-type "image/jpeg")

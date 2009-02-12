@@ -208,20 +208,44 @@ purposes.")
 (defvar *lisp-warnings-log-level* :warning
   "Log level for Lisp warnings.")
 
-(defvar *log-pathname* #P"hunchentoot-error.log"
-  "The error log file to use.")
+(defvar *message-log-pathname* nil
+  "A designator for the pathname of the message log file used by the
+LOG-MESSAGE-TO-FILE function.  The initial value is NIL which means
+that nothing will be logged.")
 
-(defvar *access-log-pathname* #P"hunchentoot-access.log"
-  "The access log file to use.")
+(defvar *access-log-pathname* nil
+  "A designator for the pathname of the access log file used by the
+LOG-ACCESS-TO-FILE function.  The initial value is NIL which means
+that nothingq will be logged.")
 
-(defvar-unbound *session*
-  "The current SESSION object.")
+(defvar *message-log-lock* (make-lock "global-message-log-lock")
+  "A global lock to prevent concurrent access to the log file
+used by LOG-MESSAGE-TO-FILE function.")
+
+(defvar *access-log-lock* (make-lock "global-access-log-lock")
+  "A global lock to prevent concurrent access to the log file
+used by LOG-ACCESS-TO-FILE function.")
+
+(defvar-unbound *acceptor*
+  "The current ACCEPTOR object.")
 
 (defvar-unbound *request*
   "The current REQUEST object.")
 
 (defvar-unbound *reply*
   "The current REPLY object.")
+
+(defvar-unbound *session*
+  "The current SESSION object.")
+
+(defvar *break-even-while-reading-request-type-p* nil
+  "If this variable is set to true, Hunchentoot will not bind
+*BREAK-ON-SIGNALS* to NIL while reading the next request type from an
+incoming connection.  By default, Hunchentoot will not enter the
+debugger if an error occurs during the reading of the request type, as
+this will happen regularily and legitimately.  \(The incoming
+connection times out or the client closes the connection without
+initiating another request, which is permissible.)")
 
 (defconstant +implementation-link+
   #+:cmu "http://www.cons.org/cmucl/"
@@ -282,10 +306,6 @@ encode cookie values.")
 
 (defconstant +buffer-length+ 8192
   "Length of buffers used for internal purposes.")
-
-(defvar-unbound *acceptor*
-  "During the execution of dispatchers and handlers this variable
-is bound to the SERVER object which processes the request.")
 
 (defvar *default-connection-timeout* 20
   "The default connection timeout used when a Hunchentoot server is

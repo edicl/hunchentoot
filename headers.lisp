@@ -177,7 +177,6 @@ the stream to write to."
       (write-sequence +crlf+ *hunchentoot-stream*)
       (maybe-write-to-header-stream first-line))
     (when (and (stringp content)
-               (session *request*)
                (not content-modified-p)
                (starts-with-one-of-p (or (content-type) "")
                                      *content-types-for-url-rewrite*))
@@ -230,15 +229,6 @@ etc.) is turned off for this request.  If your handlers return the
 full body as a string or as an array of octets you should NOT call
 this function."
   (start-output))
-
-(defvar *break-even-while-reading-request-type-p* nil
-  "If this variable is set to true, Hunchentoot will not bind
-*BREAK-ON-SIGNALS* to NIL while reading the next request type from an
-incoming connection.  By default, Hunchentoot will not enter the
-debugger if an error occurs during the reading of the request type, as
-this will happen regularily and legitimately.  \(The incoming
-connection times out or the client closes the connection without
-initiating another request, which is permissible.)")
 
 (defun read-initial-request-line (stream)
   "Reads and returns the initial HTTP request line, catching permitted

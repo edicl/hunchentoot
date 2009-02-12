@@ -39,6 +39,7 @@
   #+:lispworks
   (:import-from :lw "WITH-UNIQUE-NAMES" "WHEN-LET")
   (:export "*ACCEPTOR*"
+           "*ACCESS-LOG-PATHNAME*"
            "*APPROVED-RETURN-CODES*"
            #+:lispworks
            "*CLEANUP-FUNCTION*"
@@ -59,6 +60,7 @@
            "*LISTENER*"
            "*LOG-LISP-ERRORS-P*"
            "*LOG-LISP-WARNINGS-P*"
+           "*MESSAGE-LOG-PATHNAME*"
            "*METHODS-FOR-POST-PARAMETERS*"
            "*REPLY*"
            "*REQUEST*"
@@ -131,7 +133,6 @@
            "ACCEPTOR-SSL-PRIVATEKEY-FILE"
            "ACCEPTOR-SSL-PRIVATEKEY-PASSWORD"
            "ACCEPTOR-WRITE-TIMEOUT"
-           "ACCESS-LOG-FILE"
            "AUTHORIZATION"
            "AUX-REQUEST-VALUE"
            "CONTENT-LENGTH"
@@ -179,7 +180,6 @@
            "HUNCHENTOOT-CONDITION"
            "HUNCHENTOOT-ERROR"
            "INITIALIZE-CONNECTION-STREAM"
-           "LOG-FILE"
            "LOG-MESSAGE"
            "MIME-TYPE"
            "NEXT-SESSION-ID"

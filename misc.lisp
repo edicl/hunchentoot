@@ -51,9 +51,11 @@ URL.  Scanners are memoized in SCANNER-HASH once they are created."
                     #\=
                     (:greedy-repetition 0 nil (:inverted-char-class #\&))
                     #\&))))))
-  (defun add-cookie-value-to-url (url &key (cookie-name (session-cookie-name *acceptor*))
-                                           (value (session-cookie-value (session *request*)))
-                                           (replace-ampersands-p t))
+  (defun add-cookie-value-to-url (url &key
+                                      (cookie-name (session-cookie-name *acceptor*))
+                                      (value (when-let (session (session *request*))
+                                               (session-cookie-value session)))
+                                      (replace-ampersands-p t))
     "Removes all GET parameters named COOKIE-NAME from URL and then
 adds a new GET parameter with the name COOKIE-NAME and the value
 VALUE.  If REPLACE-AMPERSANDS-P is true all literal ampersands in URL
@@ -72,8 +74,10 @@ are replaced with '&amp;'. The resulting URL is returned."
       (setq url (regex-replace-all "&" url "&amp;")))
     url))
 
-(defun maybe-rewrite-urls-for-session (html &key (cookie-name (session-cookie-name *acceptor*))
-                                                 (value (session-cookie-value (session *request*))))
+(defun maybe-rewrite-urls-for-session (html &key
+                                            (cookie-name (session-cookie-name *acceptor*))
+                                            (value (when-let (session (session *request*))
+                                                     (session-cookie-value session))))
   "Rewrites the HTML page HTML such that the name/value pair
 COOKIE-NAME/COOKIE-VALUE is inserted if the client hasn't sent a
 cookie of the same name but only if *REWRITE-FOR-SESSION-URLS* is
@@ -100,7 +104,7 @@ function stored in *DEFAULT-HANDLER*."
 (defun default-handler ()
   "The handler that is supposed to serve the request if no other
 handler is called."
-  (log-message* :info "Default handler called for script ~A" (script-name*))
+  (log-message :info "Default handler called for script ~A" (script-name*))
   (format nil "<html><head><title>Hunchentoot</title></head><body><h2>Hunchentoot Default Page</h2><p>This is the Hunchentoot default page. You're most likely seeing it because the server administrator hasn't set up a custom default page yet.</p><p>Hunchentoot is a web server written in <a href='http://www.lisp.org/'>Common Lisp</a>.  More info about Hunchentoot can be found at <a href='http://weitz.de/hunchentoot/'>http://weitz.de/hunchentoot/</a>.</p></p><p><hr>~A</p></body></html>"
           (address-string)))
 
