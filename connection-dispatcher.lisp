@@ -29,84 +29,84 @@
 
 (in-package :hunchentoot)
 
-(defclass connection-dispatcher ()
-  ((acceptor :accessor acceptor
+(defclass taskmaster ()
+  ((acceptor :accessor taskmaster-acceptor
              :documentation "The acceptor instance that this
-connection dispatcher works for."))
-  (:documentation "Base class for all connection dispatchers classes.
-Its purpose is to carry the back pointer to the acceptor instance."))
+taskmaster works for."))
+  (:documentation "Base class for all taskmaster classes.  Its purpose
+is to carry the back pointer to the acceptor instance."))
 
-(defgeneric execute-acceptor (connection-dispatcher)
+(defgeneric execute-acceptor (taskmaster)
   (:documentation
    "This function is called once Hunchentoot has performed all initial
 processing to start listening for incoming connections.  It does so by
 calling the ACCEPT-CONNECTIONS functions of the acceptor, taken from
-the ACCEPTOR slot of the connection dispatcher instance.
+the ACCEPTOR slot of the taskmaster instance.
 
-In a multi-threaded environment, the connection dispatcher starts a new
+In a multi-threaded environment, the taskmaster starts a new
 thread and calls THUNK in that thread.  In a single-threaded
 environment, the thunk will be called directly."))
 
-(defgeneric handle-incoming-connection (connection-dispatcher socket)
+(defgeneric handle-incoming-connection (taskmaster socket)
   (:documentation
    "This function is called by Hunchentoot to start processing of
 requests on a new incoming connection.  SOCKET is the usocket instance
 that represents the new connection \(or a socket handle on LispWorks).
-The connection dispatcher starts processing requests on the incoming
+The taskmaster starts processing requests on the incoming
 connection by calling the START-REQUEST-PROCESSING function of the
-acceptor instance, taken from the ACCEPTOR slot in the connection dispatcher
+acceptor instance, taken from the ACCEPTOR slot in the taskmaster
 instance.  The SOCKET argument is passed to START-REQUEST-PROCESSING
 as argument.
 
-In a multi-threaded environment, the connection dispatcher runs this function
+In a multi-threaded environment, the taskmaster runs this function
 in a separate thread.  In a single-threaded environment, this function
 is called directly."))
 
-(defgeneric shutdown (connection-dispatcher)
+(defgeneric shutdown (taskmaster)
   (:documentation "Terminate all threads that are currently associated
-with the connection dispatcher, if any."))
+with the taskmaster, if any."))
 
-(defclass single-threaded-connection-dispatcher (connection-dispatcher)
+(defclass single-threaded-taskmaster (taskmaster)
   ()
-  (:documentation "Connection Dispatcher that runs synchronously in the
+  (:documentation "Taskmaster that runs synchronously in the
 thread that invoked the START-SERVER function."))
 
-(defmethod execute-acceptor ((dispatcher single-threaded-connection-dispatcher))
-  (accept-connections (acceptor dispatcher)))
+(defmethod execute-acceptor ((taskmaster single-threaded-taskmaster))
+  (accept-connections (taskmaster-acceptor taskmaster)))
 
-(defmethod handle-incoming-connection ((dispatcher single-threaded-connection-dispatcher) socket)
-  (process-connection (acceptor dispatcher) socket))
+(defmethod handle-incoming-connection ((taskmaster single-threaded-taskmaster) socket)
+  (process-connection (taskmaster-acceptor taskmaster) socket))
 
-(defclass one-thread-per-connection-dispatcher (connection-dispatcher)
+(defclass one-thread-per-taskmaster (taskmaster)
   ((acceptor-process :accessor acceptor-process
                      :documentation "Process that accepts incoming
-connections and dispatches them to new processes for request
-execution."))
-  (:documentation "Connection Dispatcher that starts one thread for
+connections and hands them off to new processes for request
+handling."))
+  (:documentation "Taskmaster that starts one thread for
 listening to incoming requests and one thread for each incoming
 connection."))
 
 ;; usocket implementation
 
 #-:lispworks
-(defmethod shutdown ((dispatcher connection-dispatcher)))
+(defmethod shutdown ((taskmaster taskmaster)))
 
 #-:lispworks
-(defmethod shutdown ((dispatcher one-thread-per-connection-dispatcher))
+(defmethod shutdown ((taskmaster one-thread-per-taskmaster))
   ;; just wait until the acceptor process has finished, then return
   (loop
-   (unless (bt:thread-alive-p (acceptor-process dispatcher))
+   (unless (bt:thread-alive-p (acceptor-process taskmaster))
      (return))
    (sleep 1)))
 
 #-:lispworks
-(defmethod execute-acceptor ((dispatcher one-thread-per-connection-dispatcher))
-  (setf (acceptor-process dispatcher)
+(defmethod execute-acceptor ((taskmaster one-thread-per-taskmaster))
+  (setf (acceptor-process taskmaster)
         (bt:make-thread (lambda ()
-                          (accept-connections (acceptor dispatcher)))
+                          (accept-connections (taskmaster-acceptor taskmaster)))
                         :name (format nil "Hunchentoot acceptor \(~A:~A)"
-                                      (or (acceptor-address (acceptor dispatcher)) "*")
-                                      (acceptor-port (acceptor dispatcher))))))
+                                      (or (acceptor-address (taskmaster-acceptor taskmaster)) "*")
+                                      (acceptor-port (taskmaster-acceptor taskmaster))))))
 
 #-:lispworks
 (defun client-as-string (socket)
@@ -118,26 +118,26 @@ connection."))
               port))))
 
 #-:lispworks
-(defmethod handle-incoming-connection ((dispatcher one-thread-per-connection-dispatcher) socket)
+(defmethod handle-incoming-connection ((taskmaster one-thread-per-taskmaster) socket)
   (bt:make-thread (lambda ()
-                    (process-connection (acceptor dispatcher) socket))
+                    (process-connection (taskmaster-acceptor taskmaster) socket))
                   :name (format nil "Hunchentoot worker \(client: ~A)" (client-as-string socket))))
 
 ;; LispWorks implementation
 
 #+:lispworks
-(defmethod shutdown ((dispatcher connection-dispatcher))
-  (when-let (process (acceptor-process (acceptor dispatcher)))
+(defmethod shutdown ((taskmaster taskmaster))
+  (when-let (process (acceptor-process (taskmaster-acceptor taskmaster)))
     ;; kill the main acceptor process, see LW documentation for
     ;; COMM:START-UP-SERVER
     (mp:process-kill process)))
 
 #+:lispworks
-(defmethod execute-acceptor ((dispatcher one-thread-per-connection-dispatcher))
-  (accept-connections (acceptor dispatcher)))
+(defmethod execute-acceptor ((taskmaster one-thread-per-taskmaster))
+  (accept-connections (taskmaster-acceptor taskmaster)))
 
 #+:lispworks
-(defmethod handle-incoming-connection ((dispatcher one-thread-per-connection-dispatcher) handle)
+(defmethod handle-incoming-connection ((taskmaster one-thread-per-taskmaster) handle)
   (incf *worker-counter*)
   ;; check if we need to perform a global GC
   (when (and *cleanup-interval*
@@ -148,4 +148,4 @@ connection."))
                                    (multiple-value-list
                                     (get-peer-address-and-port handle)))
                            nil #'process-connection
-                           (acceptor dispatcher) handle))
+                           (taskmaster-acceptor taskmaster) handle))

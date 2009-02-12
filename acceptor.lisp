@@ -50,11 +50,10 @@ naming) a class which inherits from REQUEST.")
 used by this acceptor.  A function which accepts a REQUEST object and
 calls a request handler of its choice \(and returns its return
 value).")
-   (connection-dispatcher :initarg :connection-dispatcher
-                          :reader acceptor-connection-dispatcher
-                          :documentation "The connection dispatcher that is
-responsible for listening to new connections and scheduling them for
-execution.")
+   (taskmaster :initarg :taskmaster
+               :reader acceptor-taskmaster
+               :documentation "The taskmaster that is responsible for
+scheduling the work for this acceptor.")
    (output-chunking-p :initarg :output-chunking-p
                       :accessor acceptor-output-chunking-p
                       :documentation "Whether the acceptor may use output chunking.")
@@ -124,8 +123,8 @@ this acceptor."))
    :name (gensym)
    :request-class 'request
    :handler-selector 'list-handler-selector
-   :connection-dispatcher (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-dispatcher)
-                                               (t 'single-threaded-connection-dispatcher)))
+   :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-taskmaster)
+                                               (t 'single-threaded-taskmaster)))
    :output-chunking-p t
    :input-chunking-p t
    :persistent-connections-p t
@@ -157,9 +156,9 @@ return errors resulting from the listening operation \(like 'address
 in use' or similar)."))
 
 (defgeneric accept-connections (acceptor)
-  (:documentation "In a loop, accepts a connection and
-dispatches it to the acceptor's connection dispatcher object for processing
-using HANDLE-INCOMING-CONNECTION."))
+  (:documentation "In a loop, accepts a connection and dispatches it
+to the acceptor's taskmaster for processing using
+HANDLE-INCOMING-CONNECTION."))
 
 (defgeneric initialize-connection-stream (acceptor stream)
  (:documentation "Wraps the given STREAM with all the additional
@@ -174,13 +173,12 @@ function is called after a request has been processed and must return
 the stream."))
 
 (defgeneric process-connection (acceptor socket)
-  (:documentation "This function is called by the connection
-dispatcher when a new client connection has been established.
-Arguments are the ACCEPTOR object and a usocket socket stream object
-\(or a LispWorks socket handle) in SOCKET.  It reads the request
-headers and hands over to PROCESS-REQUEST.  This is done in a loop
-until the stream has to be closed or until a connection timeout
-occurs."))
+  (:documentation "This function is called by the taskmaster when a
+new client connection has been established.  Arguments are the
+ACCEPTOR object and a usocket socket stream object \(or a LispWorks
+socket handle) in SOCKET.  It reads the request headers and hands over
+to PROCESS-REQUEST.  This is done in a loop until the stream has to be
+closed or until a connection timeout occurs."))
 
 (defgeneric acceptor-ssl-p (acceptor) 
   (:documentation "Returns a true value if ACCEPTOR uses SSL
@@ -197,14 +195,14 @@ they're using secure connections."))
 
 (defmethod start ((acceptor acceptor))
   (start-listening acceptor)
-  (let ((connection-dispatcher (acceptor-connection-dispatcher acceptor)))
-    (setf (acceptor connection-dispatcher) acceptor)
-    (execute-acceptor connection-dispatcher))
+  (let ((taskmaster (acceptor-taskmaster acceptor)))
+    (setf (taskmaster-acceptor taskmaster) acceptor)
+    (execute-acceptor taskmaster))
   acceptor)
 
 (defmethod stop ((acceptor acceptor))
   (setf (acceptor-shutdown-p acceptor) t)
-  (shutdown (acceptor-connection-dispatcher acceptor))
+  (shutdown (acceptor-taskmaster acceptor))
   #-:lispworks
   (usocket:socket-close (acceptor-listen-socket acceptor)))
 
@@ -228,7 +226,7 @@ they're using secure connections."))
 (defmethod process-connection :around ((*acceptor* acceptor) (socket t))
   "The around method is responsible for error handling."
   (declare (ignore socket))
-  ;; note that this call also binds *ACCEPTOR*
+  ;; note that this method also binds *ACCEPTOR*
   (handler-bind ((error
                   ;; abort if there's an error which isn't caught inside
                   (lambda (cond)
@@ -299,8 +297,9 @@ chunked encoding, but acceptor is configured to not use it.")))))
 (defun process-request (request)
   "This function is called by PROCESS-CONNECTION after the incoming
 headers have been read.  It sets up the REQUEST and REPLY objects,
-dispatches to a handler, and finally sends the output to the client
-using START-OUTPUT.  If all goes as planned, the function returns T."
+selects and calls a handler, and finally sends the output to the
+client using START-OUTPUT.  If all goes as planned, the function
+returns T."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
         (let* ((*request* request))
@@ -369,7 +368,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
              (set-timeouts client-connection
                            (acceptor-read-timeout acceptor)
                            (acceptor-write-timeout acceptor))
-             (handle-incoming-connection (acceptor-connection-dispatcher acceptor)
+             (handle-incoming-connection (acceptor-taskmaster acceptor)
                                          client-connection))
          ;; ignore condition
          (usocket:connection-aborted-error ()))))))
@@ -395,7 +394,7 @@ using START-OUTPUT.  If all goes as planned, the function returns T."
                             :function (lambda (handle)
                                         (unless (acceptor-shutdown-p acceptor)
                                           (handle-incoming-connection
-                                           (acceptor-connection-dispatcher acceptor) handle)))
+                                           (acceptor-taskmaster acceptor) handle)))
                             ;; wait until the acceptor was successfully started
                             ;; or an error condition is returned
                             :wait t)
