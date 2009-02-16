@@ -77,7 +77,7 @@ thread that invoked the START-SERVER function."))
 (defmethod handle-incoming-connection ((taskmaster single-threaded-taskmaster) socket)
   (process-connection (taskmaster-acceptor taskmaster) socket))
 
-(defclass one-thread-per-taskmaster (taskmaster)
+(defclass one-thread-per-connection-taskmaster (taskmaster)
   ((acceptor-process :accessor acceptor-process
                      :documentation "Process that accepts incoming
 connections and hands them off to new processes for request
@@ -92,7 +92,7 @@ connection."))
 (defmethod shutdown ((taskmaster taskmaster)))
 
 #-:lispworks
-(defmethod shutdown ((taskmaster one-thread-per-taskmaster))
+(defmethod shutdown ((taskmaster one-thread-per-connection-taskmaster))
   ;; just wait until the acceptor process has finished, then return
   (loop
    (unless (bt:thread-alive-p (acceptor-process taskmaster))
@@ -100,7 +100,7 @@ connection."))
    (sleep 1)))
 
 #-:lispworks
-(defmethod execute-acceptor ((taskmaster one-thread-per-taskmaster))
+(defmethod execute-acceptor ((taskmaster one-thread-per-connection-taskmaster))
   (setf (acceptor-process taskmaster)
         (bt:make-thread (lambda ()
                           (accept-connections (taskmaster-acceptor taskmaster)))
@@ -118,7 +118,7 @@ connection."))
               port))))
 
 #-:lispworks
-(defmethod handle-incoming-connection ((taskmaster one-thread-per-taskmaster) socket)
+(defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) socket)
   (bt:make-thread (lambda ()
                     (process-connection (taskmaster-acceptor taskmaster) socket))
                   :name (format nil "Hunchentoot worker \(client: ~A)" (client-as-string socket))))
@@ -133,11 +133,11 @@ connection."))
     (mp:process-kill process)))
 
 #+:lispworks
-(defmethod execute-acceptor ((taskmaster one-thread-per-taskmaster))
+(defmethod execute-acceptor ((taskmaster one-thread-per-connection-taskmaster))
   (accept-connections (taskmaster-acceptor taskmaster)))
 
 #+:lispworks
-(defmethod handle-incoming-connection ((taskmaster one-thread-per-taskmaster) handle)
+(defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) handle)
   (incf *worker-counter*)
   ;; check if we need to perform a global GC
   (when (and *cleanup-interval*

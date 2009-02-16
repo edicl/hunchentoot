@@ -123,7 +123,7 @@ this acceptor."))
    :name (gensym)
    :request-class 'request
    :handler-selector 'list-handler-selector
-   :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-taskmaster)
+   :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-taskmaster)
                                     (t 'single-threaded-taskmaster)))
    :output-chunking-p t
    :input-chunking-p t
@@ -206,12 +206,12 @@ they're using secure connections."))
   #-:lispworks
   (usocket:socket-close (acceptor-listen-socket acceptor)))
 
-(defmethod initialize-connection-stream (acceptor stream)
+(defmethod initialize-connection-stream ((acceptor acceptor) stream)
  (declare (ignore acceptor))
  ;; default method does nothing
  stream)
 
-(defmethod reset-connection-stream (acceptor stream)
+(defmethod reset-connection-stream ((acceptor acceptor) stream)
   (declare (ignore acceptor))
   ;; turn chunking off at this point
   (cond ((typep stream 'chunked-stream)
