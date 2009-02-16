@@ -161,7 +161,7 @@ it with a URI so that it will be found by DISPATCH-EASY-HANDLERS.
 DESCRIPTION is either a symbol NAME or a list matching the
 destructuring lambda list
 
-  (name &key uri server-names default-parameter-type default-request-type).
+  (name &key uri acceptor-names default-parameter-type default-request-type).
 
 LAMBDA-LIST is a list the elements of which are either a symbol
 VAR or a list matching the destructuring lambda list
@@ -182,11 +182,11 @@ string and the script name of a request is URI, or if URI designates a
 function and applying this function to the current request object
 returns a true value.
 
-SERVER-NAMES \(which is evaluated) can be a list of symbols which
+ACCEPTOR-NAMES \(which is evaluated) can be a list of symbols which
 means that the handler will be returned by DISPATCH-EASY-HANDLERS in
-servers which have one of these names \(see SERVER-NAME).
-SERVER-NAMES can also be the symbol T which means that the handler
-will be returned by DISPATCH-EASY-HANDLERS in every server.
+acceptor which have one of these names \(see ACCEPTOR-NAME).
+ACCEPTOR-NAMES can also be the symbol T which means that the handler
+will be returned by DISPATCH-EASY-HANDLERS in every acceptor.
 
 Whether the GET or POST parameter \(or both) will be taken into
 consideration, depends on REQUEST-TYPE which can
@@ -277,7 +277,7 @@ result of evaluating INIT-FORM unless a corresponding keyword
 argument is provided."
   (when (atom description)
     (setq description (list description)))
-  (destructuring-bind (name &key uri (server-names t)
+  (destructuring-bind (name &key uri (acceptor-names t)
                             (default-parameter-type ''string)
                             (default-request-type :both))
       description
@@ -291,7 +291,7 @@ argument is provided."
                                     (or (equal ,uri (first list))
                                         (eq ',name (third list))))
                                   *easy-handler-alist*))
-                 (push (list ,uri ,server-names ',name) *easy-handler-alist*)))))
+                 (push (list ,uri ,acceptor-names ',name) *easy-handler-alist*)))))
        (defun ,name (&key ,@(loop for part in lambda-list
                                   collect (make-defun-parameter part
                                                                 default-parameter-type
@@ -310,9 +310,9 @@ argument is provided."
 (defun dispatch-easy-handlers (request)
   "This is a dispatcher which returns the appropriate handler
 defined with DEFINE-EASY-HANDLER, if there is one."
-  (loop for (uri server-names easy-handler) in *easy-handler-alist*
-        when (and (or (eq server-names t)
-                      (find (acceptor-name *acceptor*) server-names :test #'eq))
+  (loop for (uri acceptor-names easy-handler) in *easy-handler-alist*
+        when (and (or (eq acceptor-names t)
+                      (find (acceptor-name *acceptor*) acceptor-names :test #'eq))
                   (cond ((stringp uri)
                          (string= (script-name request) uri))
                         (t (funcall uri request))))

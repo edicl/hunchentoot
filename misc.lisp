@@ -109,9 +109,9 @@ handler is called."
           (address-string)))
 
 (defun create-prefix-dispatcher (prefix handler)
-  "Creates a dispatch function which will dispatch to the
-function denoted by HANDLER if the file name of the current
-request starts with the string PREFIX."
+  "Creates a request dispatch function which will dispatch to the
+function denoted by HANDLER if the file name of the current request
+starts with the string PREFIX."
   (lambda (request)
     (let ((mismatch (mismatch (script-name request) prefix
                               :test #'char=)))
@@ -120,9 +120,9 @@ request starts with the string PREFIX."
            handler))))
 
 (defun create-regex-dispatcher (regex handler)
-  "Creates a dispatch function which will dispatch to the
-function denoted by HANDLER if the file name of the current
-request matches the CL-PPCRE regular expression REGEX."
+  "Creates a request dispatch function which will dispatch to the
+function denoted by HANDLER if the file name of the current request
+matches the CL-PPCRE regular expression REGEX."
   (let ((scanner (create-scanner regex)))
     (lambda (request)
       (and (scan scanner (script-name request))
@@ -136,13 +136,13 @@ had returned RESULT.  See the source code of REDIRECT for an example."
 
 (defun handle-static-file (path &optional content-type)
   "A function which acts like a Hunchentoot handler for the file
-denoted by PATH.  Send a content type header corresponding to
-CONTENT-TYPE or \(if that is NIL) tries to determine the content
-type via the file's suffix."
+denoted by PATH.  Sends a content type header corresponding to
+CONTENT-TYPE or \(if that is NIL) tries to determine the content type
+via the file's suffix."
   (when (or (wild-pathname-p path)
             (not (fad:file-exists-p path))
             (fad:directory-exists-p path))
-    ;; does not exist
+    ;; file does not exist
     (setf (return-code) +http-not-found+)
     (abort-request-handler))
   (let ((time (or (file-write-date path) (get-universal-time))))
@@ -166,10 +166,10 @@ type via the file's suffix."
                  (finish-output out))))))
 
 (defun create-static-file-dispatcher-and-handler (uri path &optional content-type)
-  "Creates and returns a dispatch function which will dispatch to a
-handler function which emits the file denoted by the pathname
+  "Creates and returns a request dispatch function which will dispatch
+to a handler function which emits the file denoted by the pathname
 designator PATH with content type CONTENT-TYPE if the SCRIPT-NAME of
-the request matches the string URI.  If CONTENT-TYPE is NIL tries to
+the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
 determine the content type via the file's suffix."
   ;; the dispatcher
   (lambda (request)

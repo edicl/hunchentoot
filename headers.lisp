@@ -189,9 +189,8 @@ the stream to write to."
       (setf content (string-to-octets content :external-format (reply-external-format))))
     (when content
       ;; whenever we know what we're going to send out as content, set
-      ;; the content-length header properly.  It may be that the user
-      ;; specified a different Content-Length, but that will not be
-      ;; right.  We might want to warn the user.
+      ;; the Content-Length header properly; maybe the user specified
+      ;; a different content length, but that will wrong anyway
       (setf (header-out :content-length) (length content)))
     ;; write all headers from the REPLY object
     (loop for (key . value) in (headers-out)
@@ -233,7 +232,7 @@ this function."
 (defun read-initial-request-line (stream)
   "Reads and returns the initial HTTP request line, catching permitted
 errors and handling *BREAK-EVEN-WHILE-READING-REQUEST-TYPE-P*.  If no
-request could be read, return NIL."
+request could be read, returns NIL."
   (let ((*break-on-signals* (and *break-even-while-reading-request-type-p*
                                  *break-on-signals*)))
     (handler-case
