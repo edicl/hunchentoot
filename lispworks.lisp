@@ -55,14 +55,23 @@ the pathname of a directory which is returned."
 
 (defvar *cleanup-interval* 100
   "Should be NIL or a positive integer.  The system calls
-*CLEANUP-FUNCTION* whenever *CLEANUP-INTERVAL* new worker threads have
-been created unless the value is NIL.")
+*CLEANUP-FUNCTION* whenever *CLEANUP-INTERVAL* new worker threads
+\(counted globally across all acceptors) have been created unless the
+value is NIL.  The initial value is 100.
+
+This variable is only available on LispWorks.")
 
 (defvar *cleanup-function* 'cleanup-function
-  "The function which is called if *CLEANUP-INTERVAL* is not NIL.")
+  "A designator for a function without arguments which is called on a
+regular basis if *CLEANUP-INTERVAL* is not NIL.  The initial value is
+the name of a function which invokes a garbage collection on 32-bit
+versions of LispWorks.
+
+This variable is only available on LispWorks.")
 
 (defvar *worker-counter* 0
-  "Internal counter used to count worker threads.")
+  "Internal counter used to count worker threads.  Needed for
+*CLEANUP-FUNCTION*.")
 
 (defun cleanup-function ()
   "The default for *CLEANUP-FUNCTION*.  Invokes a GC on 32-bit

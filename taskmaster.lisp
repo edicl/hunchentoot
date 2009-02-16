@@ -114,6 +114,8 @@ to incoming requests and one thread for each incoming connection."))
 
 #-:lispworks
 (defun client-as-string (socket)
+  "A helper function which returns the client's address and port as a
+string and tries to act robustly in the presence of network problems."
   (let ((address (usocket:get-peer-address socket))
         (port (usocket:get-peer-port socket)))
     (when (and address port)

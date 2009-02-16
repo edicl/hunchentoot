@@ -29,21 +29,19 @@
 
 (in-package :hunchentoot)
 
-;;; system specific implementation of the function that sets up
-;;; connection timeouts
-
 (defun set-timeouts (usocket read-timeout write-timeout)
   "Sets up timeouts on the given USOCKET object.  READ-TIMEOUT is the
 read timeout period, WRITE-TIMEOUT is the write timeout, specified in
-seconds.  The timeouts can either be implemented using the low-level
-socket options SO_RCVTIMEO and SO_SNDTIMEO or some other,
-implementation specific mechanism.  On platforms that do not support
-separate read and write timeouts, both must be equal or an error will
-be signaled.  READ-TIMEOUT and WRITE-TIMEOUT may be NIL, which means
-that the corresponding socket timeout value will not be set."
+\(fractional) seconds.  The timeouts can either be implemented using
+the low-level socket options SO_RCVTIMEO and SO_SNDTIMEO or some
+other, implementation specific mechanism.  On platforms that do not
+support separate read and write timeouts, both must be equal or an
+error will be signaled.  READ-TIMEOUT and WRITE-TIMEOUT may be NIL,
+which means that the corresponding socket timeout value will not be
+set."
   (declare (ignorable usocket read-timeout write-timeout))
-  #+:sbcl
   ;; add other Lisps here if necessary
+  #+(or :sbcl :cmu)
   (unless (eql read-timeout write-timeout)
     (parameter-error "Read and write timeouts for socket must be equal."))
   #+:clisp

@@ -99,10 +99,10 @@ notation."
   (values (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
           (usocket:get-peer-port socket)))
 
-(defun make-socket-stream (socket server)
-  "Returns a stream for the socket SOCKET.  The SERVER argument is
+(defun make-socket-stream (socket acceptor)
+  "Returns a stream for the socket SOCKET.  The ACCEPTOR argument is
 ignored."
-  (declare (ignore server))
+  (declare (ignore acceptor))
   (usocket:socket-stream socket))
 
 (defun make-lock (name)
