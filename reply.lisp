@@ -73,7 +73,7 @@ REPLY-CLASS slot of the ACCEPTOR class."))
 (defun headers-out* (&optional (reply *reply*))
   "Returns an alist of the outgoing headers associated with the
 REPLY object REPLY."
-  (headers-out* reply))
+  (headers-out reply))
 
 (defun cookies-out* (&optional (reply *reply*))
   "Returns an alist of the outgoing cookies associated with the
