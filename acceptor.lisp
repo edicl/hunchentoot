@@ -32,65 +32,87 @@
 (defclass acceptor ()
   ((port :initarg :port
          :reader acceptor-port
-         :documentation "The port the acceptor is listening on.")
+         :documentation "The port the acceptor is listening on.  The
+default is 80.  Note that depending on your operating system you might
+need special privileges to listen on port 80.")
    (address :initarg :address
             :reader acceptor-address
-            :documentation "The address the acceptor is listening on.")
+            :documentation "The address the acceptor is listening on.
+If address is a string denoting an IP address, then the server only
+receives connections for that address.  This must be one of the
+addresses associated with the machine and allowed values are host
+names such as \"www.zappa.com\" and address strings such as
+\"72.3.247.29\".  If address is NIL, then the server will receive
+connections to all IP addresses on the machine. This is the default.")
    (name :initarg :name
          :accessor acceptor-name
-         :documentation "The optional name of the acceptor, a symbol.")
+         :documentation "The optional name of the acceptor, a symbol.
+This name can be utilized when defining \"easy handlers\" - see
+DEFINE-EASY-HANDLER.  The default name is an uninterned symbol as
+returned by GENSYM.")
    (request-class :initarg :request-class
                   :accessor acceptor-request-class
                   :documentation "Determines which class of request
 objects is created when a request comes in and should be \(a symbol
-naming) a class which inherits from REQUEST.")
+naming) a class which inherits from REQUEST.  The default is the
+symbol REQUEST.")
    (handler-selector :initarg :handler-selector
                      :accessor acceptor-handler-selector
-                     :documentation "The handler selector function
-used by this acceptor.  A function which accepts a REQUEST object and
-calls a request handler of its choice \(and returns its return
-value).")
+                     :documentation "A designator for the handler
+selector function used by this acceptor.  A function which accepts a
+REQUEST object and calls a request handler of its choice \(and returns
+its return value).  The default is the unexported symbol
+LIST-HANDLER-SELECTOR which works through the list *DISPATCH-TABLE*.")
    (taskmaster :initarg :taskmaster
                :reader acceptor-taskmaster
-               :documentation "The taskmaster that is responsible for
-scheduling the work for this acceptor.")
+               :documentation "The taskmaster \(i.e. an instance of a
+subclass of TASKMASTER) that is responsible for scheduling the work
+for this acceptor.  The default depends on the MP capabilities of the
+underlying Lisp.")
    (output-chunking-p :initarg :output-chunking-p
                       :accessor acceptor-output-chunking-p
-                      :documentation "Whether the acceptor may use output chunking.")
+                      :documentation "A generalized boolean denoting
+whether the acceptor may use chunked encoding for output, i.e. when
+sending data to the client.  The default is T and there's usually no
+reason to change this to NIL.")
    (input-chunking-p :initarg :input-chunking-p
                      :accessor acceptor-input-chunking-p
-                     :documentation "Whether the acceptor may use input chunking.")
+                      :documentation "A generalized boolean denoting
+whether the acceptor may use chunked encoding for input, i.e. when
+accepting request bodies from the client.  The default is T and
+there's usually no reason to change this to NIL.")
    (persistent-connections-p :initarg :persistent-connections-p
                              :accessor acceptor-persistent-connections-p
-                             :documentation "Whether the acceptor
-supports persistent connections, which is the default for threaded
-acceptors.  If this property is false, Hunchentoot closes incoming
-connections after having processed one request.  This is the default
-for non-threaded acceptors.")
+                             :documentation "A generalized boolean
+denoting whether the acceptor supports persistent connections, which
+is the default for threaded acceptors.  If this property is NIL,
+Hunchentoot closes each incoming connection after having processed one
+request.  This is the default for non-threaded acceptors.")
    (read-timeout :initarg :read-timeout
                  :reader acceptor-read-timeout
-                 :documentation "The connection timeout of the
-acceptor, specified in \(fractional) seconds.  Connections that are
-idle for longer than this time are closed by Hunchentoot.  The precise
-semantics of this parameter is determined by the underlying Lisp's
-implementation of socket timeouts.  NIL means no timeout.")
+                 :documentation "The read timeout of the acceptor,
+specified in \(fractional) seconds.  The precise semantics of this
+parameter is determined by the underlying Lisp's implementation of
+socket timeouts.  NIL \(which is the default that you might want to
+change for production environments) means no timeout.")
    (write-timeout :initarg :write-timeout
                   :reader acceptor-write-timeout
-                  :documentation "The connection timeout of the
-acceptor, specified in \(fractional) seconds.  The precise semantics
-of this parameter is determined by the underlying Lisp's
-implementation of socket timeouts.  NIL means no timeout.")
+                  :documentation "The write timeout of the acceptor,
+specified in \(fractional) seconds.  The precise semantics of this
+parameter is determined by the underlying Lisp's implementation of
+socket timeouts.  NIL \(which is the default that you might want to
+change for production environments) means no timeout.")
    #+:lispworks
    (process :accessor acceptor-process
             :documentation "The Lisp process which accepts incoming
 requests.")
    #-:lispworks
    (listen-socket :accessor acceptor-listen-socket
-                  :documentation "The listen socket for incoming
-                  connections.")
+                  :documentation "The socket listening for incoming
+connections.")
    (acceptor-shutdown-p :initform nil
                         :accessor acceptor-shutdown-p
-                        :documentation "Flag that makes the acceptor
+                        :documentation "A flag that makes the acceptor
 shutdown itself when set to something other than NIL.")
    (access-logger :initarg :access-logger
                   :accessor acceptor-access-logger
@@ -132,8 +154,16 @@ this acceptor."))
    :write-timeout nil
    :access-logger 'log-access-to-file
    :message-logger 'log-message-to-file)
-  (:documentation "An object of this class contains all relevant
-information about a running Hunchentoot acceptor instance."))
+  (:documentation "To create a Hunchentoot webserver, you make an
+instance of this class and use the generic function START to start it
+\(and STOP to stop it).  Use the :PORT initarg if you don't want to
+listen on the default http port 80.  There are other initargs most of
+which you probably won't need very often.  They are explained in
+detail in the docstrings of the slot definitions for this class.
+
+Unless you are in a Lisp without MP capabilities, you can have several
+active instances of ACCEPTOR \(listening on different ports) at the
+same time."))
 
 (defmethod print-object ((acceptor acceptor) stream)
   (print-unreadable-object (acceptor stream :type t)
@@ -150,41 +180,44 @@ requests."))
 
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
-enables it to listen for incoming connections.  This function is
-called from the thread that starts the acceptor initially and may
-return errors resulting from the listening operation \(like 'address
-in use' or similar)."))
+enables it to listen to incoming connections.  This function is called
+from the thread that starts the acceptor initially and may return
+errors resulting from the listening operation \(like 'address in use'
+or similar)."))
 
 (defgeneric accept-connections (acceptor)
-  (:documentation "In a loop, accepts a connection and dispatches it
+  (:documentation "In a loop, accepts a connection and hands it over
 to the acceptor's taskmaster for processing using
 HANDLE-INCOMING-CONNECTION."))
 
 (defgeneric initialize-connection-stream (acceptor stream)
- (:documentation "Wraps the given STREAM with all the additional
-stream classes to support the functionality required by ACCEPTOR.  The
-methods of this generic function must return the stream to use."))
+ (:documentation "Can be used to modify the stream which is used to
+communicate between client and server before the request is read.  The
+default method of ACCEPTOR does nothing, but see for example the
+method defined for SSL-ACCEPTOR.  All methods of this generic function
+must return the stream to use."))
 
 (defgeneric reset-connection-stream (acceptor stream)
-  (:documentation "Resets the given STREAM so that it can be used to
-process the next request, ACCEPTOR is the acceptor that this stream
-belongs to, which determines what to do to reset.  This generic
-function is called after a request has been processed and must return
-the stream."))
+  (:documentation "Resets the stream which is used to communicate
+between client and server after one request has been served so that it
+can be used to process the next request.  This generic function is
+called after a request has been processed and must return the
+stream."))
 
 (defgeneric process-connection (acceptor socket)
   (:documentation "This function is called by the taskmaster when a
-new client connection has been established.  Arguments are the
-ACCEPTOR object and a usocket socket stream object \(or a LispWorks
-socket handle) in SOCKET.  It reads the request headers and hands over
-to PROCESS-REQUEST.  This is done in a loop until the stream has to be
-closed or until a connection timeout occurs."))
+new client connection has been established.  Its arguments are the
+ACCEPTOR object and a LispWorks socket handle or a usocket socket
+stream object in SOCKET.  It reads the request headers, sets up the
+request and reply objects, and hands over to PROCESS-REQUEST.  This is
+done in a loop until the stream has to be closed or until a connection
+timeout occurs."))
 
 (defgeneric acceptor-ssl-p (acceptor) 
   (:documentation "Returns a true value if ACCEPTOR uses SSL
 connections.  The default is to unconditionally return NIL and
 subclasses of ACCEPTOR must specialize this method to signal that
-they're using secure connections."))
+they're using secure connections - see the SSL-ACCEPTOR class."))
 
 ;; general implementation
 
@@ -224,7 +257,7 @@ they're using secure connections."))
         (t stream)))
 
 (defmethod process-connection :around ((*acceptor* acceptor) (socket t))
-  "The around method is responsible for error handling."
+  ;; this around method is used for error handling
   (declare (ignore socket))
   ;; note that this method also binds *ACCEPTOR*
   (handler-bind ((error
@@ -247,7 +280,7 @@ they're using secure connections."))
     (unwind-protect
         ;; process requests until either the acceptor is shut down,
         ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
-        ;; handler or the peer fails to send a request.
+        ;; handler, or the peer fails to send a request
         (loop
          (let ((*close-hunchentoot-stream* t))
            (when (acceptor-shutdown-p *acceptor*)
@@ -297,10 +330,11 @@ chunked encoding, but acceptor is configured to not use it.")))))
 
 (defun process-request (request)
   "This function is called by PROCESS-CONNECTION after the incoming
-headers have been read.  It sets up the REQUEST and REPLY objects,
-selects and calls a handler, and finally sends the output to the
-client using START-OUTPUT.  If all goes as planned, the function
-returns T."
+headers have been read.  It selects and calls a handler and sends the
+output of this handler to the client using START-OUTPUT.  It also sets
+up simple error handling for the actual request handler.
+
+The return value of this function is ignored."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
         (let* ((*request* request))
@@ -333,12 +367,11 @@ returns T."
                                                   (escape-for-html (format nil "~A" error))))
                                          (error
                                           "An error has occured.")
-                                         (t body))))
-          t)
+                                         (t body)))))
       (dolist (path *tmp-files*)
         (when (and (pathnamep path) (probe-file path))
           ;; the handler may have chosen to (re)move the uploaded
-          ;; file, so ignore errors that happen during deletion.
+          ;; file, so ignore errors that happen during deletion
           (ignore-errors
             (delete-file path)))))))
   

@@ -47,8 +47,17 @@ certificate file contains the private key.")
 private key file or NIL for no password."))
   (:default-initargs
    :port 443)
-  (:documentation "This class defines additional slots required to
-serve requests via SSL."))
+  (:documentation "Create and START an instance of this class
+\(instead of ACCEPTOR) if you want an https server.  There are two
+required initargs, :SSL-CERTIFICATE-FILE and :SSL-PRIVATEKEY-FILE, for
+pathname designators denoting the certificate file and the key file in
+PEM format.  On LispWorks, you can have both in one file in which case
+the second initarg is optional.  On LispWorks, you can also use the
+:SSL-PRIVATEKEY-PASSWORD initarg to provide a password \(as a string)
+for the key file \(or NIL, the default, for no password).  On other
+Lisps, the key file must not be password-protected.
+
+The default port for SSL-ACCEPTOR instances is 443 instead of 80"))
 
 ;; general implementation
 
@@ -85,9 +94,10 @@ serve requests via SSL."))
   "Given the acceptor socket stream SOCKET-STREAM attaches SSL to the
 stream using the certificate file CERTIFICATE-FILE and the private key
 file PRIVATEKEY-FILE.  Both of these values must be namestrings
-denoting the location of the files.  If PRIVATEKEY-PASSWORD is not NIL
-then it should be the password for the private key file \(if
-necessary).  Returns the stream"
+denoting the location of the files and will be fed directly to
+OpenSSL.  If PRIVATEKEY-PASSWORD is not NIL then it should be the
+password for the private key file \(if necessary).  Returns the
+stream."
   (flet ((ctx-configure-callback (ctx)
            (when privatekey-password
              (comm:set-ssl-ctx-password-callback ctx :password privatekey-password))
