@@ -105,7 +105,9 @@ change for production environments) means no timeout.")
    #+:lispworks
    (process :accessor acceptor-process
             :documentation "The Lisp process which accepts incoming
-requests.")
+requests.  This is the process started by COMM:START-UP-SERVER and no
+matter what kind of taskmaster you are using this will always be a new
+process different from the one where START was called.")
    #-:lispworks
    (listen-socket :accessor acceptor-listen-socket
                   :documentation "The socket listening for incoming

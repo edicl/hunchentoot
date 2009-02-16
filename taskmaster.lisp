@@ -31,21 +31,17 @@
 
 (defclass taskmaster ()
   ((acceptor :accessor taskmaster-acceptor
-             :documentation "The acceptor instance that this
-taskmaster works for."))
-  (:documentation "Base class for all taskmaster classes.  Its purpose
-is to carry the back pointer to the acceptor instance."))
+             :documentation "A backpointer to the acceptor instance
+this taskmaster works for."))
+  (:documentation "An instance of this class is responsible for
+distributing the work of handling requests when its acceptor "))
 
 (defgeneric execute-acceptor (taskmaster)
-  (:documentation
-   "This function is called once Hunchentoot has performed all initial
-processing to start listening for incoming connections.  It does so by
-calling the ACCEPT-CONNECTIONS functions of the acceptor, taken from
-the ACCEPTOR slot of the taskmaster instance.
-
-In a multi-threaded environment, the taskmaster starts a new
-thread and calls THUNK in that thread.  In a single-threaded
-environment, the thunk will be called directly."))
+  (:documentation "This is a callback called by the acceptor once it
+has performed all initial processing to start listening for incoming
+connections \(see START-LISTENING).  It usually calls the
+ACCEPT-CONNECTIONS method of the acceptor, but depending on the
+taskmaster instance the method might be called from a new thread."))
 
 (defgeneric handle-incoming-connection (taskmaster socket)
   (:documentation
@@ -63,28 +59,36 @@ in a separate thread.  In a single-threaded environment, this function
 is called directly."))
 
 (defgeneric shutdown (taskmaster)
-  (:documentation "Terminate all threads that are currently associated
-with the taskmaster, if any."))
+  (:documentation "Shuts down the taskmaster, i.e. frees all resources
+that were set up by it.  For example, a multi-threaded taskmaster
+might terminate all threads that are currently associated with it."))
 
 (defclass single-threaded-taskmaster (taskmaster)
   ()
-  (:documentation "Taskmaster that runs synchronously in the
-thread that invoked the START-SERVER function."))
+  (:documentation "A taskmaster that runs synchronously in the thread
+where the START function was invoked \(or in the case of LispWorks in
+the thread started by COMM:START-UP-SERVER).  This is the simplest
+possible taskmaster implementation in that its methods do nothing but
+calling their acceptor \"sister\" methods - EXECUTE-ACCEPTOR calls
+ACCEPT-CONNECTIONS, HANDLE-INCOMING-CONNECTION calls
+PROCESS-CONNECTION."))
 
 (defmethod execute-acceptor ((taskmaster single-threaded-taskmaster))
+  ;; in a single-threaded environment we just call ACCEPT-CONNECTIONS
   (accept-connections (taskmaster-acceptor taskmaster)))
 
 (defmethod handle-incoming-connection ((taskmaster single-threaded-taskmaster) socket)
+  ;; in a single-threaded environment we just call PROCESS-CONNECTION
   (process-connection (taskmaster-acceptor taskmaster) socket))
 
 (defclass one-thread-per-connection-taskmaster (taskmaster)
-  ((acceptor-process :accessor acceptor-process
-                     :documentation "Process that accepts incoming
+  (#-:lispworks
+   (acceptor-process :accessor acceptor-process
+                     :documentation "A process that accepts incoming
 connections and hands them off to new processes for request
 handling."))
-  (:documentation "Taskmaster that starts one thread for
-listening to incoming requests and one thread for each incoming
-connection."))
+  (:documentation "A taskmaster that starts one thread for listening
+to incoming requests and one thread for each incoming connection."))
 
 ;; usocket implementation
 
@@ -104,7 +108,7 @@ connection."))
   (setf (acceptor-process taskmaster)
         (bt:make-thread (lambda ()
                           (accept-connections (taskmaster-acceptor taskmaster)))
-                        :name (format nil "Hunchentoot acceptor \(~A:~A)"
+                        :name (format nil "Hunchentoot listener \(~A:~A)"
                                       (or (acceptor-address (taskmaster-acceptor taskmaster)) "*")
                                       (acceptor-port (taskmaster-acceptor taskmaster))))))
 
