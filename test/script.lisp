@@ -40,8 +40,14 @@
 
 (defun test-hunchentoot (base-url &key (make-cookie-jar (lambda () (make-instance 'drakma:cookie-jar))))
 
-  "Run the built-in confidence test.  The keyword arguments accepted
-   are for future extension and should not currently be used."
+  "Run the built-in confidence test.  BASE-URL is the base URL to use
+   for testing, it should not have a trailing slash.  The keyword
+   arguments accepted are for future extension and should not
+   currently be used.
+
+   The script expects the Hunchentoot example test server to be
+   running at the given BASE-URL and retrieves various pages from that
+   server, expecting certain responses."
 
   (with-script-context (:base-url (format nil "~A/hunchentoot/test/" base-url))
 
