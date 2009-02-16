@@ -83,12 +83,12 @@ the stream to write to."
   (setq *headers-sent* t)
   ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
   (raw-post-data :force-binary t)
-  (let* ((return-code (return-code))
+  (let* ((return-code (return-code*))
          (chunkedp (and (acceptor-output-chunking-p *acceptor*)
                         (eq (server-protocol request) :http/1.1)
                         ;; only turn chunking on if the content
                         ;; length is unknown at this point...
-                        (null (or (content-length) content-provided-p))
+                        (null (or (content-length*) content-provided-p))
                         ;; ...AND if the return code isn't one where
                         ;; Hunchentoot (or a user error handler) sends its
                         ;; own content
@@ -106,8 +106,8 @@ the stream to write to."
               ;; is no content)
               (or chunkedp
                   head-request-p
-                  (eql (return-code) +http-not-modified+)
-                  (content-length)
+                  (eql (return-code*) +http-not-modified+)
+                  (content-length*)
                   content)))
       ;; now set headers for keep-alive and chunking
       (when chunkedp
@@ -147,7 +147,7 @@ the stream to write to."
         ;; handle common return codes other than 200, which weren't
         ;; handled by the error handler
         (unless error-handled-p
-          (setf (content-type)
+          (setf (content-type*)
                 "text/html; charset=iso-8859-1"
                 content-modified-p t
                 content
@@ -178,7 +178,7 @@ the stream to write to."
       (maybe-write-to-header-stream first-line))
     (when (and (stringp content)
                (not content-modified-p)
-               (starts-with-one-of-p (or (content-type) "")
+               (starts-with-one-of-p (or (content-type*) "")
                                      *content-types-for-url-rewrite*))
       ;; if the Content-Type header starts with one of the strings
       ;; in *CONTENT-TYPES-FOR-URL-REWRITE* then maybe rewrite the
@@ -186,18 +186,18 @@ the stream to write to."
       (setq content (maybe-rewrite-urls-for-session content)))
     (when (stringp content)
       ;; if the content is a string, convert it to the proper external format
-      (setf content (string-to-octets content :external-format (reply-external-format))))
+      (setf content (string-to-octets content :external-format (reply-external-format*))))
     (when content
       ;; whenever we know what we're going to send out as content, set
       ;; the Content-Length header properly; maybe the user specified
       ;; a different content length, but that will wrong anyway
       (setf (header-out :content-length) (length content)))
     ;; write all headers from the REPLY object
-    (loop for (key . value) in (headers-out)
+    (loop for (key . value) in (headers-out*)
        when value
        do (write-header-line (as-capitalized-string key) value))
     ;; now the cookies
-    (loop for (nil . cookie) in (cookies-out)
+    (loop for (nil . cookie) in (cookies-out*)
        do (write-header-line "Set-Cookie" (stringify-cookie cookie)))
     ;; all headers sent
     (write-sequence +crlf+ *hunchentoot-stream*)
@@ -207,7 +207,7 @@ the stream to write to."
       (funcall access-logger
                :return-code return-code
                :content content
-               :content-length (content-length)))
+               :content-length (content-length*)))
     ;; now optional content
     (unless (or (null content) head-request-p)
       (write-sequence content *hunchentoot-stream*))

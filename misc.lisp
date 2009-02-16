@@ -143,19 +143,19 @@ via the file's suffix."
             (not (fad:file-exists-p path))
             (fad:directory-exists-p path))
     ;; file does not exist
-    (setf (return-code) +http-not-found+)
+    (setf (return-code*) +http-not-found+)
     (abort-request-handler))
   (let ((time (or (file-write-date path) (get-universal-time))))
-    (setf (content-type) (or content-type
-                             (mime-type path)
-                             "application/octet-stream"))
+    (setf (content-type*) (or content-type
+                              (mime-type path)
+                              "application/octet-stream"))
     (handle-if-modified-since time)
     (with-open-file (file path
                      :direction :input
                      :element-type 'octet
                      :if-does-not-exist nil)
       (setf (header-out :last-modified) (rfc-1123-date time)
-            (content-length) (file-length file))
+            (content-length*) (file-length file))
       (let ((out (send-headers)))
         #+:clisp
         (setf (flexi-stream-element-type *hunchentoot-stream*) 'octet)
@@ -208,7 +208,7 @@ it'll be the content type used for all files in the folder."
                               (eq (first script-path-directory) :relative)
                               (loop for component in (rest script-path-directory)
                                     always (stringp component))))
-               (setf (return-code) +http-forbidden+)
+               (setf (return-code*) +http-forbidden+)
                (abort-request-handler))
              (handle-static-file (merge-pathnames script-path base-path) content-type))))
     (create-prefix-dispatcher uri-prefix #'handler)))
@@ -253,7 +253,7 @@ redirection code, it will be sent as status code."
     (when add-session-id
       (setq url (add-cookie-value-to-url url :replace-ampersands-p nil)))
     (setf (header-out :location) url
-          (return-code *reply*) code)
+          (return-code*) code)
     (abort-request-handler)))
 
 (defun require-authorization (&optional (realm "Hunchentoot"))

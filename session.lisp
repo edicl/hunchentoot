@@ -37,9 +37,10 @@ true if the whole \(current) session database is modified.  If it is
 NIL, only one existing session in the database is modified.
 
 This function can return NIL which means that sessions or session
-databases will be modified without a lock held.  The default is to
-always return a global lock for Lisps that support threads and NIL
-otherwise."))
+databases will be modified without a lock held \(for example for
+single-threaded environments).  The default is to always return a
+global lock \(ignoring the ACCEPTOR argument) for Lisps that support
+threads and NIL otherwise."))
 
 (defmethod session-db-lock ((acceptor t) &key (whole-db-p t))
   (declare (ignore whole-db-p))
@@ -86,8 +87,8 @@ method."))
                :type integer
                :documentation "The unique ID \(an INTEGER) of the session.")
    (session-string :reader session-string
-                   :documentation "The session strings encodes enough
-data to safely retrieve this session. It is sent to the browser as a
+                   :documentation "The session string encodes enough
+data to safely retrieve this session.  It is sent to the browser as a
 cookie value or as a GET parameter.")
    (user-agent :initform (user-agent *request*)
                :reader session-user-agent
@@ -116,7 +117,12 @@ see SESSION-VALUE.")
 session expires if it's not used."))
   (:documentation "SESSION objects are automatically maintained by
 Hunchentoot.  They should not be created explicitly with MAKE-INSTANCE
-but implicitly with START-SESSION."))
+but implicitly with START-SESSION and they should be treated as opaque
+objects.
+
+You can ignore Hunchentoot's SESSION objects and implement your own
+sessions if you provide corresponding methods for SESSION-COOKIE-VALUE
+and SESSION-VERIFY."))
 
 (defun encode-session-string (id user-agent remote-addr start)
   "Creates a uniquely encoded session string based on the values ID,

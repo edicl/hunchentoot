@@ -102,8 +102,7 @@
        image-data))))
 
 (defun image-ram-page ()
-  (setf (content-type)
-          "image/jpeg")
+  (setf (content-type*) "image/jpeg")
   *test-image*)
 
 (let ((count 0))
@@ -147,7 +146,7 @@
   (redirect "/hunchentoot/test/info.html?redirected=1"))
 
 (defun forbidden ()
-  (setf (return-code *reply*) +http-forbidden+)
+  (setf (return-code*) +http-forbidden+)
   nil)
 
 (defun cookie-test ()
@@ -208,7 +207,7 @@ time or try with cookies disabled.")
   (no-cache)
   (recompute-request-parameters :external-format
                                 (flex:make-external-format charset :eol-style :lf))
-  (setf (content-type)
+  (setf (content-type*)
         (format nil "text/html; charset=~A" charset))
   (with-html
     (:html
@@ -330,8 +329,7 @@ and see what's happening.")
                          (find (pathname path) *tmp-test-files*
                                :key 'first :test 'equal))))
     (unless file-info
-      (setf (return-code *reply*)
-            +http-not-found+)
+      (setf (return-code*) +http-not-found+)
       (return-from send-file))
     (handle-static-file path (third file-info))))
 
@@ -346,7 +344,7 @@ and see what's happening.")
   "Demo file stolen from <http://www.w3.org/2001/06/utf-8-test/>.")
 
 (defun stream-direct ()
-  (setf (content-type) "text/html; charset=utf-8")
+  (setf (content-type*) "text/html; charset=utf-8")
   (let ((stream (send-headers))
         (buffer (make-array 1024 :element-type 'flex:octet)))
     (with-open-file (in *utf-8-file* :element-type 'flex:octet)
@@ -355,7 +353,7 @@ and see what's happening.")
             do (write-sequence buffer stream :end pos)))))
 
 (defun stream-direct-utf-8 ()
-  (setf (content-type) "text/html; charset=utf-8")
+  (setf (content-type*) "text/html; charset=utf-8")
   (let ((stream (flex:make-flexi-stream (send-headers) :external-format *utf-8*)))
     (with-open-file (in (merge-pathnames "UTF-8-demo.html" *this-file*)
                         :element-type 'flex:octet)
@@ -365,8 +363,8 @@ and see what's happening.")
             do (write-line line stream)))))
 
 (defun stream-direct-utf-8-string ()
-  (setf (content-type) "text/html; charset=utf-8"
-        (reply-external-format) *utf-8*)
+  (setf (content-type*) "text/html; charset=utf-8"
+        (reply-external-format*) *utf-8*)
   (with-open-file (in (merge-pathnames "UTF-8-demo.html" *this-file*)
                       :element-type 'flex:octet)
     (let ((string (make-array (file-length in)

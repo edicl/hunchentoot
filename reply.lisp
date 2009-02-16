@@ -30,83 +30,93 @@
 (in-package :hunchentoot)
 
 (defclass reply ()
-  ((content-type :documentation "The outgoing 'Content-Type' http
+  ((content-type :reader content-type
+                 :documentation "The outgoing 'Content-Type' http
 header which defaults to the value of *DEFAULT-CONTENT-TYPE*.")
-   (content-length :initform nil
+   (content-length :reader content-length
+                   :initform nil
                    :documentation "The outgoing 'Content-Length'
 http header which defaults NIL.  If this is NIL, Hunchentoot will
 compute the content length.")
    (headers-out :initform nil
+                :reader headers-out
                 :documentation "An alist of the outgoing http headers
 not including the 'Set-Cookie', 'Content-Length', and 'Content-Type'
 headers.  Use the functions HEADER-OUT and \(SETF HEADER-OUT) to
 modify this slot.")
    (return-code :initform +http-ok+
+                :accessor return-code
                 :documentation "The http return code of this
 reply.  The return codes Hunchentoot can handle are defined in
 specials.lisp.")
    (external-format :initform *hunchentoot-default-external-format*
+                    :accessor reply-external-format
                     :documentation "The external format of the reply -
 used for character output.")
    (cookies-out :initform nil
+                :accessor cookies-out
                 :documentation "The outgoing cookies.  This slot's
 value should only be modified by the functions defined in
 cookies.lisp."))
   (:documentation "Objects of this class hold all the information
-about an outgoing reply. They are created automatically by
+about an outgoing reply.  They are created automatically by
 Hunchentoot and can be accessed and modified by the corresponding
-handler."))
+handler.
+
+You should not mess with the slots of these objects directly, but you
+can subclass REPLY in order to implement your own behaviour.  See the
+REPLY-CLASS slot of the ACCEPTOR class."))
 
 (defmethod initialize-instance :after ((reply reply) &key)
   (setf (header-out :content-type reply) *default-content-type*))
 
-(defun headers-out (&optional (reply *reply*))
+(defun headers-out* (&optional (reply *reply*))
   "Returns an alist of the outgoing headers associated with the
 REPLY object REPLY."
-  (slot-value reply 'headers-out))
+  (headers-out* reply))
 
-(defun cookies-out (&optional (reply *reply*))
+(defun cookies-out* (&optional (reply *reply*))
   "Returns an alist of the outgoing cookies associated with the
 REPLY object REPLY."
-  (slot-value reply 'cookies-out))
+  (cookies-out reply))
 
-(defun (setf cookies-out) (new-value &optional (reply *reply*))
-  "Returns an alist of the outgoing cookies associated with the
-REPLY object REPLY."
-  (setf (slot-value reply 'cookies-out) new-value))
+(defun (setf cookies-out*) (new-value &optional (reply *reply*))
+  "Sets the alist of the outgoing cookies associated with the REPLY
+object REPLY."
+  (setf (cookies-out reply) new-value))
 
-(defun content-type (&optional (reply *reply*))
+(defun content-type* (&optional (reply *reply*))
   "The outgoing 'Content-Type' http header of REPLY."
-  (slot-value reply 'content-type))
+  (content-type reply))
 
-(defun (setf content-type) (new-value &optional (reply *reply*))
+(defun (setf content-type*) (new-value &optional (reply *reply*))
   "Sets the outgoing 'Content-Type' http header of REPLY."
   (setf (header-out :content-type reply) new-value))
 
-(defun content-length (&optional (reply *reply*))
+(defun content-length* (&optional (reply *reply*))
   "The outgoing 'Content-Length' http header of REPLY."
-  (slot-value reply 'content-length))
+  (content-length reply))
 
-(defun (setf content-length) (new-value &optional (reply *reply*))
+(defun (setf content-length*) (new-value &optional (reply *reply*))
   "Sets the outgoing 'Content-Length' http header of REPLY."
   (setf (header-out :content-length reply) new-value))
 
-(defun return-code (&optional (reply *reply*))
+(defun return-code* (&optional (reply *reply*))
   "The http return code of REPLY.  The return codes Hunchentoot can
 handle are defined in specials.lisp."
-  (slot-value reply 'return-code))
+  (return-code reply))
 
-(defun (setf return-code) (new-value &optional (reply *reply*))
+(defun (setf return-code*) (new-value &optional (reply *reply*))
   "Sets the http return code of REPLY."
-  (setf (slot-value reply 'return-code) new-value))
+  (setf (return-code reply) new-value))
 
-(defun reply-external-format (&optional (reply *reply*))
+(defun reply-external-format* (&optional (reply *reply*))
   "The external format of REPLY which is used for character output."
-  (slot-value reply 'external-format))
+  (reply-external-format reply))
 
-(defun (setf reply-external-format) (new-value &optional (reply *reply*))
+(defun (setf reply-external-format*) (new-value &optional (reply *reply*))
   "Sets the external format of REPLY."
-  (setf (slot-value reply 'external-format) new-value))
+  (setf (reply-external-format reply) new-value))
 
 (defun header-out-set-p (name &optional (reply *reply*))
   "Returns a true value if the outgoing http header named NAME has

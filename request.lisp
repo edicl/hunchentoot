@@ -31,7 +31,8 @@
 
 (defclass request ()
   ((acceptor :initarg :acceptor
-             :documentation "The acceptor which created this request object."
+             :documentation "The acceptor which created this request
+object."
              :reader request-acceptor)
    (headers-in :initarg :headers-in
                :documentation "An alist of the incoming headers."
@@ -92,8 +93,7 @@ Hunchentoot and can be accessed by the corresponding handler.
 
 You should not mess with the slots of these objects directly, but you
 can subclass REQUEST in order to implement your own behaviour.  See
-for example the REQUEST-CLASS slot of the ACCEPTOR class and the
-generic function DISPATCH-REQUEST."))
+the REQUEST-CLASS slot of the ACCEPTOR class."))
 
 (defun convert-hack (string external-format)
   "The rfc2388 package is buggy in that it operates on a character
@@ -193,7 +193,7 @@ slot values are computed in this :AFTER method."
       (error (condition)
         (log-message :error "Error when creating REQUEST object: ~A" condition)
         ;; we assume it's not our fault...
-        (setf (return-code) +http-bad-request+)))))
+        (setf (return-code*) +http-bad-request+)))))
 
 (defun parse-multipart-form-data (request external-format)
   "Parse the REQUEST body as multipart/form-data, assuming that its
@@ -255,7 +255,7 @@ unknown character set ~A in request content type."
       (error (condition)
         (log-message :error "Error when reading POST parameters from body: ~A" condition)
         ;; we assume it's not our fault...
-        (setf (return-code) +http-bad-request+)))))
+        (setf (return-code*) +http-bad-request+)))))
 
 (defun recompute-request-parameters (&key (request *request*)
                                           (external-format *hunchentoot-default-external-format*))
@@ -396,7 +396,7 @@ TIME."
     ;; simple string comparison is sufficient; see RFC 2616 14.25
     (when (and if-modified-since
                (equal if-modified-since time-string))
-      (setf (return-code) +http-not-modified+)
+      (setf (return-code*) +http-not-modified+)
       (abort-request-handler))
     (values)))
 

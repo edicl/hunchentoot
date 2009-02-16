@@ -56,6 +56,12 @@ returned by GENSYM.")
 objects is created when a request comes in and should be \(a symbol
 naming) a class which inherits from REQUEST.  The default is the
 symbol REQUEST.")
+   (reply-class :initarg :reply-class
+                :accessor acceptor-reply-class
+                  :documentation "Determines which class of reply
+objects is created when a request is served in and should be \(a
+symbol naming) a class which inherits from REPLY.  The default is the
+symbol REPLY.")
    (handler-selector :initarg :handler-selector
                      :accessor acceptor-handler-selector
                      :documentation "A designator for the handler
@@ -146,6 +152,7 @@ this acceptor."))
    :port 80
    :name (gensym)
    :request-class 'request
+   :reply-class 'reply
    :handler-selector 'list-handler-selector
    :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-taskmaster)
                                     (t 'single-threaded-taskmaster)))
@@ -294,7 +301,7 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
                (return))
              ;; bind per-request special variables, then process the
              ;; request - note that *ACCEPTOR* was bound above already
-             (let ((*reply* (make-instance 'reply))
+             (let ((*reply* (make-instance (acceptor-reply-class *acceptor*)))
                    (*session* nil)
                    (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
                (when transfer-encodings
@@ -358,7 +365,7 @@ The return value of this function is ignored."
                                   (when *log-lisp-warnings-p*
                                     (log-message *lisp-warnings-log-level* "~A" cond)))))
                   ;; skip dispatch if bad request
-                  (when (eql (return-code) +http-ok+)
+                  (when (eql (return-code *reply*) +http-ok+)
                     ;; now do the work
                     (funcall (acceptor-handler-selector *acceptor*) *request*))))
             (when error
