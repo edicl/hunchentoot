@@ -2592,10 +2592,49 @@
         using <clix:ref>RAW-POST-DATA</clix:ref> instead of reading
         the request body using a flexi stream.  Usually, this is
         automatically done right by Hunchentoot to read POST data, and
-        you should only use the <clix:arg>want-stream</clix:arg> keyword argument to the
-        <clix:ref>RAW-POST-DATA</clix:ref> in rare circumstances.
+        you should only use the <clix:arg>want-stream</clix:arg>
+        keyword argument to the <clix:ref>RAW-POST-DATA</clix:ref> in
+        rare circumstances.
       </li>
     </ul>
+  </clix:chapter>
+
+  <clix:chapter name="testing" title="Testing">
+    Hunchentoot comes with a test script that verifies that the
+    example web server responds as expected.  This test script uses the
+    <a href="http://weitz.de/drakma/">Drakma</a> HTTP client library
+    and thus shares a significant amount of its base code with
+    Hunchentoot itself.  Still, running the test script is a useful
+    confidence test, and it is also possible to run the script across
+    machines in order to verify a new Hunchentoot (or, for that matter
+    Drakma) port.
+    <p>
+      To run the confidence test, start
+      the <clix:ref>example</clix:ref> web server.  Then, in your Lisp
+      listener, type
+<pre>(hunchentoot-test:test-hunchentoot "http://localhost:4242")</pre>
+      You will see some diagnostic output and a summary line that
+      reports whether any tests have failed.
+    </p>
+
+    <clix:function name="hunchentoot-test:test-hunchentoot">
+      <clix:lambda-list>base-url <clix:lkw>key</clix:lkw></clix:lambda-list>
+      <clix:returns>|</clix:returns>
+      <clix:description>
+        Run the built-in confidence
+        test.  <clix:arg>base-url</clix:arg> is the base URL to use
+        for testing, it should not have a trailing slash.  The keyword
+        arguments accepted are for future extension and should not
+        currently be used.
+        <p>
+          The script expects the Hunchentoot example test server to be
+          running at the given <clix:arg>base-url</clix:arg> and
+          retrieves various pages from that server, expecting certain
+          responses.
+        </p>
+      </clix:description>
+    </clix:function>
+
   </clix:chapter>
 
   <clix:chapter name="history" title="History">

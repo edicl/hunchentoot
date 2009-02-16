@@ -47,13 +47,21 @@
 (defvar *script-context* nil
   "Current script context")
 
-(defmacro with-script-context ((&rest args &key (context-class-name 'script-context) &allow-other-keys) &body body)
+(defmacro with-script-context ((&rest args &key (context-class-name 'script-context) &allow-other-keys)
+                               &body body)
   `(let ((*script-context* (make-instance ',context-class-name ,@args))
-         (*default-pathname-defaults* *this-file*))
+         (*default-pathname-defaults* *this-file*)
+         failed)
      (handler-bind
         ((assertion-failed (lambda (condition)
+                             (push condition failed)
                              (format t "Assertion failed:~%~A~%" condition))))
-       (progn ,@body))))
+       (prog1
+           (progn ,@body
+                  (values))
+         (if failed
+             (format t ";; ~A assertion~:P FAILED~%" (length failed))
+             (format t ";; all tests PASSED~%"))))))
 
 (defclass http-reply ()
   ((body :initarg :body)
