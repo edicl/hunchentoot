@@ -32,22 +32,21 @@
 (defclass ssl-acceptor (acceptor)
   ((ssl-certificate-file :initarg :ssl-certificate-file
                          :reader acceptor-ssl-certificate-file
-                         :documentation "The namestring of a
-certificate file.")
+                         :documentation "A pathname designator for a
+certificate file in PEM format.")
    (ssl-privatekey-file :initarg :ssl-privatekey-file
                         :reader acceptor-ssl-privatekey-file
-                        :documentation "The namestring of a private
-key file, or NIL if the certificate file contains the private key.")
-   (ssl-privatekey-password #+:lispworks #+:lispworks
-                            :initform nil
+                        :documentation "A pathname designator for a
+private key file in PEM format, or \(only on LispWorks) NIL if the
+certificate file contains the private key.")
+   #+:lispworks
+   (ssl-privatekey-password :initform nil
                             :initarg :ssl-privatekey-password
                             :reader acceptor-ssl-privatekey-password
                             :documentation "The password for the
-private key file or NIL."))
+private key file or NIL for no password."))
   (:default-initargs
-   :port 443
-   :input-chunking-p nil
-   :output-chunking-p nil)
+   :port 443)
   (:documentation "This class defines additional slots required to
 serve requests via SSL."))
 
@@ -55,6 +54,19 @@ serve requests via SSL."))
 
 (defmethod acceptor-ssl-p ((acceptor ssl-acceptor))
   t)
+
+(defmethod initialize-instance :after ((acceptor ssl-acceptor) &rest initargs)
+  (declare (ignore initargs))
+  ;; LispWorks can read both from the same file, so we can default one
+  #+:lispworks
+  (unless (slot-boundp acceptor 'ssl-privatekey-file)
+    (setf (slot-value acceptor 'ssl-privatekey-file)
+          (acceptor-ssl-certificate-file acceptor)))
+  ;; OpenSSL doesn't know much about Lisp pathnames...
+  (setf (slot-value acceptor 'ssl-privatekey-file)
+        (namestring (truename (acceptor-ssl-privatekey-file acceptor)))
+        (slot-value acceptor 'ssl-certificate-file)
+        (namestring (truename (acceptor-ssl-certificate-file acceptor)))))
 
 ;; usocket implementation
 
@@ -67,14 +79,6 @@ serve requests via SSL."))
                                                    :key (acceptor-ssl-privatekey-file acceptor))))
 
 ;; LispWorks implementation
-
-#+:lispworks
-(defmethod initialize-instance :after ((acceptor ssl-acceptor) &rest initargs)
-  (declare (ignore initargs))
-  ;; LispWorks can read both from the same file, so we can default one
-  (unless (slot-boundp acceptor 'ssl-privatekey-file)
-    (setf (slot-value acceptor 'ssl-privatekey-file)
-          (acceptor-ssl-certificate-file acceptor))))
 
 #+lispworks
 (defun make-ssl-server-stream (socket-stream &key certificate-file privatekey-file privatekey-password)

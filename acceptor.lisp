@@ -243,6 +243,7 @@ they're using secure connections."))
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let ((*hunchentoot-stream*
          (initialize-connection-stream *acceptor* (make-socket-stream socket *acceptor*))))
+    (print *hunchentoot-stream*)
     (unwind-protect
         ;; process requests until either the acceptor is shut down,
         ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
