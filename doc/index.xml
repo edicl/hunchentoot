@@ -2663,16 +2663,13 @@
     </p>
     <p>
       Unfortunately, Jeff is at least as busy as I am so he didn't
-      find the time to finish a full release. But in spring 2004 I
+      find the time to finish a full release.  But in spring 2004 I
       needed a documented version of the code for a client of mine who
       thought it would be good if the toolkit were publicly available
       under an open source license. So I took Jeff's code, refactored
       again (to sync with the changes I had done in the meantime), and
       added documentation.  This resulted in TBNL 0.1.0 (which
-      initially required mod_lisp as its front-end).  Jeff's code
-      (which includes a lot more stuff that I didn't use) is still
-      available from his own
-      website <a href="http://tbnl.org/">tbnl.org</a>.
+      initially required mod_lisp as its front-end).
     </p>
     <p>
       In March 2005, Bob Hutchinson sent patches which enabled TBNL to
@@ -2690,16 +2687,20 @@
       most of TBNL and replaces it completely.
     </p>
     <p>
-      Hunchentoot 1.0.0, released in May 2008, is again a major
+      Hunchentoot 1.0.0, released in February 2009, is again a major
       rewrite and should be considered work in progress.  It moved to
-      using the usocket network portability library and Bordeaux
-      Threads for threading, thereby removing most of the platform
-      dependent code in the Hunchentoot code.  Threading behavior was
-      made controllable by the <clix:arg>threaded</clix:arg> keyword
-      argument
-      to <clix:ref>START-SERVER</clix:ref>.  <a href="http://www.cliki.net/mod_lisp">mod_lisp</a>
-      support was removed in this release to simplify the code base
-      and due to the lack of interest. A significant part of the 1.0.0
+      using
+      the <a href="http://common-lisp.net/project/usocket/">usocket</a>
+      and <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
+      Threads</a> for non-LispWorks Lisps, thereby removing most of
+      the platform dependent code.  Threading behaviour was made
+      controllable through the introduction of
+      taskmasters.  <a href="http://www.cliki.net/mod_lisp">mod_lisp</a>
+      support and several other things were removed in this release to
+      simplify the code base (and partly due to the lack of interest).
+      Several architectural changes (lots of them not
+      backwards-compatible) were made to ease customization of
+      Hunchentoot's behaviour.  A significant part of the 1.0.0
       redesign was done
       by <a href="http://netzhansa.blogspot.com/">Hans Hübner</a>.
     </p>
