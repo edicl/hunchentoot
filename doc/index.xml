@@ -98,7 +98,7 @@
         <a href="http://weitz.de/chunga/">Chunga</a> (0.5.0 or
           higher), and <a href="http://weitz.de/cl-ppcre/">
           CL-PPCRE</a> (plus
-        <a href="http://weitz.de/cl-who/">CL-WHO</a> for the <a href="#example">example code</a> and <a href="http://weitz.de/drakma/">Drakma</a> for the <a href="#testing">tests</a>.). 
+        <a href="http://weitz.de/cl-who/">CL-WHO</a> for the <a href="#start">example code</a> and <a href="http://weitz.de/drakma/">Drakma</a> for the <a href="#testing">tests</a>.). 
       </li>
     </ul>
 
@@ -226,7 +226,7 @@
     </p>
   </clix:chapter>
 
-  <clix:chapter name="example" title="Tutorials and add-ons">
+  <clix:chapter name="tutorials" title="Tutorials and add-ons">
 
     <p>
       Here are some Hunchentoot tutorials done by others:
@@ -325,11 +325,319 @@
     </ul>
   </clix:chapter>
 
-    <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
+  <clix:chapter name="reference" title="Function and variable reference">
+
+    <clix:subchapter name="acceptors" title="Acceptors">
+
+      If you want Hunchentoot to actually do something, you have to create and
+      <a href="#start">start</a> an <a href="#acceptor">acceptor</a>.
+      You can also run several acceptor in one image, each one
+      listening on a different different port.
+
+  <clix:class name='acceptor'>
+    <clix:description>To create a Hunchentoot webserver, you make an
+instance of this class and use the generic function <clix:ref>START</clix:ref> to start it
+(and <clix:ref>STOP</clix:ref> to stop it).  Use the <code>:port</code> initarg if you don&#039;t want to
+listen on the default http port 80.  There are other initargs most of
+which you probably won&#039;t need very often.  They are explained in
+detail in the docstrings of the slot definitions for this class.
+<p>
+Unless you are in a Lisp without MP capabilities, you can have several
+active instances of <clix:ref>ACCEPTOR</clix:ref> (listening on different ports) at the
+same time.</p>
+    </clix:description>
+  </clix:class>
+
+  <clix:function generic='true' name='start'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>acceptor
+  </clix:returns>
+    <clix:description>Starts <clix:arg>acceptor</clix:arg> so that it begins accepting
+connections.  Returns the acceptor.
+    </clix:description>
+  </clix:function>
+
+
   <clix:special-variable name='*acceptor*'>
     <clix:description>The current ACCEPTOR object.
     </clix:description>
   </clix:special-variable>
+
+
+  <clix:accessor generic='true' name='acceptor-access-logger'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-access-logger'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-address'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-address'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-handler-selector'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-handler-selector'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-input-chunking-p'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-input-chunking-p'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-message-logger'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-message-logger'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-name'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-name'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-output-chunking-p'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-output-chunking-p'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-persistent-connections-p'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-persistent-connections-p'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-port'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-port'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-read-timeout'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-read-timeout'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-reply-class'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-reply-class'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-request-class'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-request-class'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-ssl-certificate-file'>
+  <clix:lambda-list>ssl-acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-certificate-file'>
+  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-ssl-p'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns a true value if ACCEPTOR uses SSL
+connections.  The default is to unconditionally return NIL and
+subclasses of ACCEPTOR must specialize this method to signal that
+they&#039;re using secure connections - see the SSL-ACCEPTOR class.
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-ssl-privatekey-file'>
+  <clix:lambda-list>ssl-acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-privatekey-file'>
+  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-ssl-privatekey-password'>
+  <clix:lambda-list>ssl-acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-privatekey-password'>
+  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor generic='true' name='acceptor-write-timeout'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-write-timeout'>
+  <clix:lambda-list>(acceptor acceptor)
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>
+    </clix:description>
+  </clix:accessor>
+
+    </clix:subchapter>
+
+  </clix:chapter>
+
+    <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
   <clix:special-variable name='*access-log-pathname*'>
     <clix:description>A designator for the pathname of the access log file used by the
 LOG-ACCESS-TO-FILE function.  The initial value is NIL which means
@@ -683,286 +991,6 @@ if the client sends a different &#039;User-Agent&#039; header.
     <clix:description>This function can be called by a request handler at any time to
 immediately abort handling the request.  This works as if the handler
 had returned RESULT.  See the source code of REDIRECT for an example.
-    </clix:description>
-  </clix:accessor>
-  <clix:class name='acceptor'>
-    <clix:description>To create a Hunchentoot webserver, you make an
-instance of this class and use the generic function START to start it
-(and STOP to stop it).  Use the :PORT initarg if you don&#039;t want to
-listen on the default http port 80.  There are other initargs most of
-which you probably won&#039;t need very often.  They are explained in
-detail in the docstrings of the slot definitions for this class.
-
-Unless you are in a Lisp without MP capabilities, you can have several
-active instances of ACCEPTOR (listening on different ports) at the
-same time.
-    </clix:description>
-  </clix:class>
-  <clix:accessor generic='true' name='acceptor-access-logger'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-access-logger'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-address'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-address'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-handler-selector'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-handler-selector'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-input-chunking-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-input-chunking-p'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-message-logger'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-message-logger'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-name'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-name'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-output-chunking-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-output-chunking-p'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-persistent-connections-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-persistent-connections-p'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-port'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-port'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-read-timeout'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-read-timeout'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-reply-class'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-reply-class'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-request-class'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-request-class'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-certificate-file'>
-  <clix:lambda-list>ssl-acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-certificate-file'>
-  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns a true value if ACCEPTOR uses SSL
-connections.  The default is to unconditionally return NIL and
-subclasses of ACCEPTOR must specialize this method to signal that
-they&#039;re using secure connections - see the SSL-ACCEPTOR class.
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-privatekey-file'>
-  <clix:lambda-list>ssl-acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-privatekey-file'>
-  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-privatekey-password'>
-  <clix:lambda-list>ssl-acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-privatekey-password'>
-  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-write-timeout'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-write-timeout'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
     </clix:description>
   </clix:accessor>
   <clix:accessor name='authorization'>
@@ -2463,15 +2491,6 @@ The default port for SSL-ACCEPTOR instances is 443 instead of 80
     <clix:description>Whether the current connection to the client is secure.
     </clix:description>
   </clix:accessor>
-  <clix:accessor generic='true' name='start'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Starts the ACCEPTOR so that it begins accepting
-connections.  Returns the acceptor.
-    </clix:description>
-  </clix:accessor>
   <clix:accessor generic='true' name='start-listening'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
@@ -2567,7 +2586,7 @@ name doesn&#039;t exist, it is created.
   </clix:accessor>
     </clix:chapter>
   <clix:chapter name="testing" title="Testing">
-    Hunchentoot comes with a test script that verifies that the
+    Hunchentoot comes with a test script which verifies that the
     example web server responds as expected.  This test script uses the
     <a href="http://weitz.de/drakma/">Drakma</a> HTTP client library
     and thus shares a significant amount of its base code with
@@ -2576,10 +2595,10 @@ name doesn&#039;t exist, it is created.
     machines in order to verify a new Hunchentoot (or, for that matter
     Drakma) port.
     <p>
-      To run the confidence test, start
-      the <clix:ref>example</clix:ref> web server.  Then, in your Lisp
+      To run the confidence test, <a href="#start">start
+      the example web server</a>.  Then, in your Lisp
       listener, type
-<pre>(hunchentoot-test:test-hunchentoot "http://localhost:4242")</pre>
+<pre>(<a class="noborder" href="hunchentoot-test:test-hunchentoot">hunchentoot-test:test-hunchentoot</a> "http://localhost:4242")</pre>
       You will see some diagnostic output and a summary line that
       reports whether any tests have failed.  (You can also use the
       example certificate and key files in the test directory and
@@ -2590,7 +2609,7 @@ name doesn&#039;t exist, it is created.
       <clix:lambda-list>base-url <clix:lkw>key</clix:lkw></clix:lambda-list>
       <clix:returns>|</clix:returns>
       <clix:description>
-        Run the built-in confidence
+        Runs the built-in confidence
         test.  <clix:arg>base-url</clix:arg> is the base URL to use
         for testing, it should not have a trailing slash.  The keyword
         arguments accepted are for future extension and should not
