@@ -2614,7 +2614,9 @@
       listener, type
 <pre>(hunchentoot-test:test-hunchentoot "http://localhost:4242")</pre>
       You will see some diagnostic output and a summary line that
-      reports whether any tests have failed.
+      reports whether any tests have failed.  (You can also use the
+      example certificate and key files in the test directory and
+      start and test an https server instead.)
     </p>
 
     <clix:function name="hunchentoot-test:test-hunchentoot">
