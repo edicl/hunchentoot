@@ -563,6 +563,111 @@ they&#039;re using secure connections - see the <clix:ref>SSL-ACCEPTOR</clix:ref
 
     </clix:subchapter>
 
+    <clix:subchapter name="acceptor-behaviour" title="Acceptor behaviour">
+
+If you want to modify what acceptors do, you should
+subclass <clix:ref>ACCEPTOR</clix:ref>
+(or <clix:ref>SSL-ACCEPTOR</clix:ref>) and specialize the generic
+functions that constitute their behaviour.  The life of an acceptor
+looks like this: It is started with the function <clix:ref>START</clix:ref> which
+immediately calls <clix:ref>START-LISTENING</clix:ref> and then applies the function
+<clix:ref>EXECUTE-ACCEPTOR</clix:ref> to
+its <a href="#taskmasters">taskmaster</a>.  This function will
+eventually call <clix:ref>ACCEPT-CONNECTIONS</clix:ref> which is
+responsible for settings things up to wait for clients to connect.
+For each connection which comes
+in, <clix:ref>HANDLE-INCOMING-CONNECTION</clix:ref> is applied to the
+taskmaster which will call <clix:ref>PROCESS-CONNECTION</clix:ref>.
+<clix:ref>PROCESS-CONNECTION</clix:ref>
+calls <clix:ref>INITIALIZE-CONNECTION-STREAM</clix:ref> before it does
+anything else, then it selects and calls a function which handles
+the <a href="#requests">request</a>, and finally it sends
+the <a href="#replies">reply</a> to the client before it
+calls <clix:ref>RESET-CONNECTION-STREAM</clix:ref>.  If the connection
+is persistent, this procedure is repeated (except for the
+intialization step) in a loop until the connection is closed.  The
+acceptor is stopped with <clix:ref>STOP</clix:ref>.
+
+<p>
+If you just want to use the standard acceptors that come with
+Hunchentoot, you don't need to know anything about the functions
+listed in this section.
+</p>
+
+  <clix:function generic='true' name='start-listening'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>|
+  </clix:returns>
+    <clix:description>Sets up a listen socket for the given acceptor and
+enables it to listen to incoming connections.  This function is called
+from the thread that starts the acceptor initially and may return
+errors resulting from the listening operation (like &#039;address in use&#039;
+or similar).
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='accept-connections'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>nil
+  </clix:returns>
+    <clix:description>In a loop, accepts a connection and hands it over
+to the acceptor's taskmaster for processing using
+<clix:ref>HANDLE-INCOMING-CONNECTION</clix:ref>. On LispWorks, this
+function returns immediately, on other Lisps it returns only once the
+acceptor has been stopped.
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='process-connection'>
+  <clix:lambda-list>acceptor socket
+  </clix:lambda-list>
+  <clix:returns>nil
+  </clix:returns>
+    <clix:description>This function is called by the taskmaster when a
+new client connection has been established.  Its arguments are the
+<clix:ref>ACCEPTOR</clix:ref> object and a LispWorks socket handle or a usocket socket
+stream object in <clix:arg>socket</clix:arg>.  It reads the request headers, sets up the
+<a href="#requests">request</a> and <a href="#replies">reply</a>
+objects, and hands over to (the unexported
+function) <code>PROCESS-REQUEST</code> which selects and calls a
+handler for the request and sends its reply to the client.  This is
+done in a loop until the stream has to be closed or until a connection
+timeout occurs.
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='initialize-connection-stream'>
+  <clix:lambda-list>acceptor stream
+  </clix:lambda-list>
+  <clix:returns>stream
+  </clix:returns>
+    <clix:description>Can be used to modify the stream which is used
+to communicate between client and server before the request is read.
+The default method of <clix:ref>ACCEPTOR</clix:ref> does nothing, but
+see for example the method defined
+for <clix:ref>SSL-ACCEPTOR</clix:ref>.  All methods of this generic
+function <em>must</em> return the stream to use.
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='reset-connection-stream'>
+  <clix:lambda-list>acceptor stream
+  </clix:lambda-list>
+  <clix:returns>stream
+  </clix:returns>
+    <clix:description>Resets the stream which is used to communicate
+between client and server after one request has been served so that it
+can be used to process the next request.  This generic function is
+called after a request has been processed and <em>must</em> return the
+stream.
+    </clix:description>
+  </clix:function>
+
+    </clix:subchapter>
+
+
   </clix:chapter>
 
     <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
@@ -1635,18 +1740,7 @@ according to HTTP/1.1 (RFC 2068).
 format control and arguments.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='initialize-connection-stream'>
-  <clix:lambda-list>acceptor stream
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Can be used to modify the stream which is used to
-communicate between client and server before the request is read.  The
-default method of ACCEPTOR does nothing, but see for example the
-method defined for SSL-ACCEPTOR.  All methods of this generic function
-must return the stream to use.
-    </clix:description>
-  </clix:function>
+
   <clix:function name='log-message'>
   <clix:lambda-list>log-level format-string 
   <clix:lkw>rest
@@ -1752,20 +1846,7 @@ there is none.  Search is case-sensitive.
 object REQUEST.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='process-connection'>
-  <clix:lambda-list>acceptor socket
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>This function is called by the taskmaster when a
-new client connection has been established.  Its arguments are the
-ACCEPTOR object and a LispWorks socket handle or a usocket socket
-stream object in SOCKET.  It reads the request headers, sets up the
-request and reply objects, and hands over to PROCESS-REQUEST.  This is
-done in a loop until the stream has to be closed or until a connection
-timeout occurs.
-    </clix:description>
-  </clix:function>
+
   <clix:function name='query-string*'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -2063,18 +2144,7 @@ the REQUEST-CLASS slot of the ACCEPTOR class.
 (see RFC 2617) for the realm REALM.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='reset-connection-stream'>
-  <clix:lambda-list>acceptor stream
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Resets the stream which is used to communicate
-between client and server after one request has been served so that it
-can be used to process the next request.  This generic function is
-called after a request has been processed and must return the
-stream.
-    </clix:description>
-  </clix:function>
+
   <clix:function name='reset-session-secret'>
   <clix:lambda-list>
   </clix:lambda-list>
@@ -2419,18 +2489,7 @@ PROCESS-CONNECTION.
 connections.  Returns the acceptor.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='start-listening'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Sets up a listen socket for the given ACCEPTOR and
-enables it to listen to incoming connections.  This function is called
-from the thread that starts the acceptor initially and may return
-errors resulting from the listening operation (like &#039;address in use&#039;
-or similar).
-    </clix:description>
-  </clix:function>
+
   <clix:function name='start-session'>
   <clix:lambda-list>
   </clix:lambda-list>
