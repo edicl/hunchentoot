@@ -227,16 +227,16 @@ used by LOG-MESSAGE-TO-FILE function.")
 used by LOG-ACCESS-TO-FILE function.")
 
 (defvar-unbound *acceptor*
-  "The current ACCEPTOR object.")
+  "The current ACCEPTOR object while in the context of a request.")
 
 (defvar-unbound *request*
-  "The current REQUEST object.")
+  "The current REQUEST object while in the context of a request.")
 
 (defvar-unbound *reply*
-  "The current REPLY object.")
+  "The current REPLY object while in the context of a request.")
 
 (defvar-unbound *session*
-  "The current SESSION object.")
+  "The current SESSION object while in the context of a request.")
 
 (defvar *break-even-while-reading-request-type-p* nil
   "If this variable is set to true, Hunchentoot will not bind

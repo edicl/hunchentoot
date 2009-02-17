@@ -38,17 +38,17 @@
   (apply #'format t fmt args)
   (terpri))
 
-(defun test-hunchentoot (base-url &key (make-cookie-jar (lambda () (make-instance 'drakma:cookie-jar))))
+(defun test-hunchentoot (base-url &key (make-cookie-jar
+                                        (lambda ()
+                                          (make-instance 'drakma:cookie-jar))))
+  "Runs the built-in confidence test.  BASE-URL is the base URL to use
+for testing, it should not have a trailing slash.  The keyword
+arguments accepted are for future extension and should not currently
+be used.
 
-  "Run the built-in confidence test.  BASE-URL is the base URL to use
-   for testing, it should not have a trailing slash.  The keyword
-   arguments accepted are for future extension and should not
-   currently be used.
-
-   The script expects the Hunchentoot example test server to be
-   running at the given BASE-URL and retrieves various pages from that
-   server, expecting certain responses."
-
+The script expects the Hunchentoot example test server to be running
+at the given BASE-URL and retrieves various pages from that server,
+expecting certain responses."
   (with-script-context (:base-url (format nil "~A/hunchentoot/test/" base-url))
 
     (say "Request home page")
@@ -129,5 +129,6 @@
     (http-request "upload.html"
                   :method :post :parameters '(("file1" #P"fz.jpg")))
     (http-request "upload.html")
-    (http-assert-body (format nil "fz.jpg.*>~A&nbsp;Bytes" (file-length-string #P"fz.jpg")))))
+    (http-assert-body (format nil "fz.jpg.*>~A&nbsp;Bytes" (file-length-string #P"fz.jpg"))))
+  (values))
 

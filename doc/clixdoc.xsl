@@ -112,6 +112,18 @@
     </p>
   </xsl:template>
 
+  <xsl:template match="clix:listed-reader">
+      <xsl:call-template name="make-anchor"/>
+      <xsl:call-template name="render-title"/>
+      <xsl:value-of select="' '"/>
+      <i><xsl:apply-templates select="clix:lambda-list"/></i>
+      <xsl:if test="clix:returns">
+        =&gt;
+        <i><xsl:value-of select="clix:returns"/></i>
+      </xsl:if>
+    <br/>
+  </xsl:template>
+
   <xsl:template match="clix:writer">
     <p>
       <xsl:call-template name="make-anchor"/>
@@ -150,6 +162,20 @@
     </p>
   </xsl:template>
 
+  <xsl:template match="clix:listed-accessor">
+      <xsl:call-template name="make-anchor"/>
+      <xsl:call-template name="render-title"/>
+      <xsl:value-of select="' '"/>
+      <i><xsl:apply-templates select="clix:lambda-list"/></i>
+      =&gt;
+      <i><xsl:value-of select="clix:returns"/></i>
+      <br/>
+      <tt>(setf (</tt><b><xsl:value-of select="@name"/></b>
+      <xsl:value-of select="' '"/>
+      <i><xsl:apply-templates select="clix:lambda-list"/></i><tt>) <i>new-value</i>)</tt>
+    <br/>
+  </xsl:template>
+
   <xsl:template match="clix:special-variable | clix:class | clix:condition | clix:symbol | clix:constant">
     <p>
       <xsl:call-template name="make-anchor"/>
@@ -172,6 +198,28 @@
     <p>
       [Constants]<br/>
       <xsl:apply-templates select="clix:listed-constant"/>
+      <blockquote>
+        <xsl:apply-templates select="clix:description"/>
+      </blockquote>
+    </p>
+  </xsl:template>
+
+  <xsl:template match="clix:readers">
+    <!-- Display a list of readers with a common description -->
+    <p>
+      [<xsl:call-template name="nice-entry-type-name"/>]<br/>
+      <xsl:apply-templates select="clix:listed-reader"/>
+      <blockquote>
+        <xsl:apply-templates select="clix:description"/>
+      </blockquote>
+    </p>
+  </xsl:template>
+
+  <xsl:template match="clix:accessors">
+    <!-- Display a list of accessors with a common description -->
+    <p>
+      [<xsl:call-template name="nice-entry-type-name"/>]<br/>
+      <xsl:apply-templates select="clix:listed-accessor"/>
       <blockquote>
         <xsl:apply-templates select="clix:description"/>
       </blockquote>
@@ -348,6 +396,20 @@
           <xsl:when test="@generic = 'true'">Generic reader</xsl:when>
           <xsl:when test="@specialized = 'true'">Specialized reader</xsl:when>
           <xsl:otherwise>Reader</xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:when test="name() = 'clix:readers'">
+        <xsl:choose>
+          <xsl:when test="@generic = 'true'">Generic readers</xsl:when>
+          <xsl:when test="@specialized = 'true'">Specialized readers</xsl:when>
+          <xsl:otherwise>Readers</xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:when test="name() = 'clix:accessors'">
+        <xsl:choose>
+          <xsl:when test="@generic = 'true'">Generic accessors</xsl:when>
+          <xsl:when test="@specialized = 'true'">Specialized accessors</xsl:when>
+          <xsl:otherwise>Accessors</xsl:otherwise>
         </xsl:choose>
       </xsl:when>
       <xsl:when test="name() = 'clix:writer'">

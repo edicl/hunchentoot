@@ -331,7 +331,7 @@
 
       If you want Hunchentoot to actually do something, you have to create and
       <a href="#start">start</a> an <a href="#acceptor">acceptor</a>.
-      You can also run several acceptor in one image, each one
+      You can also run several acceptors in one image, each one
       listening on a different different port.
 
   <clix:class name='acceptor'>
@@ -348,6 +348,22 @@ same time.</p>
     </clix:description>
   </clix:class>
 
+  <clix:class name='ssl-acceptor'>
+    <clix:description>Create and <clix:ref>START</clix:ref> an instance of this class
+(instead of <clix:ref>ACCEPTOR</clix:ref>) if you want an https server.  There are two
+required initargs, <code>:SSL-CERTIFICATE-FILE</code> and <code>:SSL-PRIVATEKEY-FILE</code>, for
+pathname designators denoting the certificate file and the key file in
+PEM format.  On LispWorks, you can have both in one file in which case
+the second initarg is optional.  On LispWorks, you can also use the
+<code>:SSL-PRIVATEKEY-PASSWORD</code> initarg to provide a password (as a string)
+for the key file (or <code>NIL</code>, the default, for no password).  On other
+Lisps, the key file must not be password-protected.
+<p>
+The default port for <clix:ref>SSL-ACCEPTOR</clix:ref> instances is 443 instead of 80
+</p>
+    </clix:description>
+  </clix:class>
+
   <clix:function generic='true' name='start'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
@@ -358,286 +374,202 @@ connections.  Returns the acceptor.
     </clix:description>
   </clix:function>
 
+  <clix:function generic='true' name='stop'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Stops <clix:arg>acceptor</clix:arg> so that it
+no longer accepts requests.
+    </clix:description>
+  </clix:function>
+
+  <clix:readers generic='true'>
+    <clix:listed-reader name='acceptor-address'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>address
+    </clix:returns>
+    </clix:listed-reader>
+
+    <clix:listed-reader name='acceptor-port'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>port
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-reader>
+
+    <clix:listed-reader name='acceptor-read-timeout'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>read-timeout
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-reader>
+
+    <clix:listed-reader name='acceptor-ssl-certificate-file'>
+    <clix:lambda-list>ssl-acceptor
+    </clix:lambda-list>
+    <clix:returns>ssl-certificate-file
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-reader>
+
+    <clix:listed-reader name='acceptor-ssl-privatekey-file'>
+    <clix:lambda-list>ssl-acceptor
+    </clix:lambda-list>
+    <clix:returns>ssl-privatekey-file
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-reader>
+
+    <clix:listed-reader name='acceptor-ssl-privatekey-password'>
+    <clix:lambda-list>ssl-acceptor
+    </clix:lambda-list>
+    <clix:returns>ssl-privatekey-password
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-reader>
+
+    <clix:listed-reader name='acceptor-write-timeout'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>write-timeout
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-reader>
+
+    <clix:description>
+These are readers for various slots of <clix:ref>ACCEPTOR</clix:ref>
+objects (and some of them obviously only make sense
+for <clix:ref>SSL-ACCEPTOR</clix:ref> objects).  See the docstrings of
+these slots for more information.
+    </clix:description>
+  </clix:readers>
+
+  <clix:accessors generic='true'>
+    <clix:listed-accessor name='acceptor-access-logger'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>access-logger
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-handler-selector'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>handler-selector
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-input-chunking-p'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>input-chunking-p
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-message-logger'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>message-logger
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-name'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>name
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-output-chunking-p'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>output-chunking-p
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-persistent-connections-p'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>persistent-connections-p
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-reply-class'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>reply-class
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor name='acceptor-request-class'>
+    <clix:lambda-list>acceptor
+    </clix:lambda-list>
+    <clix:returns>request-class
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:description>
+These are accessors for various slots of <clix:ref>ACCEPTOR</clix:ref>
+objects.  See the docstrings of these slots for more information.
+    </clix:description>
+  </clix:accessors>
 
   <clix:special-variable name='*acceptor*'>
-    <clix:description>The current ACCEPTOR object.
+    <clix:description>The current ACCEPTOR object while in the context of a request.
     </clix:description>
   </clix:special-variable>
 
 
-  <clix:accessor generic='true' name='acceptor-access-logger'>
+  <clix:function generic='true' name='acceptor-ssl-p'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
-  <clix:returns>result
+  <clix:returns>ssl-p
   </clix:returns>
-    <clix:description>
+    <clix:description>Returns a true value if <clix:arg>acceptor</clix:arg> uses SSL
+connections.  The default is to unconditionally return <code>NIL</code> and
+subclasses of <clix:ref>ACCEPTOR</clix:ref> must specialize this method to signal that
+they&#039;re using secure connections - see the <clix:ref>SSL-ACCEPTOR</clix:ref> class.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-access-logger'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-address'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-address'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-handler-selector'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-handler-selector'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-input-chunking-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-input-chunking-p'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-message-logger'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-message-logger'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-name'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-name'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-output-chunking-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-output-chunking-p'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-persistent-connections-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-persistent-connections-p'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-port'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-port'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-read-timeout'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-read-timeout'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-reply-class'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-reply-class'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-request-class'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-request-class'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-certificate-file'>
-  <clix:lambda-list>ssl-acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-certificate-file'>
-  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-p'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns a true value if ACCEPTOR uses SSL
-connections.  The default is to unconditionally return NIL and
-subclasses of ACCEPTOR must specialize this method to signal that
-they&#039;re using secure connections - see the SSL-ACCEPTOR class.
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-privatekey-file'>
-  <clix:lambda-list>ssl-acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-privatekey-file'>
-  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-ssl-privatekey-password'>
-  <clix:lambda-list>ssl-acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SSL-ACCEPTOR)' name='acceptor-ssl-privatekey-password'>
-  <clix:lambda-list>(ssl-acceptor ssl-acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='acceptor-write-timeout'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(ACCEPTOR)' name='acceptor-write-timeout'>
-  <clix:lambda-list>(acceptor acceptor)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
+  </clix:function>
+
 
     </clix:subchapter>
 
   </clix:chapter>
 
     <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
+  <clix:special-variable name='*acceptor*'>
+    <clix:description>The current ACCEPTOR object.
+    </clix:description>
+  </clix:special-variable>
   <clix:special-variable name='*access-log-pathname*'>
     <clix:description>A designator for the pathname of the access log file used by the
 LOG-ACCESS-TO-FILE function.  The initial value is NIL which means
@@ -981,7 +913,7 @@ if the client sends a different &#039;User-Agent&#039; header.
     <clix:description>HTTP return code (505) for &#039;Version not supported&#039;.
     </clix:description>
   </clix:constant>
-  <clix:accessor name='abort-request-handler'>
+  <clix:function name='abort-request-handler'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> result
@@ -992,8 +924,8 @@ if the client sends a different &#039;User-Agent&#039; header.
 immediately abort handling the request.  This works as if the handler
 had returned RESULT.  See the source code of REDIRECT for an example.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='authorization'>
+  </clix:function>
+  <clix:function name='authorization'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1003,8 +935,8 @@ had returned RESULT.  See the source code of REDIRECT for an example.
     <clix:description>Returns as two values the user and password (if any) as encoded in
 the &#039;AUTHORIZATION&#039; header.  Returns NIL if there is no such header.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='aux-request-value'>
+  </clix:function>
+  <clix:function name='aux-request-value'>
   <clix:lambda-list>symbol 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1015,23 +947,23 @@ the &#039;AUTHORIZATION&#039; header.  Returns NIL if there is no such header.
 REQUEST (the default is the current request) if it exists.  The
 second return value is true if such a value was found.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='content-length'>
+  </clix:function>
+  <clix:function generic='true' name='content-length'>
   <clix:lambda-list>reply
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REPLY)' name='content-length'>
+  </clix:function>
+  <clix:function specialized='(REPLY)' name='content-length'>
   <clix:lambda-list>(reply reply)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:accessor name='content-length*'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -1042,22 +974,22 @@ second return value is true if such a value was found.
     <clix:description>The outgoing &#039;Content-Length&#039; http header of REPLY.
     </clix:description>
   </clix:accessor>
-  <clix:accessor generic='true' name='content-type'>
+  <clix:function generic='true' name='content-type'>
   <clix:lambda-list>reply
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REPLY)' name='content-type'>
+  </clix:function>
+  <clix:function specialized='(REPLY)' name='content-type'>
   <clix:lambda-list>(reply reply)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:accessor name='content-type*'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -1116,7 +1048,7 @@ second return value is true if such a value was found.
     <clix:description>
     </clix:description>
   </clix:accessor>
-  <clix:accessor name='cookie-in'>
+  <clix:function name='cookie-in'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1126,24 +1058,24 @@ second return value is true if such a value was found.
     <clix:description>Returns the cookie with the name NAME (a string) as sent by the
 browser - or NIL if there is none.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='cookie-name'>
+  </clix:function>
+  <clix:function generic='true' name='cookie-name'>
   <clix:lambda-list>cookie
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(COOKIE)' name='cookie-name'>
+  </clix:function>
+  <clix:function specialized='(COOKIE)' name='cookie-name'>
   <clix:lambda-list>(cookie cookie)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='cookie-out'>
+  </clix:function>
+  <clix:function name='cookie-out'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> reply
@@ -1153,7 +1085,7 @@ browser - or NIL if there is none.
     <clix:description>Returns the current value of the outgoing cookie named
 NAME. Search is case-sensitive.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:accessor generic='true' name='cookie-path'>
   <clix:lambda-list>cookie
   </clix:lambda-list>
@@ -1202,23 +1134,23 @@ NAME. Search is case-sensitive.
     <clix:description>
     </clix:description>
   </clix:accessor>
-  <clix:accessor generic='true' name='cookies-in'>
+  <clix:function generic='true' name='cookies-in'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='cookies-in'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='cookies-in'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='cookies-in*'>
+  </clix:function>
+  <clix:function name='cookies-in*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1228,7 +1160,7 @@ NAME. Search is case-sensitive.
     <clix:description>Returns an alist of all cookies associated with the REQUEST object
 REQUEST.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:accessor generic='true' name='cookies-out'>
   <clix:lambda-list>reply
   </clix:lambda-list>
@@ -1256,7 +1188,7 @@ REQUEST.
 REPLY object REPLY.
     </clix:description>
   </clix:accessor>
-  <clix:accessor name='create-folder-dispatcher-and-handler'>
+  <clix:function name='create-folder-dispatcher-and-handler'>
   <clix:lambda-list>uri-prefix base-path 
   <clix:lkw>optional
   </clix:lkw> content-type
@@ -1270,8 +1202,8 @@ must be a string ending with a slash, BASE-PATH must be a pathname
 designator for an existing directory.  If CONTENT-TYPE is not NIL,
 it&#039;ll be the content type used for all files in the folder.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='create-prefix-dispatcher'>
+  </clix:function>
+  <clix:function name='create-prefix-dispatcher'>
   <clix:lambda-list>prefix handler
   </clix:lambda-list>
   <clix:returns>result
@@ -1280,8 +1212,8 @@ it&#039;ll be the content type used for all files in the folder.
 function denoted by HANDLER if the file name of the current request
 starts with the string PREFIX.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='create-regex-dispatcher'>
+  </clix:function>
+  <clix:function name='create-regex-dispatcher'>
   <clix:lambda-list>regex handler
   </clix:lambda-list>
   <clix:returns>result
@@ -1290,8 +1222,8 @@ starts with the string PREFIX.
 function denoted by HANDLER if the file name of the current request
 matches the CL-PPCRE regular expression REGEX.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='create-static-file-dispatcher-and-handler'>
+  </clix:function>
+  <clix:function name='create-static-file-dispatcher-and-handler'>
   <clix:lambda-list>uri path 
   <clix:lkw>optional
   </clix:lkw> content-type
@@ -1304,8 +1236,8 @@ designator PATH with content type CONTENT-TYPE if the SCRIPT-NAME of
 the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
 determine the content type via the file&#039;s suffix.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='default-dispatcher'>
+  </clix:function>
+  <clix:function name='default-dispatcher'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
@@ -1313,7 +1245,7 @@ determine the content type via the file&#039;s suffix.
     <clix:description>Default dispatch function which handles every request with the
 function stored in *DEFAULT-HANDLER*.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:function macro='true' name='define-easy-handler'>
   <clix:lambda-list>description lambda-list declaration* statement*
   </clix:lambda-list>
@@ -1440,7 +1372,7 @@ result of evaluating INIT-FORM unless a corresponding keyword
 argument is provided.
     </clix:description>
   </clix:function>
-  <clix:accessor name='delete-aux-request-value'>
+  <clix:function name='delete-aux-request-value'>
   <clix:lambda-list>symbol 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1450,8 +1382,8 @@ argument is provided.
     <clix:description>Removes the value associated with SYMBOL from the request object
 REQUEST.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='delete-session-value'>
+  </clix:function>
+  <clix:function name='delete-session-value'>
   <clix:lambda-list>symbol 
   <clix:lkw>optional
   </clix:lkw> session
@@ -1461,8 +1393,8 @@ REQUEST.
     <clix:description>Removes the value associated with SYMBOL from the current session
 object if there is one.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='dispatch-easy-handlers'>
+  </clix:function>
+  <clix:function name='dispatch-easy-handlers'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
@@ -1470,16 +1402,16 @@ object if there is one.
     <clix:description>This is a dispatcher which returns the appropriate handler
 defined with DEFINE-EASY-HANDLER, if there is one.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='escape-for-html'>
+  </clix:function>
+  <clix:function name='escape-for-html'>
   <clix:lambda-list>string
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>Escapes the characters #\&lt;, #\&gt;, #\&#039;, #\&quot;, and #\&amp; for HTML output.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='execute-acceptor'>
+  </clix:function>
+  <clix:function generic='true' name='execute-acceptor'>
   <clix:lambda-list>taskmaster
   </clix:lambda-list>
   <clix:returns>result
@@ -1490,8 +1422,8 @@ connections (see START-LISTENING).  It usually calls the
 ACCEPT-CONNECTIONS method of the acceptor, but depending on the
 taskmaster instance the method might be called from a new thread.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='get-parameter'>
+  </clix:function>
+  <clix:function name='get-parameter'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1501,24 +1433,24 @@ taskmaster instance the method might be called from a new thread.
     <clix:description>Returns the GET parameter with name NAME (a string) - or NIL if
 there is none.  Search is case-sensitive.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='get-parameters'>
+  </clix:function>
+  <clix:function generic='true' name='get-parameters'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='get-parameters'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='get-parameters'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='get-parameters*'>
+  </clix:function>
+  <clix:function name='get-parameters*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1528,8 +1460,8 @@ there is none.  Search is case-sensitive.
     <clix:description>Returns an alist of the GET parameters associated with the REQUEST
 object REQUEST.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='handle-if-modified-since'>
+  </clix:function>
+  <clix:function name='handle-if-modified-since'>
   <clix:lambda-list>time 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1540,8 +1472,8 @@ object REQUEST.
 is compared to the one generated from the supplied universal time
 TIME.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='handle-incoming-connection'>
+  </clix:function>
+  <clix:function generic='true' name='handle-incoming-connection'>
   <clix:lambda-list>taskmaster socket
   </clix:lambda-list>
   <clix:returns>result
@@ -1559,8 +1491,8 @@ In a multi-threaded environment, the taskmaster runs this function
 in a separate thread.  In a single-threaded environment, this function
 is called directly.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='handle-static-file'>
+  </clix:function>
+  <clix:function name='handle-static-file'>
   <clix:lambda-list>path 
   <clix:lkw>optional
   </clix:lkw> content-type
@@ -1572,24 +1504,24 @@ denoted by PATH.  Sends a content type header corresponding to
 CONTENT-TYPE or (if that is NIL) tries to determine the content type
 via the file&#039;s suffix.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='header-in'>
+  </clix:function>
+  <clix:function generic='true' name='header-in'>
   <clix:lambda-list>name request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(T T)' name='header-in'>
+  </clix:function>
+  <clix:function specialized='(T T)' name='header-in'>
   <clix:lambda-list>name request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='header-in*'>
+  </clix:function>
+  <clix:function name='header-in*'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1599,8 +1531,8 @@ via the file&#039;s suffix.
     <clix:description>Returns the incoming header with name NAME.  NAME can be a keyword
 (recommended) or a string.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='header-out'>
+  </clix:function>
+  <clix:function name='header-out'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> reply
@@ -1610,24 +1542,24 @@ via the file&#039;s suffix.
     <clix:description>Returns the current value of the outgoing http header named NAME.
 NAME should be a keyword or a string.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='headers-in'>
+  </clix:function>
+  <clix:function generic='true' name='headers-in'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='headers-in'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='headers-in'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='headers-in*'>
+  </clix:function>
+  <clix:function name='headers-in*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1637,24 +1569,24 @@ NAME should be a keyword or a string.
     <clix:description>Returns an alist of the incoming headers associated with the
 REQUEST object REQUEST.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='headers-out'>
+  </clix:function>
+  <clix:function generic='true' name='headers-out'>
   <clix:lambda-list>reply
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REPLY)' name='headers-out'>
+  </clix:function>
+  <clix:function specialized='(REPLY)' name='headers-out'>
   <clix:lambda-list>(reply reply)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='headers-out*'>
+  </clix:function>
+  <clix:function name='headers-out*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> reply
@@ -1664,8 +1596,8 @@ REQUEST object REQUEST.
     <clix:description>Returns an alist of the outgoing headers associated with the
 REPLY object REPLY.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='host'>
+  </clix:function>
+  <clix:function name='host'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1674,8 +1606,8 @@ REPLY object REPLY.
   </clix:returns>
     <clix:description>Returns the &#039;Host&#039; incoming http header value.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='http-token-p'>
+  </clix:function>
+  <clix:function name='http-token-p'>
   <clix:lambda-list>token
   </clix:lambda-list>
   <clix:returns>result
@@ -1683,7 +1615,7 @@ REPLY object REPLY.
     <clix:description>Tests whether TOKEN is a string which is a valid &#039;token&#039;
 according to HTTP/1.1 (RFC 2068).
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:condition name='hunchentoot-condition'>
     <clix:description>Superclass for all conditions related to Hunchentoot.
     </clix:description>
@@ -1692,7 +1624,7 @@ according to HTTP/1.1 (RFC 2068).
     <clix:description>Superclass for all errors related to Hunchentoot.
     </clix:description>
   </clix:condition>
-  <clix:accessor name='hunchentoot-error'>
+  <clix:function name='hunchentoot-error'>
   <clix:lambda-list>format-control 
   <clix:lkw>rest
   </clix:lkw> format-arguments
@@ -1702,8 +1634,8 @@ according to HTTP/1.1 (RFC 2068).
     <clix:description>Signals an error of type HUNCHENTOOT-SIMPLE-ERROR with the provided
 format control and arguments.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='initialize-connection-stream'>
+  </clix:function>
+  <clix:function generic='true' name='initialize-connection-stream'>
   <clix:lambda-list>acceptor stream
   </clix:lambda-list>
   <clix:returns>result
@@ -1714,8 +1646,8 @@ default method of ACCEPTOR does nothing, but see for example the
 method defined for SSL-ACCEPTOR.  All methods of this generic function
 must return the stream to use.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='log-message'>
+  </clix:function>
+  <clix:function name='log-message'>
   <clix:lambda-list>log-level format-string 
   <clix:lkw>rest
   </clix:lkw> format-arguments
@@ -1725,8 +1657,8 @@ must return the stream to use.
     <clix:description>Convenience function which calls the message logger of the current
 acceptor (if there is one) with the same arguments it accepts.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='mime-type'>
+  </clix:function>
+  <clix:function name='mime-type'>
   <clix:lambda-list>pathspec
   </clix:lambda-list>
   <clix:returns>result
@@ -1735,8 +1667,8 @@ acceptor (if there is one) with the same arguments it accepts.
 (as a string) corresponding to the suffix of the file denoted by
 PATHSPEC (or NIL).
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='next-session-id'>
+  </clix:function>
+  <clix:function generic='true' name='next-session-id'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
   <clix:returns>result
@@ -1747,21 +1679,21 @@ global counter and isn&#039;t guarded by a lock.  For a high-performance
 production environment you might consider to use a more robust
 method.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='no-cache'>
+  </clix:function>
+  <clix:function name='no-cache'>
   <clix:lambda-list>
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>Adds appropriate headers to completely prevent caching on most browsers.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:class name='one-thread-per-connection-taskmaster'>
     <clix:description>A taskmaster that starts one thread for listening
 to incoming requests and one thread for each incoming connection.
     </clix:description>
   </clix:class>
-  <clix:accessor name='parameter'>
+  <clix:function name='parameter'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1773,8 +1705,8 @@ or NIL if there is none.  If both a GET and a POST parameter with the
 same name exist the GET parameter is returned.  Search is
 case-sensitive.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='post-parameter'>
+  </clix:function>
+  <clix:function name='post-parameter'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> request
@@ -1784,32 +1716,32 @@ case-sensitive.
     <clix:description>Returns the POST parameter with name NAME (a string) - or NIL if
 there is none.  Search is case-sensitive.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='post-parameters'>
+  </clix:function>
+  <clix:function generic='true' name='post-parameters'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='post-parameters'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='post-parameters'>
   <clix:lambda-list>(request request)
   <clix:qualifier>
   </clix:qualifier>
   </clix:lambda-list>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='post-parameters'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='post-parameters'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='post-parameters*'>
+  </clix:function>
+  <clix:function name='post-parameters*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1819,8 +1751,8 @@ there is none.  Search is case-sensitive.
     <clix:description>Returns an alist of the POST parameters associated with the REQUEST
 object REQUEST.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='process-connection'>
+  </clix:function>
+  <clix:function generic='true' name='process-connection'>
   <clix:lambda-list>acceptor socket
   </clix:lambda-list>
   <clix:returns>result
@@ -1833,8 +1765,8 @@ request and reply objects, and hands over to PROCESS-REQUEST.  This is
 done in a loop until the stream has to be closed or until a connection
 timeout occurs.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='query-string*'>
+  </clix:function>
+  <clix:function name='query-string*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1844,8 +1776,8 @@ timeout occurs.
     <clix:description>Returns the query string of the REQUEST object REQUEST. That&#039;s
 the part behind the question mark (i.e. the GET parameters).
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='raw-post-data'>
+  </clix:function>
+  <clix:function name='raw-post-data'>
   <clix:lambda-list>
   <clix:lkw>key
   </clix:lkw> request external-format force-text force-binary want-stream
@@ -1882,8 +1814,8 @@ mix calls which have different values for WANT-STREAM.
 Note that this function is slightly misnamed because a client can send
 content even if the request method is not POST.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='real-remote-addr'>
+  </clix:function>
+  <clix:function name='real-remote-addr'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1895,8 +1827,8 @@ second value in the form of a list of IP addresses and the first
 element of this list as the first value if this header exists.
 Otherwise returns the value of REMOTE-ADDR as the only value.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='reason-phrase'>
+  </clix:function>
+  <clix:function name='reason-phrase'>
   <clix:lambda-list>return-code
   </clix:lambda-list>
   <clix:returns>result
@@ -1905,8 +1837,8 @@ Otherwise returns the value of REMOTE-ADDR as the only value.
 (which should be an integer) or NIL for return codes Hunchentoot
 doesn&#039;t know.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='recompute-request-parameters'>
+  </clix:function>
+  <clix:function name='recompute-request-parameters'>
   <clix:lambda-list>
   <clix:lkw>key
   </clix:lkw> request external-format
@@ -1917,8 +1849,8 @@ doesn&#039;t know.
 REQUEST.  This only makes sense if you&#039;re switching external formats
 during the request.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='redirect'>
+  </clix:function>
+  <clix:function name='redirect'>
   <clix:lambda-list>target 
   <clix:lkw>key
   </clix:lkw> host port protocol add-session-id code
@@ -1933,8 +1865,8 @@ redirect to will be constructed from HOST, PORT, PROTOCOL, and TARGET.
 Adds a session ID if ADD-SESSION-ID is true.  If CODE is a 3xx
 redirection code, it will be sent as status code.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='referer'>
+  </clix:function>
+  <clix:function name='referer'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1943,24 +1875,24 @@ redirection code, it will be sent as status code.
   </clix:returns>
     <clix:description>Returns the &#039;Referer&#039; (sic!) http header.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='remote-addr'>
+  </clix:function>
+  <clix:function generic='true' name='remote-addr'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='remote-addr'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='remote-addr'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='remote-addr*'>
+  </clix:function>
+  <clix:function name='remote-addr*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1969,24 +1901,24 @@ redirection code, it will be sent as status code.
   </clix:returns>
     <clix:description>Returns the address the current request originated from.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='remote-port'>
+  </clix:function>
+  <clix:function generic='true' name='remote-port'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='remote-port'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='remote-port'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='remote-port*'>
+  </clix:function>
+  <clix:function name='remote-port*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -1995,8 +1927,8 @@ redirection code, it will be sent as status code.
   </clix:returns>
     <clix:description>Returns the port the current request originated from.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='remove-session'>
+  </clix:function>
+  <clix:function name='remove-session'>
   <clix:lambda-list>session
   </clix:lambda-list>
   <clix:returns>result
@@ -2004,7 +1936,7 @@ redirection code, it will be sent as status code.
     <clix:description>Completely removes the SESSION object SESSION from Hunchentoot&#039;s
 internal session database.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:class name='reply'>
     <clix:description>Objects of this class hold all the information
 about an outgoing reply.  They are created automatically by
@@ -2052,39 +1984,39 @@ can subclass REQUEST in order to implement your own behaviour.  See
 the REQUEST-CLASS slot of the ACCEPTOR class.
     </clix:description>
   </clix:class>
-  <clix:accessor generic='true' name='request-acceptor'>
+  <clix:function generic='true' name='request-acceptor'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='request-acceptor'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='request-acceptor'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='request-method'>
+  </clix:function>
+  <clix:function generic='true' name='request-method'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='request-method'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='request-method'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='request-method*'>
+  </clix:function>
+  <clix:function name='request-method*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -2093,24 +2025,24 @@ the REQUEST-CLASS slot of the ACCEPTOR class.
   </clix:returns>
     <clix:description>Returns the request method as a Lisp keyword.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='request-uri'>
+  </clix:function>
+  <clix:function generic='true' name='request-uri'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='request-uri'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='request-uri'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='request-uri*'>
+  </clix:function>
+  <clix:function name='request-uri*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -2119,8 +2051,8 @@ the REQUEST-CLASS slot of the ACCEPTOR class.
   </clix:returns>
     <clix:description>Returns the request URI.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='require-authorization'>
+  </clix:function>
+  <clix:function name='require-authorization'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> realm
@@ -2130,8 +2062,8 @@ the REQUEST-CLASS slot of the ACCEPTOR class.
     <clix:description>Sends back appropriate headers to require basic HTTP authentication
 (see RFC 2617) for the realm REALM.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='reset-connection-stream'>
+  </clix:function>
+  <clix:function generic='true' name='reset-connection-stream'>
   <clix:lambda-list>acceptor stream
   </clix:lambda-list>
   <clix:returns>result
@@ -2142,8 +2074,8 @@ can be used to process the next request.  This generic function is
 called after a request has been processed and must return the
 stream.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='reset-session-secret'>
+  </clix:function>
+  <clix:function name='reset-session-secret'>
   <clix:lambda-list>
   </clix:lambda-list>
   <clix:returns>result
@@ -2151,15 +2083,15 @@ stream.
     <clix:description>Sets *SESSION-SECRET* to a new random value. All old sessions will
 cease to be valid.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='reset-sessions'>
+  </clix:function>
+  <clix:function name='reset-sessions'>
   <clix:lambda-list>
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>Removes ALL stored sessions.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:accessor generic='true' name='return-code'>
   <clix:lambda-list>reply
   </clix:lambda-list>
@@ -2187,7 +2119,7 @@ cease to be valid.
 handle are defined in specials.lisp.
     </clix:description>
   </clix:accessor>
-  <clix:accessor name='rfc-1123-date'>
+  <clix:function name='rfc-1123-date'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> time
@@ -2196,24 +2128,24 @@ handle are defined in specials.lisp.
   </clix:returns>
     <clix:description>Generates a time string according to RFC 1123.  Default is current time.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='script-name'>
+  </clix:function>
+  <clix:function generic='true' name='script-name'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='script-name'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='script-name'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='script-name*'>
+  </clix:function>
+  <clix:function name='script-name*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -2223,8 +2155,8 @@ handle are defined in specials.lisp.
     <clix:description>Returns the file name of the REQUEST object REQUEST. That&#039;s the
 requested URI without the query string (i.e the GET parameters).
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='send-headers'>
+  </clix:function>
+  <clix:function name='send-headers'>
   <clix:lambda-list>
   </clix:lambda-list>
   <clix:returns>result
@@ -2238,24 +2170,24 @@ etc.) is turned off for this request.  If your handlers return the
 full body as a string or as an array of octets you should NOT call
 this function.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='server-protocol'>
+  </clix:function>
+  <clix:function generic='true' name='server-protocol'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REQUEST)' name='server-protocol'>
+  </clix:function>
+  <clix:function specialized='(REQUEST)' name='server-protocol'>
   <clix:lambda-list>(request request)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='server-protocol*'>
+  </clix:function>
+  <clix:function name='server-protocol*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -2264,8 +2196,8 @@ this function.
   </clix:returns>
     <clix:description>Returns the request protocol as a Lisp keyword.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='session-cookie-name'>
+  </clix:function>
+  <clix:function generic='true' name='session-cookie-name'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
   <clix:returns>result
@@ -2275,8 +2207,8 @@ GET parameter) which is used to store a session on the client side.
 The default is to use the string &quot;hunchentoot-session&quot;, but you can
 specialize this function if you want another name.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='session-cookie-value'>
+  </clix:function>
+  <clix:function generic='true' name='session-cookie-value'>
   <clix:lambda-list>session
   </clix:lambda-list>
   <clix:returns>result
@@ -2288,8 +2220,8 @@ or in the corresponding GET parameter.  A default method is provided
 and there&#039;s no reason to change it unless you want to use your own
 session objects.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='session-created'>
+  </clix:function>
+  <clix:function generic='true' name='session-created'>
   <clix:lambda-list>acceptor new-session
   </clix:lambda-list>
   <clix:returns>result
@@ -2298,7 +2230,7 @@ session objects.
 been created.  There&#039;s a default method which might trigger a session
 GC based on the value of *SESSION-GC-FREQUENCY*.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:accessor generic='true' name='session-db'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
@@ -2310,7 +2242,7 @@ corresponding SESSION object itself.  The default is to use a global
 list for all acceptors.
     </clix:description>
   </clix:accessor>
-  <clix:accessor generic='true' name='session-db-lock'>
+  <clix:function generic='true' name='session-db-lock'>
   <clix:lambda-list>acceptor 
   <clix:lkw>key
   </clix:lkw> whole-db-p
@@ -2329,8 +2261,8 @@ single-threaded environments).  The default is to always return a
 global lock (ignoring the ACCEPTOR argument) for Lisps that support
 threads and NIL otherwise.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='session-gc'>
+  </clix:function>
+  <clix:function name='session-gc'>
   <clix:lambda-list>
   </clix:lambda-list>
   <clix:returns>result
@@ -2338,7 +2270,7 @@ threads and NIL otherwise.
     <clix:description>Removes sessions from the current session database which are too
 old - see SESSION-TOO-OLD-P.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:accessor generic='true' name='session-max-time'>
   <clix:lambda-list>session
   </clix:lambda-list>
@@ -2355,23 +2287,23 @@ old - see SESSION-TOO-OLD-P.
     <clix:description>
     </clix:description>
   </clix:accessor>
-  <clix:accessor generic='true' name='session-remote-addr'>
+  <clix:function generic='true' name='session-remote-addr'>
   <clix:lambda-list>session
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SESSION)' name='session-remote-addr'>
+  </clix:function>
+  <clix:function specialized='(SESSION)' name='session-remote-addr'>
   <clix:lambda-list>(session session)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='session-too-old-p'>
+  </clix:function>
+  <clix:function name='session-too-old-p'>
   <clix:lambda-list>session
   </clix:lambda-list>
   <clix:returns>result
@@ -2379,24 +2311,24 @@ old - see SESSION-TOO-OLD-P.
     <clix:description>Returns true if the SESSION object SESSION has not been active in
 the last (SESSION-MAX-TIME SESSION) seconds.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='session-user-agent'>
+  </clix:function>
+  <clix:function generic='true' name='session-user-agent'>
   <clix:lambda-list>session
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(SESSION)' name='session-user-agent'>
+  </clix:function>
+  <clix:function specialized='(SESSION)' name='session-user-agent'>
   <clix:lambda-list>(session session)
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
     <clix:description>
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='session-value'>
+  </clix:function>
+  <clix:function name='session-value'>
   <clix:lambda-list>symbol 
   <clix:lkw>optional
   </clix:lkw> session
@@ -2406,8 +2338,8 @@ the last (SESSION-MAX-TIME SESSION) seconds.
     <clix:description>Returns the value associated with SYMBOL from the session object
 SESSION (the default is the current session) if it exists.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='session-verify'>
+  </clix:function>
+  <clix:function generic='true' name='session-verify'>
   <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
@@ -2421,8 +2353,8 @@ old) is returned (and updated).  Otherwise NIL is returned.
 A default method is provided and you only need to write your own one
 if you want to maintain your own sessions.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='set-cookie'>
+  </clix:function>
+  <clix:function name='set-cookie'>
   <clix:lambda-list>name 
   <clix:lkw>key
   </clix:lkw> value expires path domain secure http-only reply
@@ -2434,8 +2366,8 @@ it to the outgoing cookies of the REPLY object REPLY. If a cookie
 with the name NAME (case-sensitive) already exists, it is
 replaced.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='set-cookie*'>
+  </clix:function>
+  <clix:function name='set-cookie*'>
   <clix:lambda-list>cookie 
   <clix:lkw>optional
   </clix:lkw> reply
@@ -2446,8 +2378,8 @@ replaced.
 REPLY object REPLY. If a cookie with the same name
 (case-sensitive) already exists, it is replaced.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='shutdown'>
+  </clix:function>
+  <clix:function generic='true' name='shutdown'>
   <clix:lambda-list>taskmaster
   </clix:lambda-list>
   <clix:returns>result
@@ -2456,7 +2388,7 @@ REPLY object REPLY. If a cookie with the same name
 that were set up by it.  For example, a multi-threaded taskmaster
 might terminate all threads that are currently associated with it.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
   <clix:class name='single-threaded-taskmaster'>
     <clix:description>A taskmaster that runs synchronously in the thread
 where the START function was invoked (or in the case of LispWorks in
@@ -2467,21 +2399,8 @@ ACCEPT-CONNECTIONS, HANDLE-INCOMING-CONNECTION calls
 PROCESS-CONNECTION.
     </clix:description>
   </clix:class>
-  <clix:class name='ssl-acceptor'>
-    <clix:description>Create and START an instance of this class
-(instead of ACCEPTOR) if you want an https server.  There are two
-required initargs, :SSL-CERTIFICATE-FILE and :SSL-PRIVATEKEY-FILE, for
-pathname designators denoting the certificate file and the key file in
-PEM format.  On LispWorks, you can have both in one file in which case
-the second initarg is optional.  On LispWorks, you can also use the
-:SSL-PRIVATEKEY-PASSWORD initarg to provide a password (as a string)
-for the key file (or NIL, the default, for no password).  On other
-Lisps, the key file must not be password-protected.
 
-The default port for SSL-ACCEPTOR instances is 443 instead of 80
-    </clix:description>
-  </clix:class>
-  <clix:accessor name='ssl-p'>
+  <clix:function name='ssl-p'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> acceptor
@@ -2490,8 +2409,17 @@ The default port for SSL-ACCEPTOR instances is 443 instead of 80
   </clix:returns>
     <clix:description>Whether the current connection to the client is secure.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='start-listening'>
+  </clix:function>
+  <clix:function generic='true' name='start'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Starts the ACCEPTOR so that it begins accepting
+connections.  Returns the acceptor.
+    </clix:description>
+  </clix:function>
+  <clix:function generic='true' name='start-listening'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
   <clix:returns>result
@@ -2502,8 +2430,8 @@ from the thread that starts the acceptor initially and may return
 errors resulting from the listening operation (like &#039;address in use&#039;
 or similar).
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='start-session'>
+  </clix:function>
+  <clix:function name='start-session'>
   <clix:lambda-list>
   </clix:lambda-list>
   <clix:returns>result
@@ -2512,16 +2440,8 @@ or similar).
 creates one and updates the corresponding data structures. In this
 case the function will also send a session cookie to the browser.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='stop'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Stops the ACCEPTOR so that it no longer accepts
-requests.
-    </clix:description>
-  </clix:accessor>
+  </clix:function>
+
   <clix:class name='taskmaster'>
     <clix:description>An instance of this class is responsible for
 distributing the work of handling requests when its acceptor 
@@ -2543,7 +2463,7 @@ distributing the work of handling requests when its acceptor
     <clix:description>
     </clix:description>
   </clix:accessor>
-  <clix:accessor name='url-decode'>
+  <clix:function name='url-decode'>
   <clix:lambda-list>string 
   <clix:lkw>optional
   </clix:lkw> external-format
@@ -2553,8 +2473,8 @@ distributing the work of handling requests when its acceptor
     <clix:description>Decodes a URL-encoded STRING which is assumed to be encoded using
 the external format EXTERNAL-FORMAT.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='url-encode'>
+  </clix:function>
+  <clix:function name='url-encode'>
   <clix:lambda-list>string 
   <clix:lkw>optional
   </clix:lkw> external-format
@@ -2563,8 +2483,8 @@ the external format EXTERNAL-FORMAT.
   </clix:returns>
     <clix:description>URL-encodes a string using the external format EXTERNAL-FORMAT.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor name='user-agent'>
+  </clix:function>
+  <clix:function name='user-agent'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> request
@@ -2573,8 +2493,8 @@ the external format EXTERNAL-FORMAT.
   </clix:returns>
     <clix:description>Returns the &#039;User-Agent&#039; http header.
     </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='header-out'>
+  </clix:function>
+  <clix:function generic='true' name='header-out'>
   <clix:lambda-list>new-value name 
   <clix:lkw>optional
   </clix:lkw> reply
@@ -2583,8 +2503,9 @@ the external format EXTERNAL-FORMAT.
 header named NAME (a keyword or a string).  If a header with this
 name doesn&#039;t exist, it is created.
     </clix:description>
-  </clix:accessor>
+  </clix:function>
     </clix:chapter>
+
   <clix:chapter name="testing" title="Testing">
     Hunchentoot comes with a test script which verifies that the
     example web server responds as expected.  This test script uses the
