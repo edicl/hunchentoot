@@ -377,7 +377,7 @@ connections.  Returns the acceptor.
   <clix:function generic='true' name='stop'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
-  <clix:returns>result
+  <clix:returns>acceptor
   </clix:returns>
     <clix:description>Stops <clix:arg>acceptor</clix:arg> so that it
 no longer accepts requests.
@@ -664,6 +664,113 @@ called after a request has been processed and <em>must</em> return the
 stream.
     </clix:description>
   </clix:function>
+
+    </clix:subchapter>
+
+    <clix:subchapter name="taskmasters" title="Taskmasters">
+
+As a "normal" Hunchentoot user, you can completely ignore taskmasters
+and skip this section.  But if you're still reading, here are the
+dirty details: Each <a href="#acceptors">acceptor</a> has a taskmaster
+associated with it at creation time.  It is the taskmaster's job to
+distribute the work of accepting and handling incoming connections.
+The acceptor calls the taskmaster if appropriate and the taskmaster
+calls back into the acceptor.  This is done using the generic
+functions described in this and
+the <a href="#acceptor-behaviour">previous</a> section.  Hunchentoot
+comes with two standard taskmaster implementations - one (which is the
+default used on multi-threaded Lisps) which starts a new thread for
+each incoming connection and one which handles all requests
+sequentially.  It should for example be relatively straightforward to
+create a taskmaster which allocates threads from a fixed pool instead
+of creating a new one for each connection.
+<p>
+If you want to implement your own taskmasters, you should subclass
+<clix:ref>TASKMASTER</clix:ref> and specialize the generic functions in this section.
+</p>
+
+  <clix:class name='taskmaster'>
+    <clix:description>An instance of this class is responsible for
+distributing the work of handling requests for its acceptor.
+This is
+an "abstract" class in the sense that usually only instances of
+subclasses of <clix:ref>TASKMASTER</clix:ref> will be used.
+    </clix:description>
+  </clix:class>
+
+  <clix:class name='one-thread-per-connection-taskmaster'>
+    <clix:description>A taskmaster that starts one thread for listening
+to incoming requests and one thread for each incoming connection.
+<p>
+This is the default taskmaster implementation for multi-threaded Lisp
+implementations.
+</p>
+    </clix:description>
+  </clix:class>
+
+  <clix:class name='single-threaded-taskmaster'>
+    <clix:description>A taskmaster that runs synchronously in the
+thread where the <clix:ref>START</clix:ref> function was invoked (or
+in the case of LispWorks in the thread started
+by <a href="http://www.lispworks.com/documentation/lw51/LWRM/html/lwref-61.htm#marker-910861"><code>COMM:START-UP-SERVER</code></a>).
+This is the simplest possible taskmaster implementation in that its
+methods do nothing but calling their acceptor &quot;sister&quot;
+methods - <clix:ref>EXECUTE-ACCEPTOR</clix:ref> calls <clix:ref>ACCEPT-CONNECTIONS</clix:ref>,
+<clix:ref>HANDLE-INCOMING-CONNECTION</clix:ref> calls <clix:ref>PROCESS-CONNECTION</clix:ref>.
+    </clix:description>
+  </clix:class>
+
+  <clix:function generic='true' name='execute-acceptor'>
+  <clix:lambda-list>taskmaster
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>This is a callback called by the acceptor once it
+has performed all initial processing to start listening for incoming
+connections (see <clix:ref>START-LISTENING</clix:ref>).  It usually calls the
+<clix:ref>ACCEPT-CONNECTIONS</clix:ref> method of the acceptor, but depending on the
+taskmaster instance the method might be called from a new thread.
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='handle-incoming-connection'>
+  <clix:lambda-list>taskmaster socket
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>This function is called by the acceptor to start
+processing of requests on a new incoming connection.  <clix:arg>socket</clix:arg> is the
+usocket instance that represents the new connection (or a socket
+handle on LispWorks).  The taskmaster starts processing requests on
+the incoming connection by calling the <clix:ref>PROCESS-CONNECTION</clix:ref>
+method of the acceptor instance.  The <clix:arg>socket</clix:arg> argument is passed to
+<clix:ref>PROCESS-CONNECTION</clix:ref> as an argument.
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='shutdown'>
+  <clix:lambda-list>taskmaster
+  </clix:lambda-list>
+  <clix:returns>taskmaster
+  </clix:returns>
+    <clix:description>Shuts down the taskmaster, i.e. frees all resources
+that were set up by it.  For example, a multi-threaded taskmaster
+might terminate all threads that are currently associated with it.
+This function is called by the acceptor's <clix:ref>STOP</clix:ref> method.
+    </clix:description>
+  </clix:function>
+
+  <clix:accessor generic='true' name='taskmaster-acceptor'>
+  <clix:lambda-list>taskmaster
+  </clix:lambda-list>
+  <clix:returns>acceptor
+  </clix:returns>
+    <clix:description>
+This is an accessor for the slot of a <clix:ref>TASKMASTER</clix:ref>
+object that links back to the <a href="#acceptors">acceptor</a> it is
+associated with.
+    </clix:description>
+  </clix:accessor>
 
     </clix:subchapter>
 
@@ -1516,18 +1623,7 @@ defined with DEFINE-EASY-HANDLER, if there is one.
     <clix:description>Escapes the characters #\&lt;, #\&gt;, #\&#039;, #\&quot;, and #\&amp; for HTML output.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='execute-acceptor'>
-  <clix:lambda-list>taskmaster
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>This is a callback called by the acceptor once it
-has performed all initial processing to start listening for incoming
-connections (see START-LISTENING).  It usually calls the
-ACCEPT-CONNECTIONS method of the acceptor, but depending on the
-taskmaster instance the method might be called from a new thread.
-    </clix:description>
-  </clix:function>
+
   <clix:function name='get-parameter'>
   <clix:lambda-list>name 
   <clix:lkw>optional
@@ -1578,25 +1674,7 @@ is compared to the one generated from the supplied universal time
 TIME.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='handle-incoming-connection'>
-  <clix:lambda-list>taskmaster socket
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>This function is called by Hunchentoot to start processing of
-requests on a new incoming connection.  SOCKET is the usocket instance
-that represents the new connection (or a socket handle on LispWorks).
-The taskmaster starts processing requests on the incoming
-connection by calling the START-REQUEST-PROCESSING function of the
-acceptor instance, taken from the ACCEPTOR slot in the taskmaster
-instance.  The SOCKET argument is passed to START-REQUEST-PROCESSING
-as argument.
 
-In a multi-threaded environment, the taskmaster runs this function
-in a separate thread.  In a single-threaded environment, this function
-is called directly.
-    </clix:description>
-  </clix:function>
   <clix:function name='handle-static-file'>
   <clix:lambda-list>path 
   <clix:lkw>optional
@@ -1782,11 +1860,7 @@ method.
     <clix:description>Adds appropriate headers to completely prevent caching on most browsers.
     </clix:description>
   </clix:function>
-  <clix:class name='one-thread-per-connection-taskmaster'>
-    <clix:description>A taskmaster that starts one thread for listening
-to incoming requests and one thread for each incoming connection.
-    </clix:description>
-  </clix:class>
+
   <clix:function name='parameter'>
   <clix:lambda-list>name 
   <clix:lkw>optional
@@ -2449,26 +2523,6 @@ REPLY object REPLY. If a cookie with the same name
 (case-sensitive) already exists, it is replaced.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='shutdown'>
-  <clix:lambda-list>taskmaster
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Shuts down the taskmaster, i.e. frees all resources
-that were set up by it.  For example, a multi-threaded taskmaster
-might terminate all threads that are currently associated with it.
-    </clix:description>
-  </clix:function>
-  <clix:class name='single-threaded-taskmaster'>
-    <clix:description>A taskmaster that runs synchronously in the thread
-where the START function was invoked (or in the case of LispWorks in
-the thread started by COMM:START-UP-SERVER).  This is the simplest
-possible taskmaster implementation in that its methods do nothing but
-calling their acceptor &quot;sister&quot; methods - EXECUTE-ACCEPTOR calls
-ACCEPT-CONNECTIONS, HANDLE-INCOMING-CONNECTION calls
-PROCESS-CONNECTION.
-    </clix:description>
-  </clix:class>
 
   <clix:function name='ssl-p'>
   <clix:lambda-list>
@@ -2501,27 +2555,6 @@ case the function will also send a session cookie to the browser.
     </clix:description>
   </clix:function>
 
-  <clix:class name='taskmaster'>
-    <clix:description>An instance of this class is responsible for
-distributing the work of handling requests when its acceptor 
-    </clix:description>
-  </clix:class>
-  <clix:accessor generic='true' name='taskmaster-acceptor'>
-  <clix:lambda-list>taskmaster
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(TASKMASTER)' name='taskmaster-acceptor'>
-  <clix:lambda-list>(taskmaster taskmaster)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
   <clix:function name='url-decode'>
   <clix:lambda-list>string 
   <clix:lkw>optional
