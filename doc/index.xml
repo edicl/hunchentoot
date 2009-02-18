@@ -1136,16 +1136,6 @@ this session is valid (as far as Hunchentoot is concerned) and
 not <a href="#session-too-old-p">too old</a>.  Old sessions
 are <a href="#session-gc">automatically removed</a>.
 </p>
-<p>
-For everyday session usage, you will probably just
-use <clix:ref>START-SESSION</clix:ref>,
-<clix:ref>SESSION-VALUE</clix:ref>,
-maybe <clix:ref>DELETE-SESSION-VALUE</clix:ref>
-and <clix:ref>*SESSION*</clix:ref>.  However, there are two ways to
-customize the way Hunchentoot maintains sessions:
-</p>
-<p>
-</p>
 
   <clix:class name='session'>
     <clix:description><clix:ref>SESSION</clix:ref> objects are
@@ -1218,6 +1208,29 @@ there is one.
     </clix:description>
   </clix:special-variable>
 
+  <clix:function name='remove-session'>
+  <clix:lambda-list>session
+  </clix:lambda-list>
+  <clix:returns>|
+  </clix:returns>
+    <clix:description>Completely removes
+the <clix:ref>SESSION</clix:ref> object <clix:arg>session</clix:arg>
+from Hunchentoot&#039;s internal <a href="#session-db">session
+database</a>.
+    </clix:description>
+  </clix:function>
+
+
+  <clix:function name='reset-sessions'>
+  <clix:lambda-list>
+  </clix:lambda-list>
+  <clix:returns>|
+  </clix:returns>
+    <clix:description>Removes <em>all</em> stored sessions.
+    </clix:description>
+  </clix:function>
+
+
   <clix:special-variable name='*rewrite-for-session-urls*'>
     <clix:description>Whether HTML pages should possibly be rewritten for cookie-less
 session-management.
@@ -1231,37 +1244,6 @@ session-management.
     </clix:description>
   </clix:special-variable>
 
-  <clix:special-variable name='*session-gc-frequency*'>
-    <clix:description>A session GC (see function <clix:ref>SESSION-GC</clix:ref>) will happen every
-<clix:ref>*SESSION-GC-FREQUENCY*</clix:ref> requests (counting only
-requests which create a new session) if this variable is
-not <code>NIL</code>.  See <clix:ref>SESSION-CREATED</clix:ref>.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*session-max-time*'>
-    <clix:description>The default time (in seconds) after which a session times out.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*session-removal-hook*'>
-    <clix:description>A function of one argument
-(a <clix:ref>SESSION</clix:ref> object) which is called whenever a
-session is <a href="#session-gc">garbage-collected</a>.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*session-secret*'>
-    <clix:description>A random ASCII string that&#039;s used to encode
-the public session data.  This variable is initially unbound and will
-be set (using <clix:ref>RESET-SESSION-SECRET</clix:ref>) the first
-time a session is created, if necessary.  You can prevent this from
-happening if you set the value yourself before
-starting <a href="#acceptors">acceptors</a>.
-    </clix:description>
-  </clix:special-variable>
-
-
 
   <clix:special-variable name='*use-remote-addr-for-sessions*'>
     <clix:description>Whether the client&#039;s remote IP (as returned by <clix:ref>REAL-REMOTE-ADDR</clix:ref>)
@@ -1274,12 +1256,193 @@ which doesn&#039;t send correct &#039;X_FORWARDED_FOR&#039; headers.
     </clix:description>
   </clix:special-variable>
 
+  <clix:function generic='true' name='session-remote-addr'>
+  <clix:lambda-list>session
+  </clix:lambda-list>
+  <clix:returns>remote-addr
+  </clix:returns>
+    <clix:description>
+The remote IP address of the client when this session was started as
+returned by <clix:ref>REAL-REMOTE-ADDR</clix:ref>.
+    </clix:description>
+  </clix:function>
+
+
   <clix:special-variable name='*use-user-agent-for-sessions*'>
-    <clix:description>Whether the &#039;User-Agent&#039; header should be encoded into the session
-string.  If this value is true, a session will cease to be accessible
-if the client sends a different &#039;User-Agent&#039; header.
+    <clix:description>Whether the &#039;User-Agent&#039; header should
+be encoded into the session string.  If this value is true, a session
+will cease to be accessible if the client sends a different
+&#039;User-Agent&#039; header.
     </clix:description>
   </clix:special-variable>
+
+  <clix:function generic='true' name='session-user-agent'>
+  <clix:lambda-list>session
+  </clix:lambda-list>
+  <clix:returns>user-agent
+  </clix:returns>
+    <clix:description>
+The incoming &#039;User-Agent&#039; header that
+was sent when this session was created.
+    </clix:description>
+  </clix:function>
+
+
+  <clix:accessor generic='true' name='session-max-time'>
+  <clix:lambda-list>session
+  </clix:lambda-list>
+  <clix:returns>max-time
+  </clix:returns>
+    <clix:description>
+Gets or sets the time (in seconds) after
+which <clix:arg>session</clix:arg> expires if it's not used.
+    </clix:description>
+  </clix:accessor>
+
+
+  <clix:special-variable name='*session-max-time*'>
+    <clix:description>The default time (in seconds) after which a session times out.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*session-gc-frequency*'>
+    <clix:description>A session GC (see function <clix:ref>SESSION-GC</clix:ref>) will happen every
+<clix:ref>*SESSION-GC-FREQUENCY*</clix:ref> requests (counting only
+requests which create a new session) if this variable is
+not <code>NIL</code>.  See <clix:ref>SESSION-CREATED</clix:ref>.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:function name='session-gc'>
+  <clix:lambda-list>
+  </clix:lambda-list>
+  <clix:returns>|
+  </clix:returns>
+    <clix:description>Removes sessions from the current session database which are too
+old - see <clix:ref>SESSION-TOO-OLD-P</clix:ref>.
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='session-too-old-p'>
+  <clix:lambda-list>session
+  </clix:lambda-list>
+  <clix:returns>generalized-boolean
+  </clix:returns>
+    <clix:description>Returns true if the <clix:ref>SESSION</clix:ref> object <clix:arg>session</clix:arg> has not been active in
+the last <code>(session-max-time session)</code> seconds.
+    </clix:description>
+  </clix:function>
+
+
+  <clix:special-variable name='*session-removal-hook*'>
+    <clix:description>A function of one argument
+(a <clix:ref>SESSION</clix:ref> object) which is called whenever a
+session is <a href="#session-gc">garbage-collected</a>.
+    </clix:description>
+  </clix:special-variable>
+
+
+    </clix:subchapter>
+
+
+    <clix:subchapter name="session-behaviour" title="Customizing session behaviour">
+
+For everyday session usage, you will probably just
+use <clix:ref>START-SESSION</clix:ref>,
+<clix:ref>SESSION-VALUE</clix:ref>,
+maybe <clix:ref>DELETE-SESSION-VALUE</clix:ref>
+and <clix:ref>*SESSION*</clix:ref>.  However, there are two ways to
+customize the way Hunchentoot maintains sessions.
+<p>
+One way is to mostly leave the session mechanism intact but to tweak
+it a bit:
+<ul>
+<li>The publicly visible part of session is encoded using a
+<a href="#*session-secret*">secret</a> which you can set yourself.</li>
+<li>And it is stored using a cookie (or GET
+parameter) <a href="#session-cookie-name">name</a> that you can
+override.</li>
+<li>Each session receives a <a href="#next-session-id">new ID</a> when
+it is created and you can implement a more robust way to do that.</li>
+<li>You can arrange to be called whenever a session
+is <a href="#session-created">created</a> to trigger some action.  You
+might also do this to invent your own
+session <a href="#session-gc">garbage collection</a>.</li>
+<li>By default, all sessions are stored in a global alist in memory.
+You can't change the alist part, but you can distribute your sessions
+amongst different <a href="#session-db">"databases"</a>.</li>
+<li>By default, every operation which modifies sessions or one of the
+session databases is guarded by a global lock, but you can arrange to
+<a href="#session-db-lock">provide</a> different locks for this.</li>
+</ul>
+</p>
+<p>
+The other way to customize Hunchentoot's sessions is to completely
+replace them.  This is actually pretty easy: Create your own class to
+store state (which doesn't have to and probably shouldn't inherit
+from <clix:ref>SESSION</clix:ref>) and implement methods for
+<clix:ref>SESSION-VERIFY</clix:ref>
+and <clix:ref>SESSION-COOKIE-VALUE</clix:ref> - that's it.
+Hunchentoot will continue to use cookies and/or to rewrite URLs to
+keep track of session state and it will store "the current session"
+(whatever that is in your implementation)
+in <clix:ref>*SESSION*</clix:ref>.  Everything else (like persisting
+sessions, GC, getting and setting values) you'll have to take care of
+yourself and the other session functions
+(like <clix:ref>START-SESSION</clix:ref> or
+<clix:ref>SESSION-VALUE</clix:ref>) won't work anymore.  (Almost)
+total freedom, but a lot of responsibility as well... :)
+</p>
+
+  <clix:special-variable name='*session-secret*'>
+    <clix:description>A random ASCII string that&#039;s used to encode
+the public session data.  This variable is initially unbound and will
+be set (using <clix:ref>RESET-SESSION-SECRET</clix:ref>) the first
+time a session is created, if necessary.  You can prevent this from
+happening if you set the value yourself before
+starting <a href="#acceptors">acceptors</a>.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:function name='reset-session-secret'>
+  <clix:lambda-list>
+  </clix:lambda-list>
+  <clix:returns>secret
+  </clix:returns>
+    <clix:description>Sets <clix:ref>*SESSION-SECRET*</clix:ref> to a
+new random value. All old sessions will cease to be valid.
+    </clix:description>
+  </clix:function>
+
+
+
+  <clix:function generic='true' name='session-cookie-name'>
+  <clix:lambda-list>acceptor
+  </clix:lambda-list>
+  <clix:returns>name
+  </clix:returns>
+    <clix:description>Returns the name (a string) of the cookie (or
+the GET parameter) which is used to store a session on the client
+side.  The default is to use the
+string <code>&quot;hunchentoot-session&quot;</code>, but you can
+specialize this function if you want another name.
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='session-created'>
+  <clix:lambda-list>acceptor new-session
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>This function is called whenever a new session
+has been created.  There&#039;s a default method which might trigger
+a <a href="#session-gc">session GC</a> based on the value of
+<clix:ref>*SESSION-GC-FREQUENCY*</clix:ref>.
+<p>
+The return value is ignored.
+</p>
+    </clix:description>
+  </clix:function>
 
 
   <clix:function generic='true' name='next-session-id'>
@@ -1295,76 +1458,6 @@ more robust implementation.
     </clix:description>
   </clix:function>
 
-
-  <clix:function name='remove-session'>
-  <clix:lambda-list>session
-  </clix:lambda-list>
-  <clix:returns>|
-  </clix:returns>
-    <clix:description>Completely removes the SESSION object SESSION from Hunchentoot&#039;s
-internal session database.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='reset-session-secret'>
-  <clix:lambda-list>
-  </clix:lambda-list>
-  <clix:returns>secret
-  </clix:returns>
-    <clix:description>Sets *SESSION-SECRET* to a new random value. All old sessions will
-cease to be valid.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='reset-sessions'>
-  <clix:lambda-list>
-  </clix:lambda-list>
-  <clix:returns>|
-  </clix:returns>
-    <clix:description>Removes ALL stored sessions.
-    </clix:description>
-  </clix:function>
-
-  <clix:function generic='true' name='session-cookie-name'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>name
-  </clix:returns>
-    <clix:description>Returns the name (a string) of the cookie (or the
-GET parameter) which is used to store a session on the client side.
-The default is to use the string &quot;hunchentoot-session&quot;, but you can
-specialize this function if you want another name.
-    </clix:description>
-  </clix:function>
-
-  <clix:function generic='true' name='session-cookie-value'>
-  <clix:lambda-list>session
-  </clix:lambda-list>
-  <clix:returns>string
-  </clix:returns>
-    <clix:description>Returns a string which can be used to safely
-restore the session SESSION if as session has already been
-established.  This is used as the value stored in the session cookie
-or in the corresponding GET parameter.  A default method is provided
-and there&#039;s no reason to change it unless you want to use your own
-session objects.
-    </clix:description>
-  </clix:function>
-
-  <clix:function generic='true' name='session-created'>
-  <clix:lambda-list>acceptor new-session
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>This function is called whenever a new session has
-been created.  There&#039;s a default method which might trigger a session
-GC based on the value of *SESSION-GC-FREQUENCY*.
-<p>
-The return value is ignored.
-</p>
-    </clix:description>
-  </clix:function>
-
   <clix:accessor generic='true' name='session-db'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
@@ -1372,8 +1465,8 @@ The return value is ignored.
   </clix:returns>
     <clix:description>Returns the current session database which is an
 alist where each car is a session&#039;s ID and the cdr is the
-corresponding SESSION object itself.  The default is to use a global
-list for all acceptors.
+corresponding <clix:ref>SESSION</clix:ref> object itself.  The default
+is to use a global list for all acceptors.
     </clix:description>
   </clix:accessor>
 
@@ -1384,64 +1477,20 @@ list for all acceptors.
   </clix:lambda-list>
   <clix:returns>lock
   </clix:returns>
-    <clix:description>A function which returns a lock that will be used
-to prevent concurrent access to sessions.  The first argument will be
-the acceptor that handles the current request, the second argument is
-true if the whole (current) session database is modified.  If it is
-NIL, only one existing session in the database is modified.
-
-This function can return NIL which means that sessions or session
-databases will be modified without a lock held (for example for
-single-threaded environments).  The default is to always return a
-global lock (ignoring the ACCEPTOR argument) for Lisps that support
-threads and NIL otherwise.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='session-gc'>
-  <clix:lambda-list>
-  </clix:lambda-list>
-  <clix:returns>|
-  </clix:returns>
-    <clix:description>Removes sessions from the current session database which are too
-old - see SESSION-TOO-OLD-P.
-    </clix:description>
-  </clix:function>
-
-  <clix:accessor generic='true' name='session-max-time'>
-  <clix:lambda-list>session
-  </clix:lambda-list>
-  <clix:returns>max-time
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-
-  <clix:function generic='true' name='session-remote-addr'>
-  <clix:lambda-list>session
-  </clix:lambda-list>
-  <clix:returns>remote-addr
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='session-too-old-p'>
-  <clix:lambda-list>session
-  </clix:lambda-list>
-  <clix:returns>generalized-boolean
-  </clix:returns>
-    <clix:description>Returns true if the SESSION object SESSION has not been active in
-the last (SESSION-MAX-TIME SESSION) seconds.
-    </clix:description>
-  </clix:function>
-
-  <clix:function generic='true' name='session-user-agent'>
-  <clix:lambda-list>session
-  </clix:lambda-list>
-  <clix:returns>user-agent
-  </clix:returns>
-    <clix:description>
+    <clix:description>A function which returns a lock that will be
+used to prevent concurrent access to sessions.  The first argument
+will be the <a href="#acceptors">acceptor</a> that handles the
+current <a href="#requests">request</a>, the second argument is true
+if the whole (current) session database is modified.  If it
+is <code>NIL</code>, only one existing session in the database is
+modified.
+<p>
+This function can return <code>NIL</code> which means that sessions or
+session databases will be modified without a lock held (for example
+for single-threaded environments).  The default is to always return a
+global lock (ignoring the <clix:arg>acceptor</clix:arg> argument) for
+Lisps that support threads and <code>NIL</code> otherwise.
+</p>
     </clix:description>
   </clix:function>
 
@@ -1452,12 +1501,27 @@ the last (SESSION-MAX-TIME SESSION) seconds.
   </clix:returns>
     <clix:description>Tries to get a session identifier from the cookies
 (or alternatively from the GET parameters) sent by the client.  This
-identifier is then checked for validity against the REQUEST object
-REQUEST.  On success the corresponding session object (if not too
-old) is returned (and updated).  Otherwise NIL is returned.
-
+identifier is then checked for validity against the <clix:ref>REQUEST</clix:ref> object
+<clix:arg>request</clix:arg>.  On success the corresponding session object (if not too
+old) is returned (and updated).  Otherwise <code>NIL</code> is returned.
+<p>
 A default method is provided and you only need to write your own one
 if you want to maintain your own sessions.
+</p>
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='session-cookie-value'>
+  <clix:lambda-list>session
+  </clix:lambda-list>
+  <clix:returns>string
+  </clix:returns>
+    <clix:description>Returns a string which can be used to safely
+restore the session <clix:arg>session</clix:arg> if as session has
+already been established.  This is used as the value stored in the
+session cookie or in the corresponding GET parameter.  A default
+method is provided and there&#039;s no reason to change it unless you
+want to use your own session objects.
     </clix:description>
   </clix:function>
 

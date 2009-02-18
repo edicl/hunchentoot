@@ -96,8 +96,8 @@ cookie value or as a GET parameter.")
 was sent when this session was created.")
    (remote-addr :initform (real-remote-addr *request*)
                 :reader session-remote-addr
-                :documentation "The remote IP address of the client when
-this sessions was started as returned by REAL-REMOTE-ADDR.")
+                :documentation "The remote IP address of the client
+when this session was started as returned by REAL-REMOTE-ADDR.")
    (session-start :initform (get-universal-time)
                   :reader session-start
                   :documentation "The time this session was started.")
