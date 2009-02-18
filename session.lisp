@@ -75,7 +75,7 @@ list for all acceptors."))
 which should be unique per session.  The default method uses a simple
 global counter and isn't guarded by a lock.  For a high-performance
 production environment you might consider to use a more robust
-method."))
+implementation."))
 
 (let ((session-id-counter 0))
   (defmethod next-session-id ((acceptor t))
@@ -120,9 +120,9 @@ Hunchentoot.  They should not be created explicitly with MAKE-INSTANCE
 but implicitly with START-SESSION and they should be treated as opaque
 objects.
 
-You can ignore Hunchentoot's SESSION objects and implement your own
-sessions if you provide corresponding methods for SESSION-COOKIE-VALUE
-and SESSION-VERIFY."))
+You can ignore Hunchentoot's SESSION objects altogether and implement
+your own sessions if you provide corresponding methods for
+SESSION-COOKIE-VALUE and SESSION-VERIFY."))
 
 (defun encode-session-string (id user-agent remote-addr start)
   "Creates a uniquely encoded session string based on the values ID,
@@ -196,8 +196,8 @@ there's no session for the current request."
                 ,new-value))))))))
 
 (defun delete-session-value (symbol &optional (session *session*))
-  "Removes the value associated with SYMBOL from the current session
-object if there is one."
+  "Removes the value associated with SYMBOL from SESSION if there is
+one."
   (when session
     (setf (slot-value session 'session-data)
             (delete symbol (session-data session)
@@ -231,7 +231,9 @@ specialize this function if you want another name."))
 (defgeneric session-created (acceptor new-session)
   (:documentation "This function is called whenever a new session has
 been created.  There's a default method which might trigger a session
-GC based on the value of *SESSION-GC-FREQUENCY*."))
+GC based on the value of *SESSION-GC-FREQUENCY*.
+
+The return value is ignored."))
 
 (let ((global-session-usage-counter 0))
   (defmethod session-created ((acceptor t) (session t))

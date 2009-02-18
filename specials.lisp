@@ -135,9 +135,9 @@ session-management.")
 (defvar-unbound *session-secret*
   "A random ASCII string that's used to encode the public session
 data.  This variable is initially unbound and will be set \(using
-RESET-SESSION-SECRET) by the first acceptor which is started.  You can
-prevent this from happening if you set the value yourself before
-starting acceptors.")
+RESET-SESSION-SECRET) the first time a session is created, if
+necessary.  You can prevent this from happening if you set the value
+yourself before starting acceptors.")
 
 (defvar-unbound *hunchentoot-stream*
   "The stream representing the socket Hunchentoot is listening on.")
@@ -238,7 +238,7 @@ used by LOG-ACCESS-TO-FILE function.")
   "The current REPLY object while in the context of a request.")
 
 (defvar-unbound *session*
-  "The current SESSION object while in the context of a request.")
+  "The current SESSION object while in the context of a request, or NIL.")
 
 (defvar *break-even-while-reading-request-type-p* nil
   "If this variable is set to true, Hunchentoot will not bind
@@ -312,18 +312,6 @@ encode cookie values.")
 (defvar *default-connection-timeout* 20
   "The default connection timeout used when an acceptor is reading
 from and writing to a socket stream.")
-
-(defvar-unbound *local-host*
-  "Bound to a string denoting the address at which the current
-request arrived.")
-
-(defvar-unbound *remote-host*
-  "Bound to a string denoting the address the current request
-originated from.")
-
-(defvar-unbound *remote-port*
-  "Bound to an integer denoting the port the current request
-originated from.")
 
 (define-symbol-macro *supports-threads-p*
   #+:lispworks t

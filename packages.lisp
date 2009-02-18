@@ -229,6 +229,7 @@
            "SEND-HEADERS"
            "SERVER-PROTOCOL"
            "SERVER-PROTOCOL*"
+           "SESSION"
            "SESSION-COOKIE-NAME"
            "SESSION-COOKIE-VALUE"
            "SESSION-CREATED"
