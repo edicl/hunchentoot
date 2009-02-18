@@ -1060,7 +1060,8 @@ DEFAULT-DISPATCHER.
     <clix:subchapter name="requests" title="Request objects">
 
 For each incoming request, the <a href="#acceptors">acceptor</a>
-creates a <clix:ref>REQUEST</clix:ref> object and makes it available
+(in <clix:ref>PROCESS-CONNECTION</clix:ref>) creates
+a <clix:ref>REQUEST</clix:ref> object and makes it available
 to <a href="#handlers">handlers</a> via the special variable
 <clix:ref>*REQUEST*</clix:ref>.  This object contains all relevant
 information about the request and this section collects the functions
@@ -1431,43 +1432,82 @@ The return value of this function is ignored.
 
     <clix:subchapter name="replies" title="Reply objects">
 
+For each incoming request, the <a href="#acceptors">acceptor</a>
+(in <clix:ref>PROCESS-CONNECTION</clix:ref>) creates
+a <clix:ref>REPLY</clix:ref> object and makes it available
+to <a href="#handlers">handlers</a> via the special variable
+<clix:ref>*REPLY*</clix:ref>.  This object contains all relevant
+information (except for the content body) about the reply that will be
+sent to the client and this section collects the functions which can
+be used to query and modify such an object.  In all function
+where <clix:arg>reply</clix:arg> is an optional or keyword parameter,
+the default is <clix:ref>*REPLY*</clix:ref>.
+
+<p>
+If you need more fine-grained control over the behaviour of reply
+objects, you can subclass <clix:ref>REPLY</clix:ref> and initialize
+the <a href="#acceptor-reply-class"><code>REPLY-CLASS</code></a>
+slot of the <clix:ref>ACCEPTOR</clix:ref> class accordingly.  The
+acceptor will generate reply objects of the class named by this
+slot.
+</p>
+
   <clix:class name='reply'>
     <clix:description>Objects of this class hold all the information
 about an outgoing reply.  They are created automatically by
 Hunchentoot and can be accessed and modified by the corresponding
-handler.
-
+<a href="#handlers">handler</a>.
+<p>
 You should not mess with the slots of these objects directly, but you
-can subclass REPLY in order to implement your own behaviour.  See the
-REPLY-CLASS slot of the ACCEPTOR class.
+can subclass <clix:ref>REPLY</clix:ref> in order to implement your own behaviour.  See the
+<a href="#acceptor-reply-class"><code>:reply-class</code></a> initarg
+of the <clix:ref>ACCEPTOR</clix:ref> class.
+</p>
     </clix:description>
   </clix:class>
 
+  <clix:special-variable name='*reply*'>
+    <clix:description>The current <clix:ref>REPLY</clix:ref> object in the context of a request.
+    </clix:description>
+  </clix:special-variable>
 
-  <clix:accessor name='reply-external-format*'>
+
+  <clix:function name='header-out'>
+  <clix:lambda-list>name 
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>string
+  </clix:returns>
+    <clix:description>
+     <clix:ref>HEADER-OUT</clix:ref> returns the outgoing http header named by the keyword <clix:arg>name</clix:arg> if there is one, otherwise <code>NIL</code>. <code>SETF</code> of <clix:ref>HEADER-OUT</clix:ref> changes the current value of the header named <clix:arg>name</clix:arg>. If no header named <clix:arg>name</clix:arg> exists, it is created. For backwards compatibility, <clix:arg>name</clix:arg> can also be a string in which case the association between a header and its name is case-insensitive.
+<p>
+    Note that the header 'Set-Cookie' cannot be queried by <clix:ref>HEADER-OUT</clix:ref> and must not be set by <code>SETF</code> of <clix:ref>HEADER-OUT</clix:ref>.
+    See also <clix:ref>HEADERS-OUT*</clix:ref>, <clix:ref>CONTENT-TYPE*</clix:ref>, <clix:ref>CONTENT-LENGTH*</clix:ref>, <clix:ref>COOKIES-OUT*</clix:ref>, and <clix:ref>COOKIE-OUT</clix:ref>.
+</p>
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='headers-out*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> reply
   </clix:lambda-list>
-  <clix:returns>result
+  <clix:returns>alist
   </clix:returns>
-    <clix:description>The external format of REPLY which is used for character output.
+    <clix:description>Returns an alist of the outgoing headers associated with the
+<clix:ref>REPLY</clix:ref> object <clix:arg>reply</clix:arg>.  See also <clix:ref>HEADER-OUT</clix:ref>.
     </clix:description>
-  </clix:accessor>
-
-  <clix:special-variable name='*reply*'>
-    <clix:description>The current REPLY object in the context of a request.
-    </clix:description>
-  </clix:special-variable>
+  </clix:function>
 
   <clix:accessor name='content-length*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> reply
   </clix:lambda-list>
-  <clix:returns>result
+  <clix:returns>content-length
   </clix:returns>
-    <clix:description>The outgoing &#039;Content-Length&#039; http header of REPLY.
+    <clix:description>The outgoing &#039;Content-Length&#039; http header of <clix:arg>reply</clix:arg>.
     </clix:description>
   </clix:accessor>
 
@@ -1477,21 +1517,9 @@ REPLY-CLASS slot of the ACCEPTOR class.
   <clix:lkw>optional
   </clix:lkw> reply
   </clix:lambda-list>
-  <clix:returns>result
+  <clix:returns>content-type
   </clix:returns>
-    <clix:description>The outgoing &#039;Content-Type&#039; http header of REPLY.
-    </clix:description>
-  </clix:accessor>
-
-  <clix:accessor name='cookies-out*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns an alist of the outgoing cookies associated with the
-REPLY object REPLY.
+    <clix:description>The outgoing &#039;Content-Type&#039; http header of <clix:arg>reply</clix:arg>.
     </clix:description>
   </clix:accessor>
 
@@ -1502,44 +1530,45 @@ REPLY object REPLY.
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
-    <clix:description>Returns the current value of the outgoing cookie named
-NAME. Search is case-sensitive.
+    <clix:description>Returns the current value of the outgoing <a href="#cookies">cookie</a> named
+<clix:arg>name</clix:arg>. Search is case-sensitive.
     </clix:description>
   </clix:function>
 
-  <clix:function name='header-out'>
-  <clix:lambda-list>name 
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the current value of the outgoing http header named NAME.
-NAME should be a keyword or a string.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='headers-out*'>
+  <clix:accessor name='cookies-out*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> reply
   </clix:lambda-list>
-  <clix:returns>result
+  <clix:returns>alist
   </clix:returns>
-    <clix:description>Returns an alist of the outgoing headers associated with the
-REPLY object REPLY.
+    <clix:description>Returns an alist of the outgoing <a href="#cookies">cookies</a> associated with the
+<clix:ref>REPLY</clix:ref> object <clix:arg>reply</clix:arg>.
     </clix:description>
-  </clix:function>
+  </clix:accessor>
 
   <clix:accessor name='return-code*'>
   <clix:lambda-list>
   <clix:lkw>optional
   </clix:lkw> reply
   </clix:lambda-list>
-  <clix:returns>result
+  <clix:returns>return-code
   </clix:returns>
-    <clix:description>The http return code of REPLY.  The return codes Hunchentoot can
-handle are defined in specials.lisp.
+    <clix:description>Gets or sets the http return code
+    of <clix:arg>reply</clix:arg>.  The return code of
+    each <clix:ref>REPLY</clix:ref> object is initially set
+    to <clix:ref>+HTTP-OK+</clix:ref>.
+    </clix:description>
+  </clix:accessor>
+
+  <clix:accessor name='reply-external-format*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>external-format
+  </clix:returns>
+    <clix:description>The external format of <clix:arg>reply</clix:arg> which is used for character output.
     </clix:description>
   </clix:accessor>
 
