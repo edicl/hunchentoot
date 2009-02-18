@@ -62,13 +62,13 @@ symbol REQUEST.")
 objects is created when a request is served in and should be \(a
 symbol naming) a class which inherits from REPLY.  The default is the
 symbol REPLY.")
-   (handler-selector :initarg :handler-selector
-                     :accessor acceptor-handler-selector
-                     :documentation "A designator for the handler
-selector function used by this acceptor.  A function which accepts a
+   (request-dispatcher :initarg :request-dispatcher
+                     :accessor acceptor-request-dispatcher
+                     :documentation "A designator for the request
+dispatcher function used by this acceptor.  A function which accepts a
 REQUEST object and calls a request handler of its choice \(and returns
 its return value).  The default is the unexported symbol
-LIST-HANDLER-SELECTOR which works through the list *DISPATCH-TABLE*.")
+LIST-REQUEST-DISPATCHER which works through the list *DISPATCH-TABLE*.")
    (taskmaster :initarg :taskmaster
                :reader acceptor-taskmaster
                :documentation "The taskmaster \(i.e. an instance of a
@@ -151,7 +151,7 @@ this acceptor."))
    :name (gensym)
    :request-class 'request
    :reply-class 'reply
-   :handler-selector 'list-handler-selector
+   :request-dispatcher 'list-request-dispatcher
    :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-taskmaster)
                                     (t 'single-threaded-taskmaster)))
    :output-chunking-p t
@@ -230,11 +230,6 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 
 ;; general implementation
 
-(defmethod start :before ((acceptor acceptor))
-  (unless (boundp '*session-secret*)
-    (hunchentoot-warn "Session secret is unbound.  Using Lisp's RANDOM function to initialize it.")
-    (reset-session-secret)))
-
 (defmethod start ((acceptor acceptor))
   (start-listening acceptor)
   (let ((taskmaster (acceptor-taskmaster acceptor)))
@@ -286,7 +281,6 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let ((*hunchentoot-stream*
          (initialize-connection-stream *acceptor* (make-socket-stream socket *acceptor*))))
-    (print *hunchentoot-stream*)
     (unwind-protect
         ;; process requests until either the acceptor is shut down,
         ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
@@ -337,53 +331,6 @@ chunked encoding, but acceptor is configured to not use it.")))))
         (ignore-errors
           (force-output *hunchentoot-stream*)
           (close *hunchentoot-stream* :abort t))))))
-
-(defun process-request (request)
-  "This function is called by PROCESS-CONNECTION after the incoming
-headers have been read.  It selects and calls a handler and sends the
-output of this handler to the client using START-OUTPUT.  It also sets
-up simple error handling for the actual request handler.
-
-The return value of this function is ignored."
-  (let (*tmp-files* *headers-sent*)
-    (unwind-protect
-        (let* ((*request* request))
-          (multiple-value-bind (body error)
-              (catch 'handler-done
-                (handler-bind ((error
-                                (lambda (cond)
-                                  (when *log-lisp-errors-p*
-                                    (log-message *lisp-errors-log-level* "~A" cond))
-                                  ;; if the headers were already sent
-                                  ;; the error happens within the body
-                                  ;; and we have to close the stream
-                                  (when *headers-sent*
-                                    (setq *close-hunchentoot-stream* t))
-                                  (throw 'handler-done
-                                         (values nil cond))))
-                               (warning
-                                (lambda (cond)
-                                  (when *log-lisp-warnings-p*
-                                    (log-message *lisp-warnings-log-level* "~A" cond)))))
-                  ;; skip dispatch if bad request
-                  (when (eql (return-code *reply*) +http-ok+)
-                    ;; now do the work
-                    (funcall (acceptor-handler-selector *acceptor*) *request*))))
-            (when error
-              (setf (return-code *reply*)
-                    +http-internal-server-error+))
-            (start-output :content (cond ((and error *show-lisp-errors-p*)
-                                          (format nil "<pre>~A</pre>"
-                                                  (escape-for-html (format nil "~A" error))))
-                                         (error
-                                          "An error has occured.")
-                                         (t body)))))
-      (dolist (path *tmp-files*)
-        (when (and (pathnamep path) (probe-file path))
-          ;; the handler may have chosen to (re)move the uploaded
-          ;; file, so ignore errors that happen during deletion
-          (ignore-errors
-            (delete-file path)))))))
   
 (defmethod acceptor-ssl-p ((acceptor t))
   ;; the default is to always answer "no"
@@ -454,7 +401,7 @@ The return value of this function is ignored."
   (mp:process-unstop (acceptor-process acceptor))
   nil)
 
-(defun list-handler-selector (request)
+(defun list-request-dispatcher (request)
   "The default handler selector which selects a request handler based
 on a list of individual request dispatchers all of which can either
 return a handler or neglect by returning NIL."

@@ -95,6 +95,14 @@ You should not mess with the slots of these objects directly, but you
 can subclass REQUEST in order to implement your own behaviour.  See
 the REQUEST-CLASS slot of the ACCEPTOR class."))
 
+(defgeneric process-request (request)
+  (:documentation "This function is called by PROCESS-CONNECTION after the incoming
+headers have been read.  It selects and calls a handler and sends the
+output of this handler to the client using START-OUTPUT.  It also sets
+up simple error handling for the actual request handler.
+
+The return value of this function is ignored."))
+
 (defun convert-hack (string external-format)
   "The rfc2388 package is buggy in that it operates on a character
 stream and thus only accepts encodings which are 8 bit transparent.
@@ -194,6 +202,50 @@ slot values are computed in this :AFTER method."
         (log-message :error "Error when creating REQUEST object: ~A" condition)
         ;; we assume it's not our fault...
         (setf (return-code*) +http-bad-request+)))))
+
+(defmethod process-request (request)
+
+  "Standard implementation for processing a request."
+
+  (let (*tmp-files* *headers-sent*)
+    (unwind-protect
+         (let* ((*request* request))
+           (multiple-value-bind (body error)
+               (catch 'handler-done
+                 (handler-bind ((error
+                                 (lambda (cond)
+                                   (when *log-lisp-errors-p*
+                                     (log-message *lisp-errors-log-level* "~A" cond))
+                                   ;; if the headers were already sent
+                                   ;; the error happens within the body
+                                   ;; and we have to close the stream
+                                   (when *headers-sent*
+                                     (setq *close-hunchentoot-stream* t))
+                                   (throw 'handler-done
+                                     (values nil cond))))
+                                (warning
+                                 (lambda (cond)
+                                   (when *log-lisp-warnings-p*
+                                     (log-message *lisp-warnings-log-level* "~A" cond)))))
+                   ;; skip dispatch if bad request
+                   (when (eql (return-code *reply*) +http-ok+)
+                     ;; now do the work
+                     (funcall (acceptor-request-dispatcher *acceptor*) *request*))))
+             (when error
+               (setf (return-code *reply*)
+                     +http-internal-server-error+))
+             (start-output :content (cond ((and error *show-lisp-errors-p*)
+                                           (format nil "<pre>~A</pre>"
+                                                   (escape-for-html (format nil "~A" error))))
+                                          (error
+                                           "An error has occured.")
+                                          (t body)))))
+      (dolist (path *tmp-files*)
+        (when (and (pathnamep path) (probe-file path))
+          ;; the handler may have chosen to (re)move the uploaded
+          ;; file, so ignore errors that happen during deletion
+          (ignore-errors
+            (delete-file path)))))))
 
 (defun parse-multipart-form-data (request external-format)
   "Parse the REQUEST body as multipart/form-data, assuming that its
