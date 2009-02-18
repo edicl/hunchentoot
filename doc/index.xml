@@ -605,6 +605,15 @@ function) <code>PROCESS-REQUEST</code> which selects and calls a
 handler for the request and sends its reply to the client.  This is
 done in a loop until the stream has to be closed or until a connection
 timeout occurs.
+
+<p>
+It is probably not a good idea to re-implement this method until you
+really, really know what you're doing, but you can for example write
+an around method specialized for your subclass
+of <clix:ref>ACCEPTOR</clix:ref> which binds or rebinds special
+variables which can then be accessed by
+your <a href="#handlers">handlers</a>.
+</p>
     </clix:description>
   </clix:function>
 

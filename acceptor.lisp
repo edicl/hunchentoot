@@ -63,12 +63,13 @@ objects is created when a request is served in and should be \(a
 symbol naming) a class which inherits from REPLY.  The default is the
 symbol REPLY.")
    (request-dispatcher :initarg :request-dispatcher
-                     :accessor acceptor-request-dispatcher
-                     :documentation "A designator for the request
+                       :accessor acceptor-request-dispatcher
+                       :documentation "A designator for the request
 dispatcher function used by this acceptor.  A function which accepts a
 REQUEST object and calls a request handler of its choice \(and returns
 its return value).  The default is the unexported symbol
-LIST-REQUEST-DISPATCHER which works through the list *DISPATCH-TABLE*.")
+LIST-REQUEST-DISPATCHER which works through the list
+*DISPATCH-TABLE*.")
    (taskmaster :initarg :taskmaster
                :reader acceptor-taskmaster
                :documentation "The taskmaster \(i.e. an instance of a
@@ -220,7 +221,13 @@ ACCEPTOR object and a LispWorks socket handle or a usocket socket
 stream object in SOCKET.  It reads the request headers, sets up the
 request and reply objects, and hands over to PROCESS-REQUEST.  This is
 done in a loop until the stream has to be closed or until a connection
-timeout occurs."))
+timeout occurs.
+
+It is probably not a good idea to re-implement this method until you
+really, really know what you're doing, but you can for example write
+an around method specialized for your subclass of ACCEPTOR which binds
+or rebinds special variables which can then be accessed by your
+handlers."))
 
 (defgeneric acceptor-ssl-p (acceptor) 
   (:documentation "Returns a true value if ACCEPTOR uses SSL
@@ -402,9 +409,9 @@ chunked encoding, but acceptor is configured to not use it.")))))
   nil)
 
 (defun list-request-dispatcher (request)
-  "The default handler selector which selects a request handler based
-on a list of individual request dispatchers all of which can either
-return a handler or neglect by returning NIL."
+  "The default request dispatcher which selects a request handler
+based on a list of individual request dispatchers all of which can
+either return a handler or neglect by returning NIL."
   (loop for dispatcher in *dispatch-table*
         for action = (funcall dispatcher request)
         when action return (funcall action)

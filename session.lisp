@@ -127,11 +127,11 @@ and SESSION-VERIFY."))
 (defun encode-session-string (id user-agent remote-addr start)
   "Creates a uniquely encoded session string based on the values ID,
 USER-AGENT, REMOTE-ADDR, and START"
-  ;; *SESSION-SECRET* is used twice due to known theoretical
-  ;; vulnerabilities of MD5 encoding
   (unless (boundp '*session-secret*)
     (hunchentoot-warn "Session secret is unbound.  Using Lisp's RANDOM function to initialize it.")
     (reset-session-secret))
+  ;; *SESSION-SECRET* is used twice due to known theoretical
+  ;; vulnerabilities of MD5 encoding
   (md5-hex (concatenate 'string
 			*session-secret*
 			(md5-hex (format nil "~A~A~@[~A~]~@[~A~]~A"

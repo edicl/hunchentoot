@@ -96,10 +96,17 @@ can subclass REQUEST in order to implement your own behaviour.  See
 the REQUEST-CLASS slot of the ACCEPTOR class."))
 
 (defgeneric process-request (request)
-  (:documentation "This function is called by PROCESS-CONNECTION after the incoming
-headers have been read.  It selects and calls a handler and sends the
-output of this handler to the client using START-OUTPUT.  It also sets
-up simple error handling for the actual request handler.
+  (:documentation "This function is called by PROCESS-CONNECTION after
+the incoming headers have been read.  It selects and calls a handler
+and sends the output of this handler to the client using START-OUTPUT.
+It also sets up simple error handling for the actual request handler.
+Note that PROCESS-CONNECTION is called once per connection and loops
+in case of a persistent connection while PROCESS-REQUEST is called
+anew for each request.
+
+Like PROCESS-CONNECTION, this might be a good place to introduce
+around methods which bind special variables or do other interesting
+things.
 
 The return value of this function is ignored."))
 
@@ -204,9 +211,9 @@ slot values are computed in this :AFTER method."
         (setf (return-code*) +http-bad-request+)))))
 
 (defmethod process-request (request)
-
-  "Standard implementation for processing a request."
-
+  "Standard implementation for processing a request.  You should not
+change or replace this functionality unless you know what you're
+doing."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
          (let* ((*request* request))
