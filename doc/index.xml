@@ -546,7 +546,7 @@ an <a href="#acceptors">acceptor</a>.
 
     </clix:subchapter>
 
-    <clix:subchapter name="acceptor-behaviour" title="Acceptor behaviour">
+    <clix:subchapter name="acceptor-behaviour" title="Customizing acceptor behaviour">
 
 If you want to modify what acceptors do, you should
 subclass <clix:ref>ACCEPTOR</clix:ref>
@@ -765,6 +765,287 @@ associated with.
 
     </clix:subchapter>
 
+    <clix:subchapter name="request-dispatch" title="Request dispatch">
+
+
+  <clix:function name='create-folder-dispatcher-and-handler'>
+  <clix:lambda-list>uri-prefix base-path 
+  <clix:lkw>optional
+  </clix:lkw> content-type
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Creates and returns a dispatch function which will dispatch to a
+handler function which emits the file relative to BASE-PATH that is
+denoted by the URI of the request relative to URI-PREFIX.  URI-PREFIX
+must be a string ending with a slash, BASE-PATH must be a pathname
+designator for an existing directory.  If CONTENT-TYPE is not NIL,
+it&#039;ll be the content type used for all files in the folder.
+    </clix:description>
+  </clix:function>
+  <clix:function name='create-prefix-dispatcher'>
+  <clix:lambda-list>prefix handler
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Creates a request dispatch function which will dispatch to the
+function denoted by HANDLER if the file name of the current request
+starts with the string PREFIX.
+    </clix:description>
+  </clix:function>
+  <clix:function name='create-regex-dispatcher'>
+  <clix:lambda-list>regex handler
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Creates a request dispatch function which will dispatch to the
+function denoted by HANDLER if the file name of the current request
+matches the CL-PPCRE regular expression REGEX.
+    </clix:description>
+  </clix:function>
+  <clix:function name='create-static-file-dispatcher-and-handler'>
+  <clix:lambda-list>uri path 
+  <clix:lkw>optional
+  </clix:lkw> content-type
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Creates and returns a request dispatch function which will dispatch
+to a handler function which emits the file denoted by the pathname
+designator PATH with content type CONTENT-TYPE if the SCRIPT-NAME of
+the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
+determine the content type via the file&#039;s suffix.
+    </clix:description>
+  </clix:function>
+  <clix:function name='default-dispatcher'>
+  <clix:lambda-list>request
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Default dispatch function which handles every request with the
+function stored in *DEFAULT-HANDLER*.
+    </clix:description>
+  </clix:function>
+
+      <clix:function macro="true" name="define-easy-handler">
+        <clix:lambda-list>description lambda-list [[declaration* | documentation]] form*</clix:lambda-list>
+        <clix:description>
+          Defines a handler as if
+          by <a href="http://www.lispworks.com/documentation/HyperSpec/Body/m_defun.htm">
+            <code>DEFUN</code></a> and optionally registers it with a
+          URI so that it will be found
+          by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref>.
+          <p>
+            <clix:arg>description</clix:arg> is either a
+            symbol <clix:arg>name</clix:arg> or a list matching the
+            <a href="http://www.lispworks.com/documentation/HyperSpec/Body/03_de.htm">destructuring
+              lambda list</a>
+          </p>
+          <pre>(name &amp;key uri server-names default-parameter-type default-request-type).</pre>
+          <clix:arg>lambda-list</clix:arg> is a list the elements of which
+          are either a symbol <clix:arg>var</clix:arg> or a list matching
+          the destructuring lambda list
+          <pre>(var &amp;key real-name parameter-type init-form request-type).</pre>
+          The resulting handler will be a Lisp function with the
+          name <clix:arg>name</clix:arg> and keyword parameters named by
+          the <clix:arg>var</clix:arg> symbols.
+          Each <clix:arg>var</clix:arg> will be bound to the value of the
+          GET or POST parameter called <clix:arg>real-name</clix:arg> (a
+          string) before the body of the function is executed.
+          If <clix:arg>real-name</clix:arg> is not provided, it will be
+          computed
+          by <a href="http://www.lispworks.com/documentation/HyperSpec/Body/f_stg_up.htm#string-downcase">downcasing</a>
+          the symbol name of <clix:arg>var</clix:arg>.
+          <p>
+            If <clix:arg>uri</clix:arg> (which is evaluated) is provided,
+            then it must be a string or
+            a <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_f.htm#function_designator">function
+              designator</a> for a unary function.  In this case, the
+            handler will be returned
+            by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref> ,
+            if <clix:arg>uri</clix:arg> is a string and
+            the <a href="#script-name">script name</a> of the current
+            request is <clix:arg>uri</clix:arg>, or
+            if <clix:arg>uri</clix:arg> designates a function and applying
+            this function to
+            the <a href="#*request*">current <code>REQUEST</code>
+              object</a> returns a true value.
+          </p>
+          <p>
+            <clix:arg>server-names</clix:arg> (which is evaluated) can be a
+            list of symbols which means that the handler will only be
+            returned by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref> in
+            servers which have one of these names
+            (see <clix:ref>SERVER-NAME</clix:ref>).  <clix:arg>server-names</clix:arg> can also be the
+            symbol <code>T</code> which means that the handler will be
+            returned by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref>
+            in <em>every</em> server.
+          </p>
+          <p>
+            Whether the GET or POST parameter (or both) will be taken into
+            consideration, depends on <clix:arg>request-type</clix:arg>
+            which can
+            be <code>:GET</code>, <code>:POST</code>, <code>:BOTH</code>,
+            or <code>NIL</code>.  In the last case, the value of
+            <clix:arg>default-request-type</clix:arg> (the default of which
+            is <code>:BOTH</code>) will be used.
+          </p>
+          <p>
+            The value of <clix:arg>var</clix:arg> will usually be a string
+            (unless it resulted from a <a href="#upload">file upload</a>
+            in which case it won't be converted at all), but
+            if <clix:arg>parameter-type</clix:arg> (which is evaluated) is
+            provided, the string will be converted to another Lisp type by
+            the following rules:
+          </p>
+          <p>
+            If the corresponding GET or POST parameter wasn't provided by
+            the client, <clix:arg>var</clix:arg>'s value will
+            be <code>NIL</code>.  If <clix:arg>parameter-type</clix:arg>
+            is <code>'STRING</code>,
+            <clix:arg>var</clix:arg>'s value remains as is.
+            If <clix:arg>parameter-type</clix:arg> is <code>'INTEGER</code>
+            and the parameter string consists solely of decimal
+            digits, <clix:arg>var</clix:arg>'s value will be the
+            corresponding integer, otherwise <code>NIL</code>.
+            If <clix:arg>parameter-type</clix:arg> is
+            <code>'KEYWORD</code>, <clix:arg>var</clix:arg>'s value will be
+            the keyword obtained
+            by <a href="http://www.lispworks.com/documentation/HyperSpec/Body/f_intern.htm">interning</a>
+            the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/f_stg_up.htm#string-upcase">upcased</a>
+            parameter string into
+            the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/11_abc.htm">keyword
+              package</a>.  If <clix:arg>parameter-type</clix:arg>
+            is <code>'CHARACTER</code> and the parameter string is of
+            length one, <clix:arg>var</clix:arg>'s value will be the single
+            character of this string, otherwise <code>NIL</code>.
+            If <clix:arg>parameter-type</clix:arg>
+            is <code>'BOOLEAN</code>, <clix:arg>var</clix:arg>'s value will
+            always be <code>T</code> (unless it is <code>NIL</code> by the
+            first rule above, of course).
+            If <clix:arg>parameter-type</clix:arg> is any other atom, it is
+            supposed to be
+            a <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_f.htm#function_designator">function
+              designator</a> for a unary function which will be called to
+            convert the string to something else.
+          </p>
+          <p>
+            Those were the rules for <em>simple</em> parameter types, but
+            <clix:arg>parameter-type</clix:arg> can also be a list starting
+            with one of the symbols
+            <code>LIST</code>, <code>ARRAY</code>,
+            or <code>HASH-TABLE</code>.  The second value of the list must
+            always be a simple parameter type as in the last paragraph -
+            we'll call it the <em>inner type</em> below.
+          </p>
+          <p>
+            In the case of <code>'LIST</code>, all GET/POST parameters
+            called <clix:arg>real-name</clix:arg> will be collected,
+            converted to the inner type as by the rules above, and
+            assembled into a list which will be the value of
+            <clix:arg>var</clix:arg>.
+          </p>
+          <p>
+            In the case of <code>'ARRAY</code>, all GET/POST parameters
+            which have a name like the result of
+          </p>
+          <pre>(format nil "~A[~A]" real-name n)</pre>
+          where <clix:arg>n</clix:arg> is a non-negative integer, will be
+          assembled into an array where the <clix:arg>n</clix:arg>th element
+          will be set accordingly, after conversion to the inner type.
+          The array, which will become the value
+          of <clix:arg>var</clix:arg>, will be big enough to hold all
+          matching parameters, but not bigger.  Array elements not set as
+          described above will be <code>NIL</code>.  Note
+          that <code>VAR</code> will always be bound to an array, which
+          may be empty, so it will never be <code>NIL</code>, even if no
+          appropriate GET/POST parameters are found.
+          <p>
+            The full form of a <code>'HASH-TABLE</code> parameter type is
+          </p>
+          <pre>(hash-table inner-type key-type test-function)</pre>
+          but <clix:arg>key-type</clix:arg>
+          and <clix:arg>test-function</clix:arg> can be left out in which
+          case they default to <code>'STRING</code>
+          and <code>'EQUAL</code>, respectively.  For this parameter type,
+          all GET/POST parameters which have a name like the result of
+          <pre>(format nil "~A{~A}" real-name key)</pre>
+          (where <clix:arg>key</clix:arg> is a string that doesn't contain
+          curly brackets) will become the values (after conversion
+          to <clix:arg>inner-type</clix:arg>) of a hash table with test
+          function <clix:arg>test-function</clix:arg>
+          where <clix:arg>key</clix:arg> (after conversion
+          to <clix:arg>key-type</clix:arg>) will be the corresponding key.
+          Note that <clix:arg>var</clix:arg> will always be bound to a hash
+          table, which may be empty, so it will never be <code>NIL</code>,
+          even if no appropriate GET/POST parameters are found.
+          <p>
+            To make matters even more complicated, the three compound
+            parameter types also have an abbreviated form - just one of
+            the symbols <code>LIST</code>, <code>ARRAY</code>,
+            or <code>HASH-TABLE</code>.  In this case, the inner type will
+            default to <code>'STRING</code>.
+          </p>
+          <p>
+            If <clix:arg>parameter-type</clix:arg> is not provided
+            or <code>NIL</code>, <clix:arg>default-parameter-type</clix:arg>
+            (the default of which is <code>'STRING</code>) will be used
+            instead.
+          </p>
+          <p>
+            If the result of the computations above would be
+            that <clix:arg>var</clix:arg> would be bound
+            to <code>NIL</code>, then <clix:arg>init-form</clix:arg> (if
+            provided) will be evaluated instead,
+            and <clix:arg>var</clix:arg> will be bound to the result of this
+            evaluation.
+          </p>
+          <p>
+            Handlers built with this macro are constructed in such a way
+            that the resulting Lisp function is useful even outside of
+            Hunchentoot.  Specifically, all the parameter computations
+            above will only happen if <clix:ref>*REQUEST*</clix:ref> is
+            bound, i.e. if we're within a Hunchentoot request.
+            Otherwise, <clix:arg>var</clix:arg> will always be bound to the
+            result of evaluating <clix:arg>init-form</clix:arg> unless a
+            corresponding keyword argument is provided.
+          </p>
+          <p>
+            The <a href="#example">example code</a> that comes with
+            Hunchentoot contains an example which demonstrates some of the
+            features of <clix:ref>DEFINE-EASY-HANDLER</clix:ref>.
+          </p>
+        </clix:description>
+      </clix:function>
+
+  <clix:function name='dispatch-easy-handlers'>
+  <clix:lambda-list>request
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>This is a dispatcher which returns the appropriate handler
+defined with DEFINE-EASY-HANDLER, if there is one.
+    </clix:description>
+  </clix:function>
+
+
+  <clix:special-variable name='*default-handler*'>
+    <clix:description>The name of the function which is always returned by
+DEFAULT-DISPATCHER.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*dispatch-table*'>
+    <clix:description>A global list of dispatch functions.
+    </clix:description>
+  </clix:special-variable>
+
+    </clix:subchapter>
+
+    <clix:subchapter name="handlers" title="Handlers">
+
+    </clix:subchapter>
+
     <clix:subchapter name="requests" title="Request objects">
 
 For each incoming request, the <a href="#acceptors">acceptor</a>
@@ -880,6 +1161,12 @@ object <clix:arg>request</clix:arg>.
 object <clix:arg>request</clix:arg>.
     </clix:description>
   </clix:function>
+
+  <clix:special-variable name='*methods-for-post-parameters*'>
+    <clix:description>A list of the request method types (as keywords) for which
+Hunchentoot will try to compute <clix:arg>post-parameters</clix:arg>.
+    </clix:description>
+  </clix:special-variable>
 
   <clix:function name='cookie-in'>
   <clix:lambda-list>name 
@@ -1009,6 +1296,36 @@ the part behind the question mark (i.e. the GET parameters).
     </clix:description>
   </clix:function>
 
+  <clix:special-variable name='*hunchentoot-default-external-format*'>
+    <clix:description>The external format used to compute the <clix:ref>REQUEST</clix:ref> object.
+    </clix:description>
+  </clix:special-variable>
+
+
+  <clix:function generic='true' name='process-request'>
+  <clix:lambda-list>request
+  </clix:lambda-list>
+  <clix:returns>nil
+  </clix:returns>
+    <clix:description>
+This function is called by <clix:ref>PROCESS-CONNECTION</clix:ref>
+after the incoming headers have been read.  It selects and calls a
+<a href="#handlers">handler</a> and sends the output of this handler
+to the client.  It also sets up simple error handling for the request
+handler.  Note that <clix:ref>PROCESS-CONNECTION</clix:ref> is called
+once per connection and loops in case of a persistent connection
+while <clix:ref>PROCESS-REQUEST</clix:ref> is called anew for each
+request.
+<p>
+Like <clix:ref>PROCESS-CONNECTION</clix:ref>, this might be a good
+place to introduce around methods which bind special variables or do
+other interesting things.
+</p>
+<p>
+The return value of this function is ignored.
+</p>
+    </clix:description>
+  </clix:function>
 
   <clix:readers generic='true'>
     <clix:listed-reader name='cookies-in'>
@@ -1105,14 +1422,14 @@ the part behind the question mark (i.e. the GET parameters).
     </clix:subchapter>
 
     <clix:subchapter name="sessions" title="Sessions">
-Hunchentoot supports sessions: Once a <a href="#handlers">request
+Hunchentoot supports <em>sessions</em>: Once a <a href="#handlers">request
 handler</a> has called <clix:ref>START-SESSION</clix:ref>, Hunchentoot
 uses either cookies or (if the client doesn't send the cookies
 back) <a href="#*rewrite-for-session-urls*">rewrites URLs</a> to keep
 track of this client, i.e. to provide a kind of 'state' for the
-stateless http protocol. The session associated with the client is an
-opaque CLOS object which can be used to <a href="#session-value">store
-arbitrary data</a> between requests.
+stateless http protocol. The session associated with the client is a
+<a href="#session">CLOS object</a> which can be used
+to <a href="#session-value">store arbitrary data</a> between requests.
 <p>
 Hunchentoot makes some reasonable effort to prevent eavesdroppers from
 hijacking sessions (see below), but this should not be considered
@@ -1121,12 +1438,13 @@ on the session mechanism as a safeguard against malicious users who
 want to get at this data!
 </p>
 <p>
-For each request there's one SESSION object which is accessible to the
-handler via the special variable *SESSION*. This object holds all the
+For each request there's one <clix:ref>SESSION</clix:ref> object which is accessible to the
+<a href="#handler">handler</a> via the special
+variable <clix:ref>*SESSION*</clix:ref>. This object holds all the
 information available about the session and can be accessed with the
 functions described in this chapter. Note that the internal structure
-of SESSION objects should be considered opaque and may change in
-future releases of Hunchentoot.
+of <clix:ref>SESSION</clix:ref> objects should be considered opaque
+and may change in future releases of Hunchentoot.
 </p>
 <p>
 Sessions are automatically <a href="#session-verify">verified</a> for
@@ -1145,7 +1463,7 @@ with <clix:ref>START-SESSION</clix:ref> and they should be treated as
 opaque objects.
 <p>
 You can ignore Hunchentoot's <clix:ref>SESSION</clix:ref> objects and
-implement your own sessions if you provide corresponding methods for
+<a href="#session-behaviour">implement your own sessions</a> if you provide corresponding methods for
 <clix:ref>SESSION-COOKIE-VALUE</clix:ref>
 and <clix:ref>SESSION-VERIFY</clix:ref>.
 </p>
@@ -1203,7 +1521,7 @@ there is one.
 
 
   <clix:special-variable name='*session*'>
-    <clix:description>The current SESSION object in the context of a
+    <clix:description>The current session while in the context of a
     request, or <code>NIL</code>.
     </clix:description>
   </clix:special-variable>
@@ -1262,8 +1580,8 @@ which doesn&#039;t send correct &#039;X_FORWARDED_FOR&#039; headers.
   <clix:returns>remote-addr
   </clix:returns>
     <clix:description>
-The remote IP address of the client when this session was started as
-returned by <clix:ref>REAL-REMOTE-ADDR</clix:ref>.
+The remote IP address of the client when this session was started (as
+returned by <clix:ref>REAL-REMOTE-ADDR</clix:ref>).
     </clix:description>
   </clix:function>
 
@@ -1329,7 +1647,7 @@ old - see <clix:ref>SESSION-TOO-OLD-P</clix:ref>.
   <clix:returns>generalized-boolean
   </clix:returns>
     <clix:description>Returns true if the <clix:ref>SESSION</clix:ref> object <clix:arg>session</clix:arg> has not been active in
-the last <code>(session-max-time session)</code> seconds.
+the last <code>(session-max-time session)</code> seconds.
     </clix:description>
   </clix:function>
 
@@ -1350,14 +1668,14 @@ session is <a href="#session-gc">garbage-collected</a>.
 For everyday session usage, you will probably just
 use <clix:ref>START-SESSION</clix:ref>,
 <clix:ref>SESSION-VALUE</clix:ref>,
-maybe <clix:ref>DELETE-SESSION-VALUE</clix:ref>
+and maybe <clix:ref>DELETE-SESSION-VALUE</clix:ref>
 and <clix:ref>*SESSION*</clix:ref>.  However, there are two ways to
 customize the way Hunchentoot maintains sessions.
 <p>
 One way is to mostly leave the session mechanism intact but to tweak
 it a bit:
 <ul>
-<li>The publicly visible part of session is encoded using a
+<li>The publicly visible part of a session is encoded using a
 <a href="#*session-secret*">secret</a> which you can set yourself.</li>
 <li>And it is stored using a cookie (or GET
 parameter) <a href="#session-cookie-name">name</a> that you can
@@ -1370,7 +1688,7 @@ might also do this to invent your own
 session <a href="#session-gc">garbage collection</a>.</li>
 <li>By default, all sessions are stored in a global alist in memory.
 You can't change the alist part, but you can distribute your sessions
-amongst different <a href="#session-db">"databases"</a>.</li>
+over different <a href="#session-db">"databases"</a>.</li>
 <li>By default, every operation which modifies sessions or one of the
 session databases is guarded by a global lock, but you can arrange to
 <a href="#session-db-lock">provide</a> different locks for this.</li>
@@ -1453,7 +1771,7 @@ The return value is ignored.
     <clix:description>Returns the next sequential session ID, an
 integer, which should be unique per session.  The default method uses
 a simple global counter and isn&#039;t guarded by a lock.  For a
-high-performance production environment you might consider to use a
+high-performance production environment you might consider using a
 more robust implementation.
     </clix:description>
   </clix:function>
@@ -1500,8 +1818,11 @@ Lisps that support threads and <code>NIL</code> otherwise.
   <clix:returns>session-or-nil
   </clix:returns>
     <clix:description>Tries to get a session identifier from the cookies
-(or alternatively from the GET parameters) sent by the client.  This
-identifier is then checked for validity against the <clix:ref>REQUEST</clix:ref> object
+(or alternatively from the GET parameters) sent by the client (see
+<clix:ref>SESSION-COOKIE-NAME</clix:ref>
+and <clix:ref>SESSION-COOKIE-VALUE</clix:ref>).  This identifier is
+then checked for validity against the <clix:ref>REQUEST</clix:ref>
+object
 <clix:arg>request</clix:arg>.  On success the corresponding session object (if not too
 old) is returned (and updated).  Otherwise <code>NIL</code> is returned.
 <p>
@@ -1519,19 +1840,17 @@ if you want to maintain your own sessions.
     <clix:description>Returns a string which can be used to safely
 restore the session <clix:arg>session</clix:arg> if as session has
 already been established.  This is used as the value stored in the
-session cookie or in the corresponding GET parameter.  A default
+session cookie or in the corresponding GET parameter and verified
+by <clix:ref>SESSION-VERIFY</clix:ref>.
+<p>
+A default
 method is provided and there&#039;s no reason to change it unless you
 want to use your own session objects.
+</p>
     </clix:description>
   </clix:function>
 
 
-    </clix:subchapter>
-
-    <clix:subchapter name="handlers" title="Handlers">
-    </clix:subchapter>
-
-    <clix:subchapter name="handler-selection" title="Handler selection">
     </clix:subchapter>
 
     <clix:subchapter name="logging" title="Logging">
@@ -1621,56 +1940,184 @@ Should be one of <code>:ERROR</code>, <code>:WARNING</code>
 
     </clix:subchapter>
 
-    <clix:subchapter name="conditions" title="Conditions">
+    <clix:subchapter name="conditions" title="Conditions and error handling">
+
+  <clix:condition name='hunchentoot-condition'>
+    <clix:description>Superclass for all conditions related to Hunchentoot.
+    </clix:description>
+  </clix:condition>
+
+  <clix:condition name='hunchentoot-error'>
+    <clix:description>Superclass for all errors related to Hunchentoot and a subclass of <clix:ref>HUNCHENTOOT-CONDITION</clix:ref>.
+    </clix:description>
+  </clix:condition>
+
+  <clix:condition name='parameter-error'>
+    <clix:description>Signalled if a function was called with incosistent or illegal parameters.  A subclass of <clix:ref>HUNCHENTOOT-ERROR</clix:ref>.
+    </clix:description>
+  </clix:condition>
+
+  <clix:condition name='hunchentoot-warning'>
+    <clix:description>Superclass for all warnings related to Hunchentoot and a subclass of <clix:ref>HUNCHENTOOT-CONDITION</clix:ref>.
+    </clix:description>
+  </clix:condition>
+
+  <clix:special-variable name='*show-lisp-errors-p*'>
+    <clix:description>Whether Lisp errors should be shown in HTML output.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*approved-return-codes*'>
+    <clix:description>A list of return codes the server should <em>not</em> treat as an error -
+see <clix:ref>*HANDLE-HTTP-ERRORS-P*</clix:ref>.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*handle-http-errors-p*'>
+    <clix:description>A generalized boolean that determines whether return codes which
+are not in <clix:ref>*APPROVED-RETURN-CODES*</clix:ref> are treated specially.  When its value
+is true (the default), either a default body for the return code or
+the result of calling <clix:ref>*HTTP-ERROR-HANDLER*</clix:ref> is used.  When the value is
+<code>NIL</code>, no special action is taken and you are expected to supply your
+own response body to describe the error.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*http-error-handler*'>
+    <clix:description>Contains <code>NIL</code> (the default) or a function of one argument which is
+called if the content handler has set a return code which is not in
+<clix:ref>*APPROVED-RETURN-CODES*</clix:ref>
+and <clix:ref>*HANDLE-HTTP-ERRORS*</clix:ref> is true.
+    </clix:description>
+  </clix:special-variable>
+
     </clix:subchapter>
 
     <clix:subchapter name="misc" title="Miscellaneous">
+
+  <clix:function name='url-encode'>
+  <clix:lambda-list>string 
+  <clix:lkw>optional
+  </clix:lkw> external-format
+  </clix:lambda-list>
+  <clix:returns>string
+  </clix:returns>
+    <clix:description>URL-encodes a string using the external format <clix:arg>external-format</clix:arg>.  The default for <clix:arg>external-format</clix:arg> is the value of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>. 
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='url-decode'>
+  <clix:lambda-list>string 
+  <clix:lkw>optional
+  </clix:lkw> external-format
+  </clix:lambda-list>
+  <clix:returns>string
+  </clix:returns>
+    <clix:description>Decodes a URL-encoded string which is assumed to
+be encoded using the external
+format <clix:arg>external-format</clix:arg>, i.e. this is the inverse
+of <clix:ref>URL-ENCODE</clix:ref>. It is assumed that you'll rarely
+need this function, if ever. But just in case - here it is.  The
+default for <clix:arg>external-format</clix:arg> is the value
+of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>.
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='escape-for-html'>
+  <clix:lambda-list>string
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Escapes the characters #\&lt;, #\&gt;, #\&#039;, #\&quot;, and #\&amp; for HTML output.
+    </clix:description>
+  </clix:function>
+
+      <clix:constants>
+        <clix:listed-constant name="+http-continue+"/>
+        <clix:listed-constant name="+http-switching-protocols+"/>
+        <clix:listed-constant name="+http-ok+"/>
+        <clix:listed-constant name="+http-created+"/>
+        <clix:listed-constant name="+http-accepted+"/>
+        <clix:listed-constant name="+http-non-authoritative-information+"/>
+        <clix:listed-constant name="+http-no-content+"/>
+        <clix:listed-constant name="+http-reset-content+"/>
+        <clix:listed-constant name="+http-partial-content+"/>
+        <clix:listed-constant name="+http-multi-status+"/>
+        <clix:listed-constant name="+http-multiple-choices+"/>
+        <clix:listed-constant name="+http-moved-permanently+"/>
+        <clix:listed-constant name="+http-moved-temporarily+"/>
+        <clix:listed-constant name="+http-see-other+"/>
+        <clix:listed-constant name="+http-not-modified+"/>
+        <clix:listed-constant name="+http-use-proxy+"/>
+        <clix:listed-constant name="+http-temporary-redirect+"/>
+        <clix:listed-constant name="+http-bad-request+"/>
+        <clix:listed-constant name="+http-authorization-required+"/>
+        <clix:listed-constant name="+http-payment-required+"/>
+        <clix:listed-constant name="+http-forbidden+"/>
+        <clix:listed-constant name="+http-not-found+"/>
+        <clix:listed-constant name="+http-method-not-allowed+"/>
+        <clix:listed-constant name="+http-not-acceptable+"/>
+        <clix:listed-constant name="+http-proxy-authentication-required+"/>
+        <clix:listed-constant name="+http-request-time-out+"/>
+        <clix:listed-constant name="+http-conflict+"/>
+        <clix:listed-constant name="+http-gone+"/>
+        <clix:listed-constant name="+http-length-required+"/>
+        <clix:listed-constant name="+http-precondition-failed+"/>
+        <clix:listed-constant name="+http-request-entity-too-large+"/>
+        <clix:listed-constant name="+http-request-uri-too-large+"/>
+        <clix:listed-constant name="+http-unsupported-media-type+"/>
+        <clix:listed-constant name="+http-requested-range-not-satisfiable+"/>
+        <clix:listed-constant name="+http-expectation-failed+"/>
+        <clix:listed-constant name="+http-failed-dependency+"/>
+        <clix:listed-constant name="+http-internal-server-error+"/>
+        <clix:listed-constant name="+http-not-implemented+"/>
+        <clix:listed-constant name="+http-bad-gateway+"/>
+        <clix:listed-constant name="+http-service-unavailable+"/>
+        <clix:listed-constant name="+http-gateway-time-out+"/>
+        <clix:listed-constant name="+http-version-not-supported+"/>
+        <clix:description>
+          The values of these constants are 100, 101, 200, 201, 202,
+          203, 204, 205, 206, 207, 300, 301, 302, 303, 304, 305, 307,
+          400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411,
+          412, 413, 414, 415, 416, 417, 424, 500, 501, 502, 503, 504,
+          and 505. See <clix:ref>RETURN-CODE</clix:ref>.
+        </clix:description>
+      </clix:constants>
+
+  <clix:special-variable name='*cleanup-function*'>
+    <clix:description>A designator for a function without arguments which is called on a
+regular basis if <clix:ref>*CLEANUP-INTERVAL*</clix:ref> is not <code>NIL</code>.  The initial value is
+the name of a function which invokes a garbage collection on 32-bit
+versions of LispWorks.
+<p>
+This variable is only available on LispWorks.
+</p>
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*cleanup-interval*'>
+    <clix:description>Should be <code>NIL</code> or a positive integer.  The system calls
+<clix:ref>*CLEANUP-FUNCTION*</clix:ref>
+whenever <clix:ref>*CLEANUP-INTERVAL*</clix:ref> new worker threads
+(counted globally across all acceptors) have been created unless the
+value is <code>NIL</code>.  The initial value is 100.
+<p>
+This variable is only available on LispWorks.
+</p>
+    </clix:description>
+  </clix:special-variable>
+
     </clix:subchapter>
 
   </clix:chapter>
 
     <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
 
-  <clix:special-variable name='*approved-return-codes*'>
-    <clix:description>A list of return codes the server should not treat as an error -
-see *HANDLE-HTTP-ERRORS-P*.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*cleanup-function*'>
-    <clix:description>A designator for a function without arguments which is called on a
-regular basis if *CLEANUP-INTERVAL* is not NIL.  The initial value is
-the name of a function which invokes a garbage collection on 32-bit
-versions of LispWorks.
-
-This variable is only available on LispWorks.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*cleanup-interval*'>
-    <clix:description>Should be NIL or a positive integer.  The system calls
-*CLEANUP-FUNCTION* whenever *CLEANUP-INTERVAL* new worker threads
-(counted globally across all acceptors) have been created unless the
-value is NIL.  The initial value is 100.
-
-This variable is only available on LispWorks.
-    </clix:description>
-  </clix:special-variable>
-
   <clix:special-variable name='*default-content-type*'>
     <clix:description>The default content-type header which is returned to the client.
     </clix:description>
   </clix:special-variable>
 
-  <clix:special-variable name='*default-handler*'>
-    <clix:description>The name of the function which is always returned by
-DEFAULT-DISPATCHER.
-    </clix:description>
-  </clix:special-variable>
-  <clix:special-variable name='*dispatch-table*'>
-    <clix:description>A global list of dispatch functions.
-    </clix:description>
-  </clix:special-variable>
   <clix:special-variable name='*file-upload-hook*'>
     <clix:description>If this is not NIL, it should be a unary function which will
 be called with a pathname for each file which is uploaded to
@@ -1679,219 +2126,25 @@ the uploaded file is written.  The hook is called directly before
 the file is created.
     </clix:description>
   </clix:special-variable>
-  <clix:special-variable name='*handle-http-errors-p*'>
-    <clix:description>A generalized boolean that determines whether return codes which
-are not in *APPROVED-HEADERS* are treated specially.  When its value
-is true (the default), either a default body for the return code or
-the result of calling *HTTP-ERROR-HANDLER* is used.  When the value is
-NIL, no special action is taken and you are expected to supply your
-own response body to describe the error.
-    </clix:description>
-  </clix:special-variable>
+
   <clix:special-variable name='*header-stream*'>
     <clix:description>If this variable is not NIL, it should be bound to a stream to
 which incoming and outgoing headers will be written for debugging
 purposes.
     </clix:description>
   </clix:special-variable>
-  <clix:special-variable name='*http-error-handler*'>
-    <clix:description>Contains NIL (the default) or a function of one argument which is
-called if the content handler has set a return code which is not in
-*APPROVED-RETURN-CODES* and *HANDLE-HTTP-ERRORS* is true.
-    </clix:description>
-  </clix:special-variable>
-  <clix:special-variable name='*hunchentoot-default-external-format*'>
-    <clix:description>The external format used to compute the REQUEST object.
-    </clix:description>
-  </clix:special-variable>
 
-  <clix:special-variable name='*methods-for-post-parameters*'>
-    <clix:description>A list of the request method types (as keywords) for which
-Hunchentoot will try to compute POST-PARAMETERS.
-    </clix:description>
-  </clix:special-variable>
   <clix:special-variable name='*reply*'>
     <clix:description>The current REPLY object.
     </clix:description>
   </clix:special-variable>
 
-  <clix:special-variable name='*show-lisp-errors-p*'>
-    <clix:description>Whether Lisp errors should be shown in HTML output.
-    </clix:description>
-  </clix:special-variable>
   <clix:special-variable name='*tmp-directory*'>
     <clix:description>Directory for temporary files created by MAKE-TMP-FILE-NAME.
     </clix:description>
   </clix:special-variable>
 
-  <clix:constant name='+http-accepted+'>
-    <clix:description>HTTP return code (202) for &#039;Accepted&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-authorization-required+'>
-    <clix:description>HTTP return code (401) for &#039;Authorization Required&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-bad-gateway+'>
-    <clix:description>HTTP return code (502) for &#039;Bad Gateway&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-bad-request+'>
-    <clix:description>HTTP return code (400) for &#039;Bad Request&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-conflict+'>
-    <clix:description>HTTP return code (409) for &#039;Conflict&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-continue+'>
-    <clix:description>HTTP return code (100) for &#039;Continue&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-created+'>
-    <clix:description>HTTP return code (201) for &#039;Created&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-expectation-failed+'>
-    <clix:description>HTTP return code (417) for &#039;Expectation Failed&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-failed-dependency+'>
-    <clix:description>HTTP return code (424) for &#039;Failed Dependency&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-forbidden+'>
-    <clix:description>HTTP return code (403) for &#039;Forbidden&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-gateway-time-out+'>
-    <clix:description>HTTP return code (504) for &#039;Gateway Time-out&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-gone+'>
-    <clix:description>HTTP return code (410) for &#039;Gone&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-internal-server-error+'>
-    <clix:description>HTTP return code (500) for &#039;Internal Server Error&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-length-required+'>
-    <clix:description>HTTP return code (411) for &#039;Length Required&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-method-not-allowed+'>
-    <clix:description>HTTP return code (405) for &#039;Method Not Allowed&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-moved-permanently+'>
-    <clix:description>HTTP return code (301) for &#039;Moved Permanently&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-moved-temporarily+'>
-    <clix:description>HTTP return code (302) for &#039;Moved Temporarily&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-multi-status+'>
-    <clix:description>HTTP return code (207) for &#039;Multi-Status&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-multiple-choices+'>
-    <clix:description>HTTP return code (300) for &#039;Multiple Choices&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-no-content+'>
-    <clix:description>HTTP return code (204) for &#039;No Content&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-non-authoritative-information+'>
-    <clix:description>HTTP return code (203) for &#039;Non-Authoritative Information&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-not-acceptable+'>
-    <clix:description>HTTP return code (406) for &#039;Not Acceptable&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-not-found+'>
-    <clix:description>HTTP return code (404) for &#039;Not Found&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-not-implemented+'>
-    <clix:description>HTTP return code (501) for &#039;Not Implemented&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-not-modified+'>
-    <clix:description>HTTP return code (304) for &#039;Not Modified&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-ok+'>
-    <clix:description>HTTP return code (200) for &#039;OK&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-partial-content+'>
-    <clix:description>HTTP return code (206) for &#039;Partial Content&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-payment-required+'>
-    <clix:description>HTTP return code (402) for &#039;Payment Required&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-precondition-failed+'>
-    <clix:description>HTTP return code (412) for &#039;Precondition Failed&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-proxy-authentication-required+'>
-    <clix:description>HTTP return code (407) for &#039;Proxy Authentication Required&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-request-entity-too-large+'>
-    <clix:description>HTTP return code (413) for &#039;Request Entity Too Large&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-request-time-out+'>
-    <clix:description>HTTP return code (408) for &#039;Request Time-out&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-request-uri-too-large+'>
-    <clix:description>HTTP return code (414) for &#039;Request-URI Too Large&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-requested-range-not-satisfiable+'>
-    <clix:description>HTTP return code (416) for &#039;Requested range not satisfiable&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-reset-content+'>
-    <clix:description>HTTP return code (205) for &#039;Reset Content&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-see-other+'>
-    <clix:description>HTTP return code (303) for &#039;See Other&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-service-unavailable+'>
-    <clix:description>HTTP return code (503) for &#039;Service Unavailable&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-switching-protocols+'>
-    <clix:description>HTTP return code (101) for &#039;Switching Protocols&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-temporary-redirect+'>
-    <clix:description>HTTP return code (307) for &#039;Temporary Redirect&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-unsupported-media-type+'>
-    <clix:description>HTTP return code (415) for &#039;Unsupported Media Type&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-use-proxy+'>
-    <clix:description>HTTP return code (305) for &#039;Use Proxy&#039;.
-    </clix:description>
-  </clix:constant>
-  <clix:constant name='+http-version-not-supported+'>
-    <clix:description>HTTP return code (505) for &#039;Version not supported&#039;.
-    </clix:description>
-  </clix:constant>
+
   <clix:function name='abort-request-handler'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -2119,208 +2372,7 @@ NAME. Search is case-sensitive.
 REPLY object REPLY.
     </clix:description>
   </clix:accessor>
-  <clix:function name='create-folder-dispatcher-and-handler'>
-  <clix:lambda-list>uri-prefix base-path 
-  <clix:lkw>optional
-  </clix:lkw> content-type
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Creates and returns a dispatch function which will dispatch to a
-handler function which emits the file relative to BASE-PATH that is
-denoted by the URI of the request relative to URI-PREFIX.  URI-PREFIX
-must be a string ending with a slash, BASE-PATH must be a pathname
-designator for an existing directory.  If CONTENT-TYPE is not NIL,
-it&#039;ll be the content type used for all files in the folder.
-    </clix:description>
-  </clix:function>
-  <clix:function name='create-prefix-dispatcher'>
-  <clix:lambda-list>prefix handler
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Creates a request dispatch function which will dispatch to the
-function denoted by HANDLER if the file name of the current request
-starts with the string PREFIX.
-    </clix:description>
-  </clix:function>
-  <clix:function name='create-regex-dispatcher'>
-  <clix:lambda-list>regex handler
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Creates a request dispatch function which will dispatch to the
-function denoted by HANDLER if the file name of the current request
-matches the CL-PPCRE regular expression REGEX.
-    </clix:description>
-  </clix:function>
-  <clix:function name='create-static-file-dispatcher-and-handler'>
-  <clix:lambda-list>uri path 
-  <clix:lkw>optional
-  </clix:lkw> content-type
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Creates and returns a request dispatch function which will dispatch
-to a handler function which emits the file denoted by the pathname
-designator PATH with content type CONTENT-TYPE if the SCRIPT-NAME of
-the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
-determine the content type via the file&#039;s suffix.
-    </clix:description>
-  </clix:function>
-  <clix:function name='default-dispatcher'>
-  <clix:lambda-list>request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Default dispatch function which handles every request with the
-function stored in *DEFAULT-HANDLER*.
-    </clix:description>
-  </clix:function>
-  <clix:function macro='true' name='define-easy-handler'>
-  <clix:lambda-list>description lambda-list declaration* statement*
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Defines a handler with the body BODY and optionally registers
-it with a URI so that it will be found by DISPATCH-EASY-HANDLERS.
-DESCRIPTION is either a symbol NAME or a list matching the
-destructuring lambda list
 
-  (name &amp;key uri acceptor-names default-parameter-type default-request-type).
-
-LAMBDA-LIST is a list the elements of which are either a symbol
-VAR or a list matching the destructuring lambda list
-
-  (var &amp;key real-name parameter-type init-form request-type).
-
-The resulting handler will be a Lisp function with the name NAME
-and keyword parameters named by the VAR symbols.  Each VAR will
-be bound to the value of the GET or POST parameter called
-REAL-NAME (a string) before BODY is executed.  If REAL-NAME is
-not provided, it will be computed by downcasing the symbol name
-of VAR.
-
-If URI (which is evaluated) is provided, then it must be a string or
-a function designator for a function of one argument.  In this case,
-the handler will be returned by DISPATCH-EASY-HANDLERS, if URI is a
-string and the script name of a request is URI, or if URI designates a
-function and applying this function to the current request object
-returns a true value.
-
-ACCEPTOR-NAMES (which is evaluated) can be a list of symbols which
-means that the handler will be returned by DISPATCH-EASY-HANDLERS in
-acceptor which have one of these names (see ACCEPTOR-NAME).
-ACCEPTOR-NAMES can also be the symbol T which means that the handler
-will be returned by DISPATCH-EASY-HANDLERS in every acceptor.
-
-Whether the GET or POST parameter (or both) will be taken into
-consideration, depends on REQUEST-TYPE which can
-be :GET, :POST, :BOTH, or NIL.  In the last case, the value of
-DEFAULT-REQUEST-TYPE (the default of which is :BOTH) will be
-used.
-
-The value of VAR will usually be a string (unless it resulted from a
-file upload in which case it won&#039;t be converted at all), but if
-PARAMETER-TYPE (which is evaluated) is provided, the string will be
-converted to another Lisp type by the following rules:
-
-If the corresponding GET or POST parameter wasn&#039;t provided by the
-client, VAR&#039;s value will be NIL.  If PARAMETER-TYPE is &#039;STRING, VAR&#039;s
-value remains as is.  If PARAMETER-TYPE is &#039;INTEGER and the parameter
-string consists solely of decimal digits, VAR&#039;s value will be the
-corresponding integer, otherwise NIL.  If PARAMETER-TYPE is &#039;KEYWORD,
-VAR&#039;s value will be the keyword obtained by interning the upcased
-parameter string into the keyword package.  If PARAMETER-TYPE is
-&#039;CHARACTER and the parameter string is of length one, VAR&#039;s value will
-be the single character of this string, otherwise NIL.  If
-PARAMETER-TYPE is &#039;BOOLEAN, VAR&#039;s value will always be T (unless it
-is NIL by the first rule above, of course).  If PARAMETER-TYPE is any
-other atom, it is supposed to be a function designator for a unary
-function which will be called to convert the string to something else.
-
-Those were the rules for `simple&#039; types, but PARAMETER-TYPE can
-also be a list starting with one of the symbols LIST, ARRAY, or
-HASH-TABLE.  The second value of the list must always be a simple
-parameter type as in the last paragraph - we&#039;ll call it the
-`inner type&#039; below.
-
-In the case of &#039;LIST, all GET/POST parameters called REAL-NAME
-will be collected, converted to the inner type, and assembled
-into a list which will be the value of VAR.
-
-In the case of &#039;ARRAY, all GET/POST parameters which have a name
-like the result of
-
-  (format nil &quot;~A[~A]&quot; real-name n)
-
-where N is a non-negative integer, will be assembled into an
-array where the Nth element will be set accordingly, after
-conversion to the inner type.  The array, which will become the
-value of VAR, will be big enough to hold all matching parameters,
-but not bigger.  Array elements not set as described above will
-be NIL.  Note that VAR will always be bound to an array, which
-may be empty, so it will never be NIL, even if no appropriate
-GET/POST parameters are found.
-
-The full form of a &#039;HASH-TABLE parameter type is
-
-  (hash-table inner-type key-type test-function),
-
-but KEY-TYPE and TEST-FUNCTION can be left out in which case they
-default to &#039;STRING and &#039;EQUAL, respectively.  For this parameter
-type, all GET/POST parameters which have a name like the result
-of
-
-  (format nil &quot;~A{~A}&quot; real-name key)
-
-(where KEY is a string that doesn&#039;t contain curly brackets) will
-become the values (after conversion to INNER-TYPE) of a hash
-table with test function TEST-FUNCTION where KEY (after
-conversion to KEY-TYPE) will be the corresponding key.  Note that
-VAR will always be bound to a hash table, which may be empty, so
-it will never be NIL, even if no appropriate GET/POST parameters
-are found.
-
-To make matters even more complicated, the three compound
-parameter types also have an abbreviated form - just one of the
-symbols LIST, ARRAY, or HASH-TABLE.  In this case, the inner type
-will default to &#039;STRING.
-
-If PARAMETER-TYPE is not provided or NIL, DEFAULT-PARAMETER-TYPE
-(the default of which is &#039;STRING) will be used instead.
-
-If the result of the computations above would be that VAR would
-be bound to NIL, then INIT-FORM (if provided) will be evaluated
-instead, and VAR will be bound to the result of this evaluation.
-
-Handlers built with this macro are constructed in such a way that
-the resulting Lisp function is useful even outside of
-Hunchentoot.  Specifically, all the parameter computations above
-will only happen if *REQUEST* is bound, i.e. if we&#039;re within a
-Hunchentoot request.  Otherwise, VAR will always be bound to the
-result of evaluating INIT-FORM unless a corresponding keyword
-argument is provided.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='dispatch-easy-handlers'>
-  <clix:lambda-list>request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>This is a dispatcher which returns the appropriate handler
-defined with DEFINE-EASY-HANDLER, if there is one.
-    </clix:description>
-  </clix:function>
-  <clix:function name='escape-for-html'>
-  <clix:lambda-list>string
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Escapes the characters #\&lt;, #\&gt;, #\&#039;, #\&quot;, and #\&amp; for HTML output.
-    </clix:description>
-  </clix:function>
 
   <clix:function name='handle-if-modified-since'>
   <clix:lambda-list>time 
@@ -2433,14 +2485,6 @@ REPLY object REPLY.
 according to HTTP/1.1 (RFC 2068).
     </clix:description>
   </clix:function>
-  <clix:condition name='hunchentoot-condition'>
-    <clix:description>Superclass for all conditions related to Hunchentoot.
-    </clix:description>
-  </clix:condition>
-  <clix:condition name='hunchentoot-error'>
-    <clix:description>Superclass for all errors related to Hunchentoot.
-    </clix:description>
-  </clix:condition>
 
 
   <clix:function name='mime-type'>
@@ -2716,27 +2760,6 @@ REPLY object REPLY. If a cookie with the same name
     </clix:description>
   </clix:function>
 
-  <clix:function name='url-decode'>
-  <clix:lambda-list>string 
-  <clix:lkw>optional
-  </clix:lkw> external-format
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Decodes a URL-encoded STRING which is assumed to be encoded using
-the external format EXTERNAL-FORMAT.
-    </clix:description>
-  </clix:function>
-  <clix:function name='url-encode'>
-  <clix:lambda-list>string 
-  <clix:lkw>optional
-  </clix:lkw> external-format
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>URL-encodes a string using the external format EXTERNAL-FORMAT.
-    </clix:description>
-  </clix:function>
   <clix:function name='user-agent'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -2759,30 +2782,6 @@ name doesn&#039;t exist, it is created.
   </clix:function>
 
 
-  <clix:function generic='true' name='process-request'>
-  <clix:lambda-list>request
-  </clix:lambda-list>
-  <clix:returns>nil
-  </clix:returns>
-    <clix:description>
-This function is called by <clix:ref>PROCESS-CONNECTION</clix:ref>
-after the incoming headers have been read.  It selects and calls a
-handler and sends the output of this handler to the client.  It also
-sets up simple error handling for the request handler.  Note
-that <clix:ref>PROCESS-CONNECTION</clix:ref> is called once per
-connection and loops in case of a persistent connection
-while <clix:ref>PROCESS-REQUEST</clix:ref> is called anew for each
-request.
-<p>
-Like <clix:ref>PROCESS-CONNECTION</clix:ref>, this might be a good
-place to introduce around methods which bind special variables or do
-other interesting things.
-</p>
-<p>
-The return value of this function is ignored.
-</p>
-    </clix:description>
-  </clix:function>
 
     </clix:chapter>
 

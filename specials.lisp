@@ -238,7 +238,7 @@ used by LOG-ACCESS-TO-FILE function.")
   "The current REPLY object while in the context of a request.")
 
 (defvar-unbound *session*
-  "The current SESSION object while in the context of a request, or NIL.")
+  "The current session while in the context of a request, or NIL.")
 
 (defvar *break-even-while-reading-request-type-p* nil
   "If this variable is set to true, Hunchentoot will not bind
@@ -275,11 +275,11 @@ called if the content handler has set a return code which is not in
 
 (defvar *handle-http-errors-p* t
   "A generalized boolean that determines whether return codes which
-are not in *APPROVED-HEADERS* are treated specially.  When its value
-is true \(the default), either a default body for the return code or
-the result of calling *HTTP-ERROR-HANDLER* is used.  When the value is
-NIL, no special action is taken and you are expected to supply your
-own response body to describe the error.")
+are not in *APPROVED-RETURN-CODES* are treated specially.  When its
+value is true \(the default), either a default body for the return
+code or the result of calling *HTTP-ERROR-HANDLER* is used.  When the
+value is NIL, no special action is taken and you are expected to
+supply your own response body to describe the error.")
 
 (defvar *session-removal-hook* (constantly nil)
   "A function of one argument \(a session object) which is called

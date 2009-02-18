@@ -74,7 +74,7 @@ list for all acceptors."))
   (:documentation "Returns the next sequential session ID, an integer,
 which should be unique per session.  The default method uses a simple
 global counter and isn't guarded by a lock.  For a high-performance
-production environment you might consider to use a more robust
+production environment you might consider using a more robust
 implementation."))
 
 (let ((session-id-counter 0))
@@ -208,9 +208,10 @@ one."
   (:documentation "Returns a string which can be used to safely
 restore the session SESSION if as session has already been
 established.  This is used as the value stored in the session cookie
-or in the corresponding GET parameter.  A default method is provided
-and there's no reason to change it unless you want to use your own
-session objects."))
+or in the corresponding GET parameter and verified by SESSION-VERIFY.
+
+A default method is provided and there's no reason to change it unless
+you want to use your own session objects."))
 
 (defmethod session-cookie-value ((session session))
   (and session
@@ -294,10 +295,11 @@ will not create a new one."
 
 (defgeneric session-verify (request)
   (:documentation "Tries to get a session identifier from the cookies
-\(or alternatively from the GET parameters) sent by the client.  This
-identifier is then checked for validity against the REQUEST object
-REQUEST.  On success the corresponding session object \(if not too
-old) is returned \(and updated).  Otherwise NIL is returned.
+\(or alternatively from the GET parameters) sent by the client (see
+SESSION-COOKIE-NAME and SESSION-COOKIE-VALUE).  This identifier is
+then checked for validity against the REQUEST object REQUEST.  On
+success the corresponding session object \(if not too old) is returned
+\(and updated).  Otherwise NIL is returned.
 
 A default method is provided and you only need to write your own one
 if you want to maintain your own sessions."))
