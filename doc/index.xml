@@ -2634,7 +2634,7 @@ name doesn&#039;t exist, it is created.
       using
       the <a href="http://common-lisp.net/project/usocket/">usocket</a>
       and <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
-      Threads</a> for non-LispWorks Lisps, thereby removing most of
+      Threads</a> libraries for non-LispWorks Lisps, thereby removing most of
       the platform dependent code.  Threading behaviour was made
       controllable through the introduction of
       taskmasters.  <a href="http://www.cliki.net/mod_lisp">mod_lisp</a>
@@ -2661,10 +2661,7 @@ name doesn&#039;t exist, it is created.
   <clix:chapter name="ack" title="Acknowledgements">
 
     Thanks to Jeff Caldwell - TBNL would not have been released
-    without his efforts. Thanks
-    to <a href="http://www.fractalconcept.com/">Marc Battyani</a> for
-    mod_lisp and to <a href="http://www.swiss.ai.mit.edu/~cph/">Chris
-    Hanson</a> for mod_lisp2. Thanks
+    without his efforts.  Thanks
     to <a href="http://www.cliki.net/Stefan%20Scholl">Stefan
     Scholl</a> and Travis Cross for various additions and fixes to
     TBNL, to <a href="http://www.foldr.org/~michaelw/">Michael
@@ -2692,7 +2689,10 @@ name doesn&#039;t exist, it is created.
       Hunchentoot to other Lisps than LispWorks, I stole code from
       ACL-COMPAT, <a href="http://www.cliki.net/kmrcl">KMRCL</a>,
       and <a href="http://www.cliki.net/trivial-sockets">trivial-sockets</a> for
-      implementation-dependent stuff like sockets and MP.
+      implementation-dependent stuff like sockets and MP.  (This has been replaced by 
+      <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
+      Threads</a>
+      and <a href="http://common-lisp.net/project/usocket/">usocket</a>.)
     </p>
     <p>
       Parts of this documentation were prepared
