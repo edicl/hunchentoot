@@ -30,6 +30,11 @@
 (in-package :hunchentoot)
 
 (defmacro with-log-file ((stream-var pathname lock) &body body)
+  "Helper macro which executes BODY only if PATHNAME \(which is
+evaluated) is not NIL.  In this case, the file designated by PATHNAME
+is opened for writing \(appending) and created if it doesn't exist.
+STREAM-VAR is then bound to a flexi stream which can be used to write
+characters to the file in UTF-8 format."
   (with-unique-names (binary-stream)
     (with-rebinding (pathname)
       `(when ,pathname
@@ -77,7 +82,13 @@ response."
 
 (defun log-message (log-level format-string &rest format-arguments)
   "Convenience function which calls the message logger of the current
-acceptor \(if there is one) with the same arguments it accepts."
+acceptor \(if there is one) with the same arguments it accepts.
+
+Returns NIL if there is no message logger or whatever the message
+logger returns.
+
+This is the function which Hunchentoot itself uses to log errors it
+catches during request processing."
   (when-let (message-logger (acceptor-message-logger *acceptor*))
     (apply message-logger log-level format-string format-arguments)))
   

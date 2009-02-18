@@ -99,10 +99,10 @@ the REQUEST-CLASS slot of the ACCEPTOR class."))
   (:documentation "This function is called by PROCESS-CONNECTION after
 the incoming headers have been read.  It selects and calls a handler
 and sends the output of this handler to the client using START-OUTPUT.
-It also sets up simple error handling for the actual request handler.
-Note that PROCESS-CONNECTION is called once per connection and loops
-in case of a persistent connection while PROCESS-REQUEST is called
-anew for each request.
+It also sets up simple error handling for the request handler.  Note
+that PROCESS-CONNECTION is called once per connection and loops in
+case of a persistent connection while PROCESS-REQUEST is called anew
+for each request.
 
 Like PROCESS-CONNECTION, this might be a good place to introduce
 around methods which bind special variables or do other interesting

@@ -139,9 +139,9 @@ this acceptor.")
                    :accessor acceptor-message-logger
                    :documentation "Designator for a function to call
 to log messages by the acceptor.  It must accept a severity level for
-the message, which will be one of :NOTICE, :INFO, or :WARNING, a
-format string and an arbitary number of formatting arguments.  This
-slot defaults to a function which writes to the file determined by
+the message, which will be one of :ERROR, :INFO, or :WARNING, a format
+string and an arbitary number of formatting arguments.  This slot
+defaults to a function which writes to the file determined by
 *MESSAGE-LOG-PATHNAME* \(unless that value is NIL).
 
 If the value of this slot is NIL, message logging is turned off for

@@ -384,6 +384,11 @@ no longer accepts requests.
     </clix:description>
   </clix:function>
 
+  <clix:special-variable name='*acceptor*'>
+    <clix:description>The current ACCEPTOR object in the context of a request.
+    </clix:description>
+  </clix:special-variable>
+
   <clix:readers generic='true'>
     <clix:listed-reader name='acceptor-address'>
     <clix:lambda-list>acceptor
@@ -450,10 +455,10 @@ these slots for more information.
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-handler-selector'>
+    <clix:listed-accessor name='acceptor-request-dispatcher'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
-    <clix:returns>handler-selector
+    <clix:returns>request-dispatcher
     </clix:returns>
     </clix:listed-accessor>
 
@@ -600,11 +605,10 @@ new client connection has been established.  Its arguments are the
 <clix:ref>ACCEPTOR</clix:ref> object and a LispWorks socket handle or a usocket socket
 stream object in <clix:arg>socket</clix:arg>.  It reads the request headers, sets up the
 <a href="#requests">request</a> and <a href="#replies">reply</a>
-objects, and hands over to (the unexported
-function) <code>PROCESS-REQUEST</code> which selects and calls a
-handler for the request and sends its reply to the client.  This is
-done in a loop until the stream has to be closed or until a connection
-timeout occurs.
+objects, and hands over to <clix:ref>PROCESS-REQUEST</clix:ref> which
+selects and calls a handler for the request and sends its reply to the
+client.  This is done in a loop until the stream has to be closed or
+until a connection timeout occurs.
 
 <p>
 It is probably not a good idea to re-implement this method until you
@@ -1102,6 +1106,90 @@ the part behind the question mark (i.e. the GET parameters).
     </clix:subchapter>
 
     <clix:subchapter name="logging" title="Logging">
+
+By default, Hunchentoot logs accesses and errors to two separate files
+in the file system, but <em>only</em> if the special variables
+<clix:ref>*MESSAGE-LOG-PATHNAME*</clix:ref> and <clix:ref>*ACCESS-LOG-PATHNAME*</clix:ref> are set accordingly.
+Access logging is done in a format similar to what
+the Apache web server can write so that logfile analysis using
+standard tools is possible.  Errors during request processing are
+logged to a separate file.
+<p>
+The standard logging mechanism is deliberately simple and slow.  The
+log files are opened for each log entry and closed again after
+writing, and access to them is protected by a global lock.  If you
+want more sophisticated logging, use
+the <a href="#acceptor-access-logger"><code>:access-logger</code></a>
+and <a href="#acceptor-message-logger"><code>:message-logger</code></a>
+initargs of the acceptor class to establish your own logging
+functions.  See the docstrings of the corresponding slots for more
+information.
+</p>
+<p>
+Errors happening within a <a href="#handlers">handler</a> which are
+not caught by the handler itself are handled by Hunchentoot by logging
+them to the log file.
+</p>
+
+  <clix:function name='log-message'>
+  <clix:lambda-list>log-level format-string 
+  <clix:lkw>rest
+  </clix:lkw> format-arguments
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Convenience function which calls the message
+logger of the current acceptor (if there is one) with the same
+arguments it accepts.  Returns <code>NIL</code> if there is no message
+logger or whatever the message logger returns.
+<p>
+This is the function which Hunchentoot itself uses to log errors it
+catches during request processing.
+</p>
+    </clix:description>
+  </clix:function>
+
+  <clix:special-variable name='*message-log-pathname*'>
+    <clix:description>
+A designator for the pathname of the message log file used by the
+<a href="#logging">default message logger</a>.  The initial value is <code>NIL</code> which
+means that <em>nothing</em> will be logged!
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*access-log-pathname*'>
+    <clix:description>
+A designator for the pathname of the access log file used by the
+<a href="#logging">default access logger</a>.  The initial value is <code>NIL</code> which
+means that <em>nothing</em> will be logged!
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*log-lisp-errors-p*'>
+    <clix:description>Whether Lisp errors in request handlers should be logged.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*log-lisp-warnings-p*'>
+    <clix:description>Whether Lisp warnings in request handlers should be logged.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*lisp-errors-log-level*'>
+    <clix:description>Log level for Lisp errors.  Should be one
+of <code>:ERROR</code> (the default), <code>:WARNING</code>,
+or <code>:INFO</code>.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*lisp-warnings-log-level*'>
+    <clix:description>Log level for Lisp warnings.
+Should be one of <code>:ERROR</code>, <code>:WARNING</code>
+(the default), or <code>:INFO</code>.
+    </clix:description>
+  </clix:special-variable>
+
+
     </clix:subchapter>
 
     <clix:subchapter name="conditions" title="Conditions">
@@ -1113,16 +1201,7 @@ the part behind the question mark (i.e. the GET parameters).
   </clix:chapter>
 
     <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
-  <clix:special-variable name='*acceptor*'>
-    <clix:description>The current ACCEPTOR object.
-    </clix:description>
-  </clix:special-variable>
-  <clix:special-variable name='*access-log-pathname*'>
-    <clix:description>A designator for the pathname of the access log file used by the
-LOG-ACCESS-TO-FILE function.  The initial value is NIL which means
-that nothingq will be logged.
-    </clix:description>
-  </clix:special-variable>
+
   <clix:special-variable name='*approved-return-codes*'>
     <clix:description>A list of return codes the server should not treat as an error -
 see *HANDLE-HTTP-ERRORS-P*.
@@ -1202,28 +1281,7 @@ called if the content handler has set a return code which is not in
     <clix:description>The external format used to compute the REQUEST object.
     </clix:description>
   </clix:special-variable>
-  <clix:special-variable name='*lisp-errors-log-level*'>
-    <clix:description>Log level for Lisp errors.
-    </clix:description>
-  </clix:special-variable>
-  <clix:special-variable name='*lisp-warnings-log-level*'>
-    <clix:description>Log level for Lisp warnings.
-    </clix:description>
-  </clix:special-variable>
-  <clix:special-variable name='*log-lisp-errors-p*'>
-    <clix:description>Whether Lisp errors should be logged.
-    </clix:description>
-  </clix:special-variable>
-  <clix:special-variable name='*log-lisp-warnings-p*'>
-    <clix:description>Whether Lisp warnings should be logged.
-    </clix:description>
-  </clix:special-variable>
-  <clix:special-variable name='*message-log-pathname*'>
-    <clix:description>A designator for the pathname of the message log file used by the
-LOG-MESSAGE-TO-FILE function.  The initial value is NIL which means
-that nothing will be logged.
-    </clix:description>
-  </clix:special-variable>
+
   <clix:special-variable name='*methods-for-post-parameters*'>
     <clix:description>A list of the request method types (as keywords) for which
 Hunchentoot will try to compute POST-PARAMETERS.
@@ -2018,17 +2076,6 @@ according to HTTP/1.1 (RFC 2068).
   </clix:condition>
 
 
-  <clix:function name='log-message'>
-  <clix:lambda-list>log-level format-string 
-  <clix:lkw>rest
-  </clix:lkw> format-arguments
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Convenience function which calls the message logger of the current
-acceptor (if there is one) with the same arguments it accepts.
-    </clix:description>
-  </clix:function>
   <clix:function name='mime-type'>
   <clix:lambda-list>pathspec
   </clix:lambda-list>
@@ -2548,6 +2595,33 @@ header named NAME (a keyword or a string).  If a header with this
 name doesn&#039;t exist, it is created.
     </clix:description>
   </clix:function>
+
+
+  <clix:function generic='true' name='process-request'>
+  <clix:lambda-list>request
+  </clix:lambda-list>
+  <clix:returns>nil
+  </clix:returns>
+    <clix:description>
+This function is called by <clix:ref>PROCESS-CONNECTION</clix:ref>
+after the incoming headers have been read.  It selects and calls a
+handler and sends the output of this handler to the client.  It also
+sets up simple error handling for the request handler.  Note
+that <clix:ref>PROCESS-CONNECTION</clix:ref> is called once per
+connection and loops in case of a persistent connection
+while <clix:ref>PROCESS-REQUEST</clix:ref> is called anew for each
+request.
+<p>
+Like <clix:ref>PROCESS-CONNECTION</clix:ref>, this might be a good
+place to introduce around methods which bind special variables or do
+other interesting things.
+</p>
+<p>
+The return value of this function is ignored.
+</p>
+    </clix:description>
+  </clix:function>
+
     </clix:chapter>
 
   <clix:chapter name="testing" title="Testing">

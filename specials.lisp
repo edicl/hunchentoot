@@ -194,19 +194,21 @@ which incoming and outgoing headers will be written for debugging
 purposes.")
 
 (defvar *show-lisp-errors-p* nil
-  "Whether Lisp errors should be shown in HTML output.")
+  "Whether Lisp errors in request handlers should be shown in HTML output.")
 
 (defvar *log-lisp-errors-p* t
-  "Whether Lisp errors should be logged.")
+  "Whether Lisp errors in request handlers should be logged.")
 
 (defvar *log-lisp-warnings-p* t
-  "Whether Lisp warnings should be logged.")
+  "Whether Lisp warnings in request handlers should be logged.")
 
 (defvar *lisp-errors-log-level* :error
-  "Log level for Lisp errors.")
+  "Log level for Lisp errors.  Should be one of :ERROR \(the default),
+:WARNING, or :INFO.")
 
 (defvar *lisp-warnings-log-level* :warning
-  "Log level for Lisp warnings.")
+  "Log level for Lisp warnings.  Should be one of :ERROR, :WARNING
+\(the default), or :INFO.")
 
 (defvar *message-log-pathname* nil
   "A designator for the pathname of the message log file used by the
@@ -216,7 +218,7 @@ that nothing will be logged.")
 (defvar *access-log-pathname* nil
   "A designator for the pathname of the access log file used by the
 LOG-ACCESS-TO-FILE function.  The initial value is NIL which means
-that nothingq will be logged.")
+that nothing will be logged.")
 
 (defvar *message-log-lock* (make-lock "global-message-log-lock")
   "A global lock to prevent concurrent access to the log file
