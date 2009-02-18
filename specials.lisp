@@ -308,8 +308,8 @@ encode cookie values.")
   "Length of buffers used for internal purposes.")
 
 (defvar *default-connection-timeout* 20
-  "The default connection timeout used when a Hunchentoot server is
-reading from and writing to a socket stream.")
+  "The default connection timeout used when an acceptor is reading
+from and writing to a socket stream.")
 
 (defvar-unbound *local-host*
   "Bound to a string denoting the address at which the current

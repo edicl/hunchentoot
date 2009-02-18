@@ -1077,8 +1077,29 @@ the part behind the question mark (i.e. the GET parameters).
     </clix:description>
 
   </clix:readers>
+
     </clix:subchapter>
 
+    <clix:subchapter name="replies" title="Reply objects">
+    </clix:subchapter>
+
+    <clix:subchapter name="sessions" title="Sessions">
+    </clix:subchapter>
+
+    <clix:subchapter name="handlers" title="Handlers">
+    </clix:subchapter>
+
+    <clix:subchapter name="handler-selection" title="Handler selection">
+    </clix:subchapter>
+
+    <clix:subchapter name="logging" title="Logging">
+    </clix:subchapter>
+
+    <clix:subchapter name="conditions" title="Conditions">
+    </clix:subchapter>
+
+    <clix:subchapter name="misc" title="Miscellaneous">
+    </clix:subchapter>
 
   </clix:chapter>
 
@@ -1986,17 +2007,7 @@ according to HTTP/1.1 (RFC 2068).
     <clix:description>Superclass for all errors related to Hunchentoot.
     </clix:description>
   </clix:condition>
-  <clix:function name='hunchentoot-error'>
-  <clix:lambda-list>format-control 
-  <clix:lkw>rest
-  </clix:lkw> format-arguments
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Signals an error of type HUNCHENTOOT-SIMPLE-ERROR with the provided
-format control and arguments.
-    </clix:description>
-  </clix:function>
+
 
   <clix:function name='log-message'>
   <clix:lambda-list>log-level format-string 
@@ -2473,15 +2484,6 @@ REPLY object REPLY. If a cookie with the same name
   <clix:returns>result
   </clix:returns>
     <clix:description>Whether the current connection to the client is secure.
-    </clix:description>
-  </clix:function>
-  <clix:function generic='true' name='start'>
-  <clix:lambda-list>acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Starts the ACCEPTOR so that it begins accepting
-connections.  Returns the acceptor.
     </clix:description>
   </clix:function>
 

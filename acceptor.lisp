@@ -99,15 +99,13 @@ request.  This is the default for non-threaded acceptors.")
                  :documentation "The read timeout of the acceptor,
 specified in \(fractional) seconds.  The precise semantics of this
 parameter is determined by the underlying Lisp's implementation of
-socket timeouts.  NIL \(which is the default that you might want to
-change for production environments) means no timeout.")
+socket timeouts.  NIL means no timeout.")
    (write-timeout :initarg :write-timeout
                   :reader acceptor-write-timeout
                   :documentation "The write timeout of the acceptor,
 specified in \(fractional) seconds.  The precise semantics of this
 parameter is determined by the underlying Lisp's implementation of
-socket timeouts.  NIL \(which is the default that you might want to
-change for production environments) means no timeout.")
+socket timeouts.  NIL means no timeout.")
    #+:lispworks
    (process :accessor acceptor-process
             :documentation "The Lisp process which accepts incoming
@@ -159,8 +157,8 @@ this acceptor."))
    :output-chunking-p t
    :input-chunking-p t
    :persistent-connections-p t
-   :read-timeout nil
-   :write-timeout nil
+   :read-timeout *default-connection-timeout*
+   :write-timeout *default-connection-timeout*
    :access-logger 'log-access-to-file
    :message-logger 'log-message-to-file)
   (:documentation "To create a Hunchentoot webserver, you make an
