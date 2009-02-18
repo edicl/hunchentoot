@@ -523,10 +523,21 @@ objects.  See the docstrings of these slots for more information.
   </clix:special-variable>
 
 
+  <clix:function name='ssl-p'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> acceptor
+  </clix:lambda-list>
+  <clix:returns>generalized-boolean
+  </clix:returns>
+    <clix:description>Whether the current connection to the client is secure.  See <clix:ref>ACCEPTOR-SSL-P</clix:ref>.
+    </clix:description>
+  </clix:function>
+
   <clix:function generic='true' name='acceptor-ssl-p'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
-  <clix:returns>ssl-p
+  <clix:returns>generalized-boolean
   </clix:returns>
     <clix:description>Returns a true value if <clix:arg>acceptor</clix:arg> uses SSL
 connections.  The default is to unconditionally return <code>NIL</code> and
@@ -1419,6 +1430,192 @@ The return value of this function is ignored.
     </clix:subchapter>
 
     <clix:subchapter name="replies" title="Reply objects">
+
+  <clix:class name='reply'>
+    <clix:description>Objects of this class hold all the information
+about an outgoing reply.  They are created automatically by
+Hunchentoot and can be accessed and modified by the corresponding
+handler.
+
+You should not mess with the slots of these objects directly, but you
+can subclass REPLY in order to implement your own behaviour.  See the
+REPLY-CLASS slot of the ACCEPTOR class.
+    </clix:description>
+  </clix:class>
+
+
+  <clix:accessor name='reply-external-format*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>The external format of REPLY which is used for character output.
+    </clix:description>
+  </clix:accessor>
+
+  <clix:special-variable name='*reply*'>
+    <clix:description>The current REPLY object in the context of a request.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:accessor name='content-length*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>The outgoing &#039;Content-Length&#039; http header of REPLY.
+    </clix:description>
+  </clix:accessor>
+
+
+  <clix:accessor name='content-type*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>The outgoing &#039;Content-Type&#039; http header of REPLY.
+    </clix:description>
+  </clix:accessor>
+
+  <clix:accessor name='cookies-out*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns an alist of the outgoing cookies associated with the
+REPLY object REPLY.
+    </clix:description>
+  </clix:accessor>
+
+  <clix:function name='cookie-out'>
+  <clix:lambda-list>name 
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns the current value of the outgoing cookie named
+NAME. Search is case-sensitive.
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='header-out'>
+  <clix:lambda-list>name 
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns the current value of the outgoing http header named NAME.
+NAME should be a keyword or a string.
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='headers-out*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns an alist of the outgoing headers associated with the
+REPLY object REPLY.
+    </clix:description>
+  </clix:function>
+
+  <clix:accessor name='return-code*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> reply
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>The http return code of REPLY.  The return codes Hunchentoot can
+handle are defined in specials.lisp.
+    </clix:description>
+  </clix:accessor>
+
+  <clix:readers>
+    <clix:listed-reader generic='true' name='content-length'>
+    <clix:lambda-list>reply
+    </clix:lambda-list>
+    <clix:returns>content-length
+    </clix:returns>
+    </clix:listed-reader>
+
+    <clix:listed-reader generic='true' name='content-type'>
+    <clix:lambda-list>reply
+    </clix:lambda-list>
+    <clix:returns>content-type
+    </clix:returns>
+    </clix:listed-reader>
+
+    <clix:listed-reader generic='true' name='headers-out'>
+    <clix:lambda-list>reply
+    </clix:lambda-list>
+    <clix:returns>headers-out
+    </clix:returns>
+    </clix:listed-reader>
+
+    <clix:description>These are various generic readers which are used
+    to read information about a <clix:ref>REPLY</clix:ref> object.  If you are writing a
+    <a href="#handlers">handler</a>, you should <em>not</em> use these readers but instead utilize the
+    corresponding functions with an asterisk at the end of their name,
+    also listed in this section.  These generic readers are only
+    exported for users who want to create their own subclasses of
+    <clix:ref>REPLY</clix:ref>.
+    </clix:description>
+  </clix:readers>
+
+  <clix:accessors>
+    <clix:listed-accessor generic='true' name='cookies-out'>
+    <clix:lambda-list>reply
+    </clix:lambda-list>
+    <clix:returns>result
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor generic='true' name='return-code'>
+    <clix:lambda-list>reply
+    </clix:lambda-list>
+    <clix:returns>result
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:listed-accessor generic='true' name='reply-external-format'>
+    <clix:lambda-list>reply
+    </clix:lambda-list>
+    <clix:returns>result
+    </clix:returns>
+      <clix:description>
+      </clix:description>
+    </clix:listed-accessor>
+
+    <clix:description>These are various generic accessors which are
+    used to query and modify a <clix:ref>REPLY</clix:ref> objects.  If
+    you are writing a
+    <a href="#handlers">handler</a>, you should <em>not</em> use these
+    accessors but instead utilize the corresponding functions with an
+    asterisk at the end of their name, also listed in this section.
+    These generic accessors are only exported for users who want to
+    create their own subclasses of
+    <clix:ref>REPLY</clix:ref>.
+    </clix:description>
+  </clix:accessors>
+
+
     </clix:subchapter>
 
     <clix:subchapter name="sessions" title="Sessions">
@@ -1853,6 +2050,84 @@ want to use your own session objects.
 
     </clix:subchapter>
 
+    <clix:subchapter name="cookies" title="Cookies">
+
+      Outgoing cookies are stored in the request's <code>REPLY</code>
+      object (see <clix:ref>COOKIE-OUT</clix:ref>
+      and <clix:ref>COOKIES-OUT</clix:ref>). They are CLOS objects
+      defined like this:
+
+      <pre>(defclass cookie ()
+  ((name :initarg :name
+         :reader <a class="noborder" name="cookie-name">cookie-name</a>
+         :type string
+         :documentation "The name of the cookie - a string.")
+   (value :initarg :value
+          :accessor <a class="noborder" name="cookie-value">cookie-value</a>
+          :initform ""
+          :documentation "The value of the cookie. Will be URL-encoded when sent to the browser.")
+   (expires :initarg :expires
+            :initform nil
+            :accessor <a class="noborder" name="cookie-expires">cookie-expires</a>
+            :documentation "The time (a universal time) when the cookie expires (or NIL).")
+   (path :initarg :path
+         :initform nil
+         :accessor <a class="noborder" name="cookie-path">cookie-path</a>
+         :documentation "The path this cookie is valid for (or NIL).")
+   (domain :initarg :domain
+           :initform nil
+           :accessor <a class="noborder" name="cookie-domain">cookie-domain</a>
+           :documentation "The domain this cookie is valid for (or NIL).")
+   (secure :initarg :secure
+           :initform nil
+           :accessor <a class="noborder" name="cookie-secure">cookie-secure</a>
+           :documentation "A generalized boolean denoting whether this is a secure cookie.")
+   (http-only :initarg :http-only
+              :initform nil
+              :accessor <a class="noborder" name="cookie-http-only">cookie-http-only</a>
+              :documentation "A generalized boolean denoting whether this is a <a href="http://msdn2.microsoft.com/en-us/library/ms533046.aspx">HttpOnly</a> cookie.")))</pre>
+
+      The <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_r.htm#reader">reader</a>
+      <clix:ref>COOKIE-NAME</clix:ref> and
+      the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#accessor">accessors</a>
+      <clix:ref>COOKIE-VALUE</clix:ref>, <clix:ref>COOKIE-EXPIRES</clix:ref>,
+      <clix:ref>COOKIE-PATH</clix:ref>, <clix:ref>COOKIE-DOMAIN</clix:ref>, <clix:ref>COOKIE-SECURE</clix:ref>,
+      and <clix:ref>COOKIE-HTTP-ONLY</clix:ref> are all exported from
+      the <code>HUNCHENTOOT</code> package.
+
+      <clix:function name="set-cookie">
+        <clix:lambda-list>
+          name <clix:lkw>key</clix:lkw> value expires path
+          domain secure http-only reply
+        </clix:lambda-list>
+        <clix:returns>cookie</clix:returns>
+        <clix:description>
+          Creates a <code>COOKIE</code> object from the parameters
+          provided to this function and adds it to the outgoing cookies
+          of the <a href="#replies"><code>REPLY</code> object</a>
+          <clix:arg>reply</clix:arg>. If a cookie with the same name
+          (case-sensitive) already exists, it is replaced. The default
+          for <clix:arg>reply</clix:arg>
+          is <clix:ref>*REPLY*</clix:ref>. The default
+          for <clix:arg>value</clix:arg> is the empty string.
+        </clix:description>
+      </clix:function>
+
+      <clix:function name="set-cookie*">
+        <clix:lambda-list>cookie <clix:lkw>optional</clix:lkw> reply</clix:lambda-list>
+        <clix:returns>cookie</clix:returns>
+        <clix:description>
+          Adds the <code>COOKIE</code> object <clix:arg>cookie</clix:arg>
+          to the outgoing cookies of
+          the <a href="#replies"><code>REPLY</code> object</a>
+          <clix:arg>reply</clix:arg>. If a cookie with the same name
+          (case-sensitive) already exists, it is replaced. The default
+          for <clix:arg>reply</clix:arg> is <clix:ref>*REPLY*</clix:ref>.
+        </clix:description>
+      </clix:function>
+    </clix:subchapter>
+
+
     <clix:subchapter name="logging" title="Logging">
 
 By default, Hunchentoot logs accesses and errors to two separate files
@@ -2134,10 +2409,6 @@ purposes.
     </clix:description>
   </clix:special-variable>
 
-  <clix:special-variable name='*reply*'>
-    <clix:description>The current REPLY object.
-    </clix:description>
-  </clix:special-variable>
 
   <clix:special-variable name='*tmp-directory*'>
     <clix:description>Directory for temporary files created by MAKE-TMP-FILE-NAME.
@@ -2157,6 +2428,7 @@ immediately abort handling the request.  This works as if the handler
 had returned RESULT.  See the source code of REDIRECT for an example.
     </clix:description>
   </clix:function>
+
   <clix:function name='authorization'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -2169,209 +2441,9 @@ the &#039;AUTHORIZATION&#039; header.  Returns NIL if there is no such header.
     </clix:description>
   </clix:function>
 
-  <clix:function generic='true' name='content-length'>
-  <clix:lambda-list>reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function specialized='(REPLY)' name='content-length'>
-  <clix:lambda-list>(reply reply)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:accessor name='content-length*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>The outgoing &#039;Content-Length&#039; http header of REPLY.
-    </clix:description>
-  </clix:accessor>
-  <clix:function generic='true' name='content-type'>
-  <clix:lambda-list>reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function specialized='(REPLY)' name='content-type'>
-  <clix:lambda-list>(reply reply)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:accessor name='content-type*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>The outgoing &#039;Content-Type&#039; http header of REPLY.
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='cookie-domain'>
-  <clix:lambda-list>cookie
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(COOKIE)' name='cookie-domain'>
-  <clix:lambda-list>(cookie cookie)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='cookie-expires'>
-  <clix:lambda-list>cookie
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(COOKIE)' name='cookie-expires'>
-  <clix:lambda-list>(cookie cookie)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='cookie-http-only'>
-  <clix:lambda-list>cookie
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(COOKIE)' name='cookie-http-only'>
-  <clix:lambda-list>(cookie cookie)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:function generic='true' name='cookie-name'>
-  <clix:lambda-list>cookie
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function specialized='(COOKIE)' name='cookie-name'>
-  <clix:lambda-list>(cookie cookie)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function name='cookie-out'>
-  <clix:lambda-list>name 
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the current value of the outgoing cookie named
-NAME. Search is case-sensitive.
-    </clix:description>
-  </clix:function>
-  <clix:accessor generic='true' name='cookie-path'>
-  <clix:lambda-list>cookie
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(COOKIE)' name='cookie-path'>
-  <clix:lambda-list>(cookie cookie)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='cookie-secure'>
-  <clix:lambda-list>cookie
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(COOKIE)' name='cookie-secure'>
-  <clix:lambda-list>(cookie cookie)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor generic='true' name='cookie-value'>
-  <clix:lambda-list>cookie
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(COOKIE)' name='cookie-value'>
-  <clix:lambda-list>(cookie cookie)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
 
-  <clix:accessor generic='true' name='cookies-out'>
-  <clix:lambda-list>reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REPLY)' name='cookies-out'>
-  <clix:lambda-list>(reply reply)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor name='cookies-out*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns an alist of the outgoing cookies associated with the
-REPLY object REPLY.
-    </clix:description>
-  </clix:accessor>
+
+
 
 
   <clix:function name='handle-if-modified-since'>
@@ -2400,6 +2472,7 @@ CONTENT-TYPE or (if that is NIL) tries to determine the content type
 via the file&#039;s suffix.
     </clix:description>
   </clix:function>
+
   <clix:function generic='true' name='header-in'>
   <clix:lambda-list>name request
   </clix:lambda-list>
@@ -2408,14 +2481,7 @@ via the file&#039;s suffix.
     <clix:description>
     </clix:description>
   </clix:function>
-  <clix:function specialized='(T T)' name='header-in'>
-  <clix:lambda-list>name request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
+
   <clix:function name='header-in*'>
   <clix:lambda-list>name 
   <clix:lkw>optional
@@ -2427,45 +2493,7 @@ via the file&#039;s suffix.
 (recommended) or a string.
     </clix:description>
   </clix:function>
-  <clix:function name='header-out'>
-  <clix:lambda-list>name 
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the current value of the outgoing http header named NAME.
-NAME should be a keyword or a string.
-    </clix:description>
-  </clix:function>
 
-  <clix:function generic='true' name='headers-out'>
-  <clix:lambda-list>reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function specialized='(REPLY)' name='headers-out'>
-  <clix:lambda-list>(reply reply)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function name='headers-out*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns an alist of the outgoing headers associated with the
-REPLY object REPLY.
-    </clix:description>
-  </clix:function>
   <clix:function name='host'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -2595,43 +2623,6 @@ redirection code, it will be sent as status code.
     </clix:description>
   </clix:function>
 
-  <clix:class name='reply'>
-    <clix:description>Objects of this class hold all the information
-about an outgoing reply.  They are created automatically by
-Hunchentoot and can be accessed and modified by the corresponding
-handler.
-
-You should not mess with the slots of these objects directly, but you
-can subclass REPLY in order to implement your own behaviour.  See the
-REPLY-CLASS slot of the ACCEPTOR class.
-    </clix:description>
-  </clix:class>
-  <clix:accessor generic='true' name='reply-external-format'>
-  <clix:lambda-list>reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REPLY)' name='reply-external-format'>
-  <clix:lambda-list>(reply reply)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor name='reply-external-format*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>The external format of REPLY which is used for character output.
-    </clix:description>
-  </clix:accessor>
   <clix:function name='require-authorization'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -2644,33 +2635,6 @@ REPLY-CLASS slot of the ACCEPTOR class.
     </clix:description>
   </clix:function>
 
-  <clix:accessor generic='true' name='return-code'>
-  <clix:lambda-list>reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor specialized='(REPLY)' name='return-code'>
-  <clix:lambda-list>(reply reply)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:accessor>
-  <clix:accessor name='return-code*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>The http return code of REPLY.  The return codes Hunchentoot can
-handle are defined in specials.lisp.
-    </clix:description>
-  </clix:accessor>
   <clix:function name='rfc-1123-date'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -2721,42 +2685,6 @@ errors (i.e. sending the corresponding status code to the browser,
 etc.) is turned off for this request.  If your handlers return the
 full body as a string or as an array of octets you should NOT call
 this function.
-    </clix:description>
-  </clix:function>
-  <clix:function name='set-cookie'>
-  <clix:lambda-list>name 
-  <clix:lkw>key
-  </clix:lkw> value expires path domain secure http-only reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Creates a cookie object from the parameters provided and adds
-it to the outgoing cookies of the REPLY object REPLY. If a cookie
-with the name NAME (case-sensitive) already exists, it is
-replaced.
-    </clix:description>
-  </clix:function>
-  <clix:function name='set-cookie*'>
-  <clix:lambda-list>cookie 
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Adds the COOKIE object COOKIE to the outgoing cookies of the
-REPLY object REPLY. If a cookie with the same name
-(case-sensitive) already exists, it is replaced.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='ssl-p'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> acceptor
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Whether the current connection to the client is secure.
     </clix:description>
   </clix:function>
 
