@@ -89,7 +89,7 @@ arbitrary data during the request.")
 POST request, populated only if not a multipart/form-data request."))
   (:documentation "Objects of this class hold all the information
 about an incoming request.  They are created automatically by
-Hunchentoot and can be accessed by the corresponding handler.
+acceptors and can be accessed by the corresponding handler.
 
 You should not mess with the slots of these objects directly, but you
 can subclass REQUEST in order to implement your own behaviour.  See

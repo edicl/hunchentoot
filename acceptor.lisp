@@ -197,7 +197,9 @@ or similar)."))
 (defgeneric accept-connections (acceptor)
   (:documentation "In a loop, accepts a connection and hands it over
 to the acceptor's taskmaster for processing using
-HANDLE-INCOMING-CONNECTION."))
+HANDLE-INCOMING-CONNECTION.  On LispWorks, this function returns
+immediately, on other Lisps it retusn only once the acceptor has been
+stopped."))
 
 (defgeneric initialize-connection-stream (acceptor stream)
  (:documentation "Can be used to modify the stream which is used to
@@ -246,7 +248,8 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   (setf (acceptor-shutdown-p acceptor) t)
   (shutdown (acceptor-taskmaster acceptor))
   #-:lispworks
-  (usocket:socket-close (acceptor-listen-socket acceptor)))
+  (usocket:socket-close (acceptor-listen-socket acceptor))
+  acceptor)
 
 (defmethod initialize-connection-stream ((acceptor acceptor) stream)
  (declare (ignore acceptor))
@@ -397,7 +400,8 @@ The return value of this function is ignored."
                                    usocket:*wildcard-host*)
                                (acceptor-port acceptor)
                                :reuseaddress t
-                               :element-type '(unsigned-byte 8))))
+                               :element-type '(unsigned-byte 8)))
+  (values))
 
 #-:lispworks
 (defmethod accept-connections ((acceptor acceptor))
@@ -444,11 +448,13 @@ The return value of this function is ignored."
     (when startup-condition
       (error startup-condition))
     (mp:process-stop listener-process)
-    (setf (acceptor-process acceptor) listener-process)))
+    (setf (acceptor-process acceptor) listener-process)
+    (values)))
 
 #+:lispworks
 (defmethod accept-connections ((acceptor acceptor))
-  (mp:process-unstop (acceptor-process acceptor)))
+  (mp:process-unstop (acceptor-process acceptor))
+  nil)
 
 (defun list-handler-selector (request)
   "The default handler selector which selects a request handler based

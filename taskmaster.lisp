@@ -34,7 +34,9 @@
              :documentation "A backpointer to the acceptor instance
 this taskmaster works for."))
   (:documentation "An instance of this class is responsible for
-distributing the work of handling requests when its acceptor "))
+distributing the work of handling requests for its acceptor.  This is
+an \"abstract\" class in the sense that usually only instances of
+subclasses of TASKMASTER will be used."))
 
 (defgeneric execute-acceptor (taskmaster)
   (:documentation "This is a callback called by the acceptor once it
@@ -44,24 +46,19 @@ ACCEPT-CONNECTIONS method of the acceptor, but depending on the
 taskmaster instance the method might be called from a new thread."))
 
 (defgeneric handle-incoming-connection (taskmaster socket)
-  (:documentation
-   "This function is called by Hunchentoot to start processing of
-requests on a new incoming connection.  SOCKET is the usocket instance
-that represents the new connection \(or a socket handle on LispWorks).
-The taskmaster starts processing requests on the incoming
-connection by calling the START-REQUEST-PROCESSING function of the
-acceptor instance, taken from the ACCEPTOR slot in the taskmaster
-instance.  The SOCKET argument is passed to START-REQUEST-PROCESSING
-as argument.
-
-In a multi-threaded environment, the taskmaster runs this function
-in a separate thread.  In a single-threaded environment, this function
-is called directly."))
+  (:documentation "This function is called by the acceptor to start
+processing of requests on a new incoming connection.  SOCKET is the
+usocket instance that represents the new connection \(or a socket
+handle on LispWorks).  The taskmaster starts processing requests on
+the incoming connection by calling the PROCESS-CONNECTION method of
+the acceptor instance.  The SOCKET argument is passed to
+PROCESS-CONNECTION as an argument."))
 
 (defgeneric shutdown (taskmaster)
   (:documentation "Shuts down the taskmaster, i.e. frees all resources
 that were set up by it.  For example, a multi-threaded taskmaster
-might terminate all threads that are currently associated with it."))
+might terminate all threads that are currently associated with it.
+This function is called by the acceptor's STOP method."))
 
 (defclass single-threaded-taskmaster (taskmaster)
   ()
@@ -88,12 +85,16 @@ PROCESS-CONNECTION."))
 connections and hands them off to new processes for request
 handling."))
   (:documentation "A taskmaster that starts one thread for listening
-to incoming requests and one thread for each incoming connection."))
+to incoming requests and one thread for each incoming connection.
+
+This is the default taskmaster implementation for multi-threaded Lisp
+implementations."))
 
 ;; usocket implementation
 
 #-:lispworks
-(defmethod shutdown ((taskmaster taskmaster)))
+(defmethod shutdown ((taskmaster taskmaster))
+  taskmaster)
 
 #-:lispworks
 (defmethod shutdown ((taskmaster one-thread-per-connection-taskmaster))
@@ -101,7 +102,8 @@ to incoming requests and one thread for each incoming connection."))
   (loop
    (unless (bt:thread-alive-p (acceptor-process taskmaster))
      (return))
-   (sleep 1)))
+   (sleep 1))
+  taskmaster)
 
 #-:lispworks
 (defmethod execute-acceptor ((taskmaster one-thread-per-connection-taskmaster))
@@ -136,7 +138,8 @@ string and tries to act robustly in the presence of network problems."
   (when-let (process (acceptor-process (taskmaster-acceptor taskmaster)))
     ;; kill the main acceptor process, see LW documentation for
     ;; COMM:START-UP-SERVER
-    (mp:process-kill process)))
+    (mp:process-kill process))
+  taskmaster)
 
 #+:lispworks
 (defmethod execute-acceptor ((taskmaster one-thread-per-connection-taskmaster))
