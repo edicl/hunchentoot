@@ -523,17 +523,6 @@ objects.  See the docstrings of these slots for more information.
   </clix:special-variable>
 
 
-  <clix:function name='ssl-p'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> acceptor
-  </clix:lambda-list>
-  <clix:returns>generalized-boolean
-  </clix:returns>
-    <clix:description>Whether the current connection to the client is secure.  See <clix:ref>ACCEPTOR-SSL-P</clix:ref>.
-    </clix:description>
-  </clix:function>
-
   <clix:function generic='true' name='acceptor-ssl-p'>
   <clix:lambda-list>acceptor
   </clix:lambda-list>
@@ -814,6 +803,31 @@ function denoted by HANDLER if the file name of the current request
 matches the CL-PPCRE regular expression REGEX.
     </clix:description>
   </clix:function>
+
+      <clix:function name="handle-static-file">
+        <clix:lambda-list>path <clix:lkw>optional</clix:lkw> content-type</clix:lambda-list>
+        <clix:returns>nil</clix:returns>
+        <clix:description>
+          Sends the file denoted by the pathname designator
+          <clix:arg>path</clix:arg> with content type
+          <clix:arg>content-type</clix:arg> to the client.  Sets the
+          necessary handlers.  In particular the function employs
+          <clix:ref>HANDLE-IF-MODIFIED-SINCE</clix:ref>.
+          <p>
+            If <clix:arg>content-type</clix:arg> is <code>NIL</code> the
+            function tries to determine the correct content type from
+            the file's suffix or falls back
+            to <code>"application/octet-stream"</code> as a last resort.
+          </p>
+          <p>
+            Note that this function
+            calls <clix:ref>SEND-HEADERS</clix:ref> internally, so after
+            you've called it, the headers are sent and the return value
+            of your handler is ignored.
+          </p>
+        </clix:description>
+      </clix:function>
+
   <clix:function name='create-static-file-dispatcher-and-handler'>
   <clix:lambda-list>uri path 
   <clix:lkw>optional
@@ -828,6 +842,7 @@ the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
 determine the content type via the file&#039;s suffix.
     </clix:description>
   </clix:function>
+
   <clix:function name='default-dispatcher'>
   <clix:lambda-list>request
   </clix:lambda-list>
@@ -1055,18 +1070,42 @@ DEFAULT-DISPATCHER.
 
     <clix:subchapter name="handlers" title="Handlers">
 
-  <clix:function name='handle-if-modified-since'>
-  <clix:lambda-list>time 
+  <clix:function name='abort-request-handler'>
+  <clix:lambda-list>
   <clix:lkw>optional
-  </clix:lkw> request
+  </clix:lkw> result
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
-    <clix:description>Handles the &#039;If-Modified-Since&#039; header of REQUEST.  The date string
-is compared to the one generated from the supplied universal time
-TIME.
+    <clix:description>This function can be called by a request handler
+at any time to immediately abort handling the request.  This works as
+if the handler had returned <clix:arg>result</clix:arg>.  See the
+source code of <clix:ref>REDIRECT</clix:ref> for an example.
     </clix:description>
   </clix:function>
+
+      <clix:function name="handle-if-modified-since">
+        <clix:lambda-list>time <clix:lkw>optional</clix:lkw> request</clix:lambda-list>
+        <clix:returns>|</clix:returns>
+        <clix:description>
+          This function is designed to be used inside
+          a <a href="#handlers">handler</a>. If the client has sent an
+          'If-Modified-Since' header
+          (see <a href="http://www.faqs.org/rfcs/rfc2616.html">RFC 2616</a>,
+          section 14.25) and the time specified matches the universal
+          time
+          <clix:arg>time</clix:arg> then the
+          header <clix:ref>+HTTP-NOT-MODIFIED+</clix:ref> with no content
+          is immediately returned to the client.
+          <p>
+            Note that for this function to be useful you should usually
+            send 'Last-Modified' headers back to the client. See the
+            code
+            of <clix:ref>CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER</clix:ref>
+            for an example.
+          </p>
+        </clix:description>
+      </clix:function>
 
     </clix:subchapter>
 
@@ -1798,6 +1837,31 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
     to <clix:ref>+HTTP-OK+</clix:ref>.
     </clix:description>
   </clix:accessor>
+
+      <clix:function name="send-headers">
+        <clix:returns>stream</clix:returns>
+        <clix:description>
+          Sends the initial status line and all headers as determined
+          by the <clix:ref>REPLY</clix:ref>
+          object <clix:ref>*REPLY*</clix:ref>.  Returns
+          a <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_b.htm#binary">binary</a>
+          stream to which the body of the reply can be written.  Once
+          this function has been called, further changes
+          to <clix:ref>*REPLY*</clix:ref> don't have any effect.
+          Also, automatic handling of errors (i.e. sending the
+          corresponding status code to the browser, etc.) is turned
+          off for this request and functions
+          like <clix:ref>REDIRECT</clix:ref> or
+          to <clix:ref>ABORT-REQUEST-HANDLER</clix:ref> won't have the
+          desired effect once the headers are sent.
+          <p>
+            If your handlers return the full body as a string or as an
+            array of octets, you should <em>not</em> call this function.
+            If a handler calls <clix:ref>SEND-HEADERS</clix:ref> , its
+            return value is ignored.
+          </p>
+        </clix:description>
+      </clix:function>
 
   <clix:accessor name='reply-external-format*'>
   <clix:lambda-list>
@@ -2588,6 +2652,95 @@ and <clix:ref>*HANDLE-HTTP-ERRORS*</clix:ref> is true.
 
     <clix:subchapter name="misc" title="Miscellaneous">
 
+      <clix:function name="redirect">
+        <clix:lambda-list>target <clix:lkw>key</clix:lkw> host port protocol add-session-id code</clix:lambda-list>
+        <clix:returns>|</clix:returns>
+        <clix:description>
+          Sends back appropriate headers to redirect the client
+          to <clix:arg>target</clix:arg> (a string).
+          <p>
+            If <clix:arg>target</clix:arg> is a full URL starting with a
+            scheme, <clix:arg>host</clix:arg>, <clix:arg>port</clix:arg>,
+            and <clix:arg>protocol</clix:arg> are ignored.
+            Otherwise, <clix:arg>target</clix:arg> should denote the path
+            part of a URL, <clix:arg>protocol</clix:arg> must be one of
+            the keywords <code>:HTTP</code> or <code>:HTTPS</code>, and
+            the URL to redirect to will be constructed
+            from <clix:arg>host</clix:arg>, <clix:arg>port</clix:arg>, <clix:arg>protocol</clix:arg>,
+            and <clix:arg>target</clix:arg>.
+          </p>
+          <p>
+            If <clix:arg>code</clix:arg> is a 3xx redirection code, it
+            will be sent as status code.  In case of <code>NIL</code>, a
+            302 status code will be sent to the client.
+            If <clix:arg>host</clix:arg> is not provided, the current host
+            (see <clix:ref>HOST</clix:ref>) will be
+            used. If <clix:arg>protocol</clix:arg> is the
+            keyword <code>:HTTPS</code>, the client will be redirected
+            to a https URL, if it's <code>:HTTP</code> it'll be sent to
+            a http URL.  If both <clix:arg>host</clix:arg>
+            and <clix:arg>protocol</clix:arg> aren't provided, then the
+            value of <clix:arg>protocol</clix:arg> will match the current
+            request.
+          </p>
+        </clix:description>
+      </clix:function>
+
+      <clix:function name="require-authorization">
+        <clix:lambda-list><clix:lkw>optional</clix:lkw> realm</clix:lambda-list>
+        <clix:returns>|</clix:returns>
+        <clix:description>
+          Sends back appropriate headers to require basic HTTP
+          authentication
+          (see <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617</a>)
+          for the realm <clix:arg>realm</clix:arg>. The default value
+          for <clix:arg>realm</clix:arg> is <code>"Hunchentoot"</code>.
+        </clix:description>
+      </clix:function>
+
+  <clix:function name='no-cache'>
+  <clix:lambda-list>
+  </clix:lambda-list>
+  <clix:returns>|
+  </clix:returns>
+    <clix:description>Adds appropriate headers to completely prevent caching on most browsers.
+    </clix:description>
+  </clix:function>
+
+   <clix:function name='ssl-p'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> acceptor
+  </clix:lambda-list>
+  <clix:returns>generalized-boolean
+  </clix:returns>
+    <clix:description>Whether the current connection to the client is secure.  See <clix:ref>ACCEPTOR-SSL-P</clix:ref>.
+    </clix:description>
+  </clix:function>
+
+   <clix:function name='reason-phrase'>
+  <clix:lambda-list>return-code
+  </clix:lambda-list>
+  <clix:returns>string
+  </clix:returns>
+    <clix:description>Returns a reason phrase for the HTTP return code <clix:arg>return-code</clix:arg>
+(which should be an integer) or <code>NIL</code> for return codes Hunchentoot
+doesn&#039;t know.
+    </clix:description>
+  </clix:function>
+
+ <clix:function name='rfc-1123-date'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> time
+  </clix:lambda-list>
+  <clix:returns>string
+  </clix:returns>
+    <clix:description>Generates a time string according to <a href="http://www.faqs.org/rfcs/rfc1123.html">RFC 1123</a>.  Default is current time.
+This can be used to send a 'Last-Modified' header - see <clix:ref>HANDLE-IF-MODIFIED-SINCE</clix:ref>. 
+    </clix:description>
+  </clix:function>
+
   <clix:function name='url-encode'>
   <clix:lambda-list>string 
   <clix:lkw>optional
@@ -2625,6 +2778,44 @@ of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>.
     </clix:description>
   </clix:function>
 
+      <clix:function name="http-token-p">
+        <clix:lambda-list>object</clix:lambda-list>
+        <clix:returns>generalized-boolean</clix:returns>
+        <clix:description>
+          This function tests whether <clix:arg>object</clix:arg> is a
+          non-empty string which is a <em>token</em> according
+          to <a href="http://www.faqs.org/rfcs/rfc2068.html">RFC
+            2068</a> (i.e. whether it may be used for, say, cookie names).
+        </clix:description>
+      </clix:function>
+
+  <clix:function name='mime-type'>
+  <clix:lambda-list>pathspec
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Given a pathname designator <clix:arg>pathspec</clix:arg> returns the <a href="http://en.wikipedia.org/wiki/Internet_media_type">MIME type</a>
+(as a string) corresponding to the suffix of the file denoted by
+<clix:arg>pathspec</clix:arg> (or <code>NIL</code>).
+    </clix:description>
+  </clix:function>
+
+      <clix:special-variable name="*tmp-directory*">
+        <clix:description>
+          This should be a pathname denoting a directory where temporary
+          files can be stored. It is used for <a href="#upload">file
+            uploads</a>.
+        </clix:description>
+      </clix:special-variable>
+
+  <clix:special-variable name='*header-stream*'>
+    <clix:description>If this variable is not <code>NIL</code>, it should be bound to a stream to
+which incoming and outgoing headers will be written for debugging
+purposes.
+    </clix:description>
+  </clix:special-variable>
+
+
   <clix:special-variable name='*cleanup-function*'>
     <clix:description>A designator for a function without arguments which is called on a
 regular basis if <clix:ref>*CLEANUP-INTERVAL*</clix:ref> is not <code>NIL</code>.  The initial value is
@@ -2652,154 +2843,6 @@ This variable is only available on LispWorks.
 
   </clix:chapter>
 
-    <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
-
-  <clix:special-variable name='*header-stream*'>
-    <clix:description>If this variable is not NIL, it should be bound to a stream to
-which incoming and outgoing headers will be written for debugging
-purposes.
-    </clix:description>
-  </clix:special-variable>
-
-
-  <clix:special-variable name='*tmp-directory*'>
-    <clix:description>Directory for temporary files created by MAKE-TMP-FILE-NAME.
-    </clix:description>
-  </clix:special-variable>
-
-
-  <clix:function name='abort-request-handler'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> result
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>This function can be called by a request handler at any time to
-immediately abort handling the request.  This works as if the handler
-had returned RESULT.  See the source code of REDIRECT for an example.
-    </clix:description>
-  </clix:function>
-
-
-
-  <clix:function name='handle-static-file'>
-  <clix:lambda-list>path 
-  <clix:lkw>optional
-  </clix:lkw> content-type
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>A function which acts like a Hunchentoot handler for the file
-denoted by PATH.  Sends a content type header corresponding to
-CONTENT-TYPE or (if that is NIL) tries to determine the content type
-via the file&#039;s suffix.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='http-token-p'>
-  <clix:lambda-list>token
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Tests whether TOKEN is a string which is a valid &#039;token&#039;
-according to HTTP/1.1 (RFC 2068).
-    </clix:description>
-  </clix:function>
-
-
-  <clix:function name='mime-type'>
-  <clix:lambda-list>pathspec
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Given a pathname designator PATHSPEC returns the MIME type
-(as a string) corresponding to the suffix of the file denoted by
-PATHSPEC (or NIL).
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='no-cache'>
-  <clix:lambda-list>
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Adds appropriate headers to completely prevent caching on most browsers.
-    </clix:description>
-  </clix:function>
-
- 
-  <clix:function name='reason-phrase'>
-  <clix:lambda-list>return-code
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns a reason phrase for the HTTP return code RETURN-CODE
-(which should be an integer) or NIL for return codes Hunchentoot
-doesn&#039;t know.
-    </clix:description>
-  </clix:function>
-
-
-  <clix:function name='redirect'>
-  <clix:lambda-list>target 
-  <clix:lkw>key
-  </clix:lkw> host port protocol add-session-id code
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Redirects the browser to TARGET which should be a string.  If
-TARGET is a full URL starting with a scheme, HOST, PORT and PROTOCOL
-are ignored.  Otherwise, TARGET should denote the path part of a URL,
-PROTOCOL must be one of the keywords :HTTP or :HTTPS, and the URL to
-redirect to will be constructed from HOST, PORT, PROTOCOL, and TARGET.
-Adds a session ID if ADD-SESSION-ID is true.  If CODE is a 3xx
-redirection code, it will be sent as status code.
-    </clix:description>
-  </clix:function>
-
-
-  <clix:function name='require-authorization'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> realm
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Sends back appropriate headers to require basic HTTP authentication
-(see RFC 2617) for the realm REALM.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='rfc-1123-date'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> time
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Generates a time string according to RFC 1123.  Default is current time.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='send-headers'>
-  <clix:lambda-list>
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Sends the initial status line and all headers as determined by the
-REPLY object *REPLY*.  Returns a binary stream to which the body of
-the reply can be written.  Once this function has been called, further
-changes to *REPLY* don&#039;t have any effect.  Also, automatic handling of
-errors (i.e. sending the corresponding status code to the browser,
-etc.) is turned off for this request.  If your handlers return the
-full body as a string or as an array of octets you should NOT call
-this function.
-    </clix:description>
-  </clix:function>
-
-
-    </clix:chapter>
 
   <clix:chapter name="testing" title="Testing">
     Hunchentoot comes with a test script which verifies that the
