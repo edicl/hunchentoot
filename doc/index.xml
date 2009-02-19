@@ -1055,6 +1055,19 @@ DEFAULT-DISPATCHER.
 
     <clix:subchapter name="handlers" title="Handlers">
 
+  <clix:function name='handle-if-modified-since'>
+  <clix:lambda-list>time 
+  <clix:lkw>optional
+  </clix:lkw> request
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Handles the &#039;If-Modified-Since&#039; header of REQUEST.  The date string
+is compared to the one generated from the supplied universal time
+TIME.
+    </clix:description>
+  </clix:function>
+
     </clix:subchapter>
 
     <clix:subchapter name="requests" title="Request objects">
@@ -1122,57 +1135,97 @@ Otherwise returns the value of <clix:ref>REMOTE-ADDR</clix:ref> as the only valu
     <clix:description>Returns the GET or the POST parameter with
 name <clix:arg>name</clix:arg> (a string) - or <code>NIL</code> if
 there is none.  If both a GET and a POST parameter with the same name
-exist the GET parameter is returned.  Search is case-sensitive.
+exist the GET parameter is returned.  Search is case-sensitive.  See also <clix:ref>GET-PARAMETER</clix:ref>  and <clix:ref>POST-PARAMETER</clix:ref>. 
     </clix:description>
   </clix:function>
 
-  <clix:function name='get-parameter'>
-  <clix:lambda-list>name 
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>string
-  </clix:returns>
-    <clix:description>Returns the GET parameter with name <clix:arg>name</clix:arg> (a string) - or <code>NIL</code> if
-there is none.  Search is case-sensitive.
-    </clix:description>
-  </clix:function>
+      <clix:function name="get-parameter">
+        <clix:lambda-list>name <clix:lkw>optional</clix:lkw> request</clix:lambda-list>
+        <clix:returns>string</clix:returns>
+        <clix:description>
+          Returns the value of the GET parameter (as provided via the
+          request URI) named by the string <clix:arg>name</clix:arg> as a
+          string (or <code>NIL</code> if there ain't no GET parameter
+          with this name). Note that only the first value will be
+          returned if the client provided more than one GET parameter
+          with the name <clix:arg>name</clix:arg>. See
+          also <clix:ref>GET-PARAMETERS*</clix:ref>.
+        </clix:description>
+      </clix:function>
 
-  <clix:function name='post-parameter'>
-  <clix:lambda-list>name 
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>string
-  </clix:returns>
-    <clix:description>Returns the POST parameter with name <clix:arg>name</clix:arg> (a string) - or <code>NIL</code> if
-there is none.  Search is case-sensitive.
-    </clix:description>
-  </clix:function>
+      <clix:function name="post-parameter">
+        <clix:lambda-list>name <clix:lkw>optional</clix:lkw> request</clix:lambda-list>
+        <clix:returns>string</clix:returns>
+        <clix:description>
+          Returns the value of the POST parameter (as provided in the
+          request's body) named by the
+          string <clix:arg>name</clix:arg>. Note that only the first value
+          will be returned if the client provided more than one POST
+          parameter with the name <clix:arg>name</clix:arg>.  This value
+          will usually be a string (or <code>NIL</code> if there ain't
+          no POST parameter with this name). If, however, the browser
+          sent a <a class="none" name="upload">file</a> through
+          a <a href="http://www.faqs.org/rfcs/rfc2388.html">
+            <code>multipart/form-data</code>
+          </a> form, the value of this function is a three-element list
+          <pre>(path file-name content-type)</pre>
+          where <clix:arg>path</clix:arg> is a pathname denoting the place
+          were the uploaded file was
+          stored, <clix:arg>file-name</clix:arg> (a string) is the file
+          name sent by the browser, and <clix:arg>content-type</clix:arg>
+          (also a string) is the content type sent by the browser. The
+          file denoted by <clix:arg>path</clix:arg> will be deleted after
+          the request has been handled - you have to move or copy it
+          somewhere else if you want to keep it.
+          <p>
+            POST parameters will only be computed if the content type of
+            the request body was <code>multipart/form-data</code>
+            or <code>application/x-www-form-urlencoded</code>.  Although
+            this function is called <code>POST-PARAMETER</code>, you can
+            instruct Hunchentoot to compute these parameters for other
+            request methods by
+            setting <clix:ref>*METHODS-FOR-POST-PARAMETERS*</clix:ref>.
+          </p>
+          <p>
+            See also <clix:ref>POST-PARAMETERS</clix:ref>
+            and <clix:ref>*TMP-DIRECTORY*</clix:ref>.
+          </p>
+        </clix:description>
+      </clix:function>
 
-  <clix:function name='get-parameters*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>alist
-  </clix:returns>
-    <clix:description>Returns an alist of the GET parameters associated with the <clix:ref>REQUEST</clix:ref>
-object <clix:arg>request</clix:arg>.
-    </clix:description>
-  </clix:function>
+      <clix:function name="get-parameters*">
+        <clix:lambda-list><clix:lkw>optional</clix:lkw> request</clix:lambda-list>
+        <clix:returns>alist</clix:returns>
+        <clix:description>
+          Returns
+          an <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#alist">alist</a>
+          of all GET parameters (as provided via the request
+          URI). The <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_c.htm#car">car</a>
+          of each element of this list is the parameter's name while
+          the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_c.htm#cdr">cdr</a>
+          is its value (as a string). The elements of this list are in
+          the same order as they were within the request URI. See
+          also <clix:ref>GET-PARAMETER</clix:ref>.
+        </clix:description>
+      </clix:function>
 
-  <clix:function name='post-parameters*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>alist
-  </clix:returns>
-    <clix:description>Returns an alist of the POST parameters associated with the <clix:ref>REQUEST</clix:ref>
-object <clix:arg>request</clix:arg>.
-    </clix:description>
-  </clix:function>
+      <clix:function name="post-parameters*">
+        <clix:lambda-list><clix:lkw>optional</clix:lkw> request</clix:lambda-list>
+        <clix:returns>alist</clix:returns>
+        <clix:description>
+          Returns
+          an <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#alist">alist</a>
+          of all POST parameters (as provided via the request's
+          body). The <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_c.htm#car">car</a>
+          of each element of this list is the parameter's name while
+          the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_c.htm#cdr">cdr</a>
+          is its value. The elements of this list are in the same order
+          as they were within the request's body.
+          <p>
+            See also <clix:ref>POST-PARAMETER</clix:ref>.
+          </p>
+        </clix:description>
+      </clix:function>
 
   <clix:special-variable name='*methods-for-post-parameters*'>
     <clix:description>A list of the request method types (as keywords) for which
@@ -1204,6 +1257,17 @@ browser - or <code>NIL</code> if there is none.
     </clix:description>
   </clix:function>
 
+  <clix:function name='host'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> request
+  </clix:lambda-list>
+  <clix:returns>host
+  </clix:returns>
+    <clix:description>Returns the &#039;Host&#039; incoming http header value.
+    </clix:description>
+  </clix:function>
+
   <clix:function name='query-string*'>
   <clix:lambda-list>
   <clix:lkw>optional
@@ -1213,6 +1277,17 @@ browser - or <code>NIL</code> if there is none.
   </clix:returns>
     <clix:description>Returns the query string of the <clix:ref>REQUEST</clix:ref> object <clix:arg>request</clix:arg>. That&#039;s
 the part behind the question mark (i.e. the GET parameters).
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='referer'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> request
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns the &#039;Referer&#039; (sic!) http header.
     </clix:description>
   </clix:function>
 
@@ -1246,6 +1321,30 @@ the part behind the question mark (i.e. the GET parameters).
   <clix:returns>keyword
   </clix:returns>
     <clix:description>Returns the request protocol as a Lisp keyword.
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='user-agent'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> request
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns the &#039;User-Agent&#039; http header.
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='header-in*'>
+  <clix:lambda-list>name 
+  <clix:lkw>optional
+  </clix:lkw> request
+  </clix:lambda-list>
+  <clix:returns>header
+  </clix:returns>
+    <clix:description>Returns the incoming header with
+name <clix:arg>name</clix:arg>.  <clix:arg>name</clix:arg> can be a
+keyword (recommended) or a string.
     </clix:description>
   </clix:function>
 
@@ -1283,6 +1382,20 @@ the part behind the question mark (i.e. the GET parameters).
     </clix:description>
   </clix:function>
 
+  <clix:function name='script-name*'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> request
+  </clix:lambda-list>
+  <clix:returns>script-name
+  </clix:returns>
+    <clix:description>Returns the file name of
+the <clix:ref>REQUEST</clix:ref>
+object <clix:arg>request</clix:arg>. That&#039;s the requested URI
+without the query string (i.e the GET parameters).
+    </clix:description>
+  </clix:function>
+
   <clix:accessor name='aux-request-value'>
   <clix:lambda-list>symbol 
   <clix:lkw>optional
@@ -1308,11 +1421,118 @@ the part behind the question mark (i.e. the GET parameters).
     </clix:description>
   </clix:function>
 
+  <clix:function name='authorization'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> request
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>Returns as two values the user and password (if any) as encoded in
+the &#039;AUTHORIZATION&#039; header.  Returns <code>NIL</code> if there is no such header.
+    </clix:description>
+  </clix:function>
+
   <clix:special-variable name='*hunchentoot-default-external-format*'>
     <clix:description>The external format used to compute the <clix:ref>REQUEST</clix:ref> object.
     </clix:description>
   </clix:special-variable>
 
+  <clix:special-variable name='*file-upload-hook*'>
+    <clix:description>If this is not <code>NIL</code>, it should be a
+unary function which will be called with a pathname for each file
+which is <a href="#upload">uploaded</a> to Hunchentoot.  The pathname
+denotes the temporary file to which the uploaded file is written.  The
+hook is called directly before the file is created. At this
+point, <clix:ref>*REQUEST*</clix:ref> is already bound to the
+current <clix:ref>REQUEST</clix:ref> object, but obviously you can't
+access the post parameters yet.
+    </clix:description>
+  </clix:special-variable>
+
+      <clix:function name="raw-post-data">
+        <clix:lambda-list>
+          <clix:lkw>key</clix:lkw>
+          request external-format force-text force-binary want-stream
+        </clix:lambda-list>
+        <clix:returns>raw-body-or-stream</clix:returns>
+        <clix:description>
+          Returns the content sent by the client in the request body if
+          there was any (unless the content type
+          was <code>multipart/form-data</code> in which
+          case <code>NIL</code> is returned).  By default, the result is
+          a string if the type of the <code>Content-Type</code>
+          <a href="http://www.faqs.org/rfcs/rfc1590.html">media type</a>
+          is <code>"text"</code>, and a vector of octets otherwise.  In
+          the case of a string, the external format to be used to decode
+          the content will be determined from the <code>charset</code>
+          parameter sent by the client (or
+          otherwise <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>
+          will be used).
+          <p>
+            You can also provide an external format explicitly (through
+            <clix:arg>external-format</clix:arg>) in which case the result
+            will unconditionally be a string.  Likewise, you can provide
+            a true value for <clix:arg>force-text</clix:arg> which will
+            force Hunchentoot to act as if the type of the media type
+            had been <code>"text"</code>
+            (with <clix:arg>external-format</clix:arg> taking precedence
+            if provided).  Or you can provide a true value
+            for <clix:arg>force-binary</clix:arg> which means that you
+            want a vector of octets at any rate.  (If both
+            <clix:arg>force-text</clix:arg>
+            and <clix:arg>force-binary</clix:arg> are true, an error will
+            be signaled.)
+          </p>
+          <p>
+            If, however, you provide a true value
+            for <clix:arg>want-stream</clix:arg>, the other parameters are
+            ignored and you'll get the content (flexi) stream to read
+            from it yourself.  It is then your responsibility to read
+            the correct amount of data, because otherwise you won't be
+            able to return a response to the client.  The stream will
+            have
+            its <a href="http://weitz.de/flexi-streams/#flexi-streams">octet
+              position</a> set to <code>0</code>.  If the client provided
+            a <code>Content-Length</code> header, the stream will also
+            have a
+            corresponding <a href="http://weitz.de/flexi-streams/#flexi-streams">bound</a>,
+            so no matter whether the client used chunked encoding or
+            not, you can always read until EOF.
+          </p>
+          <p>
+            If the content type of the request
+            was <code>multipart/form-data</code>
+            or <code>application/x-www-form-urlencoded</code>, the
+            content has been read by Hunchentoot already and you can't
+            read from the stream anymore.
+          </p>
+          <p>
+            You can call <clix:ref>RAW-POST-DATA</clix:ref> more than once
+            per request, but you can't mix calls which have different
+            values for <clix:arg>want-stream</clix:arg>.
+          </p>
+          <p>
+            Note that this function is slightly misnamed because a
+            client can send content even if the request method is not
+            POST.
+          </p>
+        </clix:description>
+      </clix:function>
+
+
+  <clix:function name='recompute-request-parameters'>
+  <clix:lambda-list>
+  <clix:lkw>key
+  </clix:lkw> request external-format
+  </clix:lambda-list>
+  <clix:returns>|
+  </clix:returns>
+    <clix:description>Recomputes the GET and POST parameters for the <clix:ref>REQUEST</clix:ref> object
+      <clix:arg>request</clix:arg>.  This only makes sense if you&#039;re switching external formats
+during the request.
+    </clix:description>
+  </clix:function>
 
   <clix:function generic='true' name='process-request'>
   <clix:lambda-list>request
@@ -1339,6 +1559,8 @@ The return value of this function is ignored.
     </clix:description>
   </clix:function>
 
+
+
   <clix:readers generic='true'>
     <clix:listed-reader name='cookies-in'>
     <clix:lambda-list>request
@@ -1352,6 +1574,15 @@ The return value of this function is ignored.
     </clix:lambda-list>
     <clix:returns>get-parameters
     </clix:returns>
+    </clix:listed-reader>
+
+    <clix:listed-reader name='header-in'>
+    <clix:lambda-list>name request
+    </clix:lambda-list>
+    <clix:returns>result
+    </clix:returns>
+      <clix:description>
+      </clix:description>
     </clix:listed-reader>
 
     <clix:listed-reader name='headers-in'>
@@ -1417,6 +1648,13 @@ The return value of this function is ignored.
     </clix:returns>
     </clix:listed-reader>
 
+    <clix:listed-reader name='script-name'>
+    <clix:lambda-list>request
+    </clix:lambda-list>
+    <clix:returns>result
+    </clix:returns>
+    </clix:listed-reader>
+
     <clix:description>These are various generic readers which are used
     to read information about a <clix:ref>REQUEST</clix:ref> object.  If you are writing a
     <a href="#handlers">handler</a>, you should <em>not</em> use these readers but instead utilize the
@@ -1472,7 +1710,7 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
   </clix:special-variable>
 
 
-  <clix:function name='header-out'>
+  <clix:accessor name='header-out'>
   <clix:lambda-list>name 
   <clix:lkw>optional
   </clix:lkw> reply
@@ -1486,7 +1724,7 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
     See also <clix:ref>HEADERS-OUT*</clix:ref>, <clix:ref>CONTENT-TYPE*</clix:ref>, <clix:ref>CONTENT-LENGTH*</clix:ref>, <clix:ref>COOKIES-OUT*</clix:ref>, and <clix:ref>COOKIE-OUT</clix:ref>.
 </p>
     </clix:description>
-  </clix:function>
+  </clix:accessor>
 
   <clix:function name='headers-out*'>
   <clix:lambda-list>
@@ -1542,7 +1780,7 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
   </clix:lambda-list>
   <clix:returns>alist
   </clix:returns>
-    <clix:description>Returns an alist of the outgoing <a href="#cookies">cookies</a> associated with the
+    <clix:description>Returns or sets an alist of the outgoing <a href="#cookies">cookies</a> associated with the
 <clix:ref>REPLY</clix:ref> object <clix:arg>reply</clix:arg>.
     </clix:description>
   </clix:accessor>
@@ -1568,26 +1806,83 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
   </clix:lambda-list>
   <clix:returns>external-format
   </clix:returns>
-    <clix:description>The external format of <clix:arg>reply</clix:arg> which is used for character output.
+    <clix:description>Gets or sets the external format of <clix:arg>reply</clix:arg> which is used for character output.
     </clix:description>
   </clix:accessor>
 
-  <clix:readers>
-    <clix:listed-reader generic='true' name='content-length'>
+  <clix:special-variable name='*default-content-type*'>
+    <clix:description>The default content-type header which is returned to the client.
+    </clix:description>
+  </clix:special-variable>
+
+      <clix:constants>
+        <clix:listed-constant name="+http-continue+"/>
+        <clix:listed-constant name="+http-switching-protocols+"/>
+        <clix:listed-constant name="+http-ok+"/>
+        <clix:listed-constant name="+http-created+"/>
+        <clix:listed-constant name="+http-accepted+"/>
+        <clix:listed-constant name="+http-non-authoritative-information+"/>
+        <clix:listed-constant name="+http-no-content+"/>
+        <clix:listed-constant name="+http-reset-content+"/>
+        <clix:listed-constant name="+http-partial-content+"/>
+        <clix:listed-constant name="+http-multi-status+"/>
+        <clix:listed-constant name="+http-multiple-choices+"/>
+        <clix:listed-constant name="+http-moved-permanently+"/>
+        <clix:listed-constant name="+http-moved-temporarily+"/>
+        <clix:listed-constant name="+http-see-other+"/>
+        <clix:listed-constant name="+http-not-modified+"/>
+        <clix:listed-constant name="+http-use-proxy+"/>
+        <clix:listed-constant name="+http-temporary-redirect+"/>
+        <clix:listed-constant name="+http-bad-request+"/>
+        <clix:listed-constant name="+http-authorization-required+"/>
+        <clix:listed-constant name="+http-payment-required+"/>
+        <clix:listed-constant name="+http-forbidden+"/>
+        <clix:listed-constant name="+http-not-found+"/>
+        <clix:listed-constant name="+http-method-not-allowed+"/>
+        <clix:listed-constant name="+http-not-acceptable+"/>
+        <clix:listed-constant name="+http-proxy-authentication-required+"/>
+        <clix:listed-constant name="+http-request-time-out+"/>
+        <clix:listed-constant name="+http-conflict+"/>
+        <clix:listed-constant name="+http-gone+"/>
+        <clix:listed-constant name="+http-length-required+"/>
+        <clix:listed-constant name="+http-precondition-failed+"/>
+        <clix:listed-constant name="+http-request-entity-too-large+"/>
+        <clix:listed-constant name="+http-request-uri-too-large+"/>
+        <clix:listed-constant name="+http-unsupported-media-type+"/>
+        <clix:listed-constant name="+http-requested-range-not-satisfiable+"/>
+        <clix:listed-constant name="+http-expectation-failed+"/>
+        <clix:listed-constant name="+http-failed-dependency+"/>
+        <clix:listed-constant name="+http-internal-server-error+"/>
+        <clix:listed-constant name="+http-not-implemented+"/>
+        <clix:listed-constant name="+http-bad-gateway+"/>
+        <clix:listed-constant name="+http-service-unavailable+"/>
+        <clix:listed-constant name="+http-gateway-time-out+"/>
+        <clix:listed-constant name="+http-version-not-supported+"/>
+        <clix:description>
+          The values of these constants are 100, 101, 200, 201, 202,
+          203, 204, 205, 206, 207, 300, 301, 302, 303, 304, 305, 307,
+          400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411,
+          412, 413, 414, 415, 416, 417, 424, 500, 501, 502, 503, 504,
+          and 505. See <clix:ref>RETURN-CODE</clix:ref>.
+        </clix:description>
+      </clix:constants>
+
+  <clix:readers generic='true'>
+    <clix:listed-reader name='content-length'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>content-length
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader generic='true' name='content-type'>
+    <clix:listed-reader name='content-type'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>content-type
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader generic='true' name='headers-out'>
+    <clix:listed-reader name='headers-out'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>headers-out
@@ -1604,32 +1899,26 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
     </clix:description>
   </clix:readers>
 
-  <clix:accessors>
-    <clix:listed-accessor generic='true' name='cookies-out'>
+  <clix:accessors generic='true'>
+    <clix:listed-accessor name='cookies-out'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>result
     </clix:returns>
-      <clix:description>
-      </clix:description>
     </clix:listed-accessor>
 
-    <clix:listed-accessor generic='true' name='return-code'>
+    <clix:listed-accessor name='return-code'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>result
     </clix:returns>
-      <clix:description>
-      </clix:description>
     </clix:listed-accessor>
 
-    <clix:listed-accessor generic='true' name='reply-external-format'>
+    <clix:listed-accessor name='reply-external-format'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>result
     </clix:returns>
-      <clix:description>
-      </clix:description>
     </clix:listed-accessor>
 
     <clix:description>These are various generic accessors which are
@@ -2083,7 +2372,7 @@ want to use your own session objects.
 
       Outgoing cookies are stored in the request's <code>REPLY</code>
       object (see <clix:ref>COOKIE-OUT</clix:ref>
-      and <clix:ref>COOKIES-OUT</clix:ref>). They are CLOS objects
+      and <clix:ref>COOKIES-OUT*</clix:ref>). They are CLOS objects
       defined like this:
 
       <pre>(defclass cookie ()
@@ -2122,7 +2411,7 @@ want to use your own session objects.
       <clix:ref>COOKIE-VALUE</clix:ref>, <clix:ref>COOKIE-EXPIRES</clix:ref>,
       <clix:ref>COOKIE-PATH</clix:ref>, <clix:ref>COOKIE-DOMAIN</clix:ref>, <clix:ref>COOKIE-SECURE</clix:ref>,
       and <clix:ref>COOKIE-HTTP-ONLY</clix:ref> are all exported from
-      the <code>HUNCHENTOOT</code> package.
+      the <code>HUNCHENTOOT</code> package.  For now, the class name itself is <em>not</em> exported.
 
       <clix:function name="set-cookie">
         <clix:lambda-list>
@@ -2336,58 +2625,6 @@ of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>.
     </clix:description>
   </clix:function>
 
-      <clix:constants>
-        <clix:listed-constant name="+http-continue+"/>
-        <clix:listed-constant name="+http-switching-protocols+"/>
-        <clix:listed-constant name="+http-ok+"/>
-        <clix:listed-constant name="+http-created+"/>
-        <clix:listed-constant name="+http-accepted+"/>
-        <clix:listed-constant name="+http-non-authoritative-information+"/>
-        <clix:listed-constant name="+http-no-content+"/>
-        <clix:listed-constant name="+http-reset-content+"/>
-        <clix:listed-constant name="+http-partial-content+"/>
-        <clix:listed-constant name="+http-multi-status+"/>
-        <clix:listed-constant name="+http-multiple-choices+"/>
-        <clix:listed-constant name="+http-moved-permanently+"/>
-        <clix:listed-constant name="+http-moved-temporarily+"/>
-        <clix:listed-constant name="+http-see-other+"/>
-        <clix:listed-constant name="+http-not-modified+"/>
-        <clix:listed-constant name="+http-use-proxy+"/>
-        <clix:listed-constant name="+http-temporary-redirect+"/>
-        <clix:listed-constant name="+http-bad-request+"/>
-        <clix:listed-constant name="+http-authorization-required+"/>
-        <clix:listed-constant name="+http-payment-required+"/>
-        <clix:listed-constant name="+http-forbidden+"/>
-        <clix:listed-constant name="+http-not-found+"/>
-        <clix:listed-constant name="+http-method-not-allowed+"/>
-        <clix:listed-constant name="+http-not-acceptable+"/>
-        <clix:listed-constant name="+http-proxy-authentication-required+"/>
-        <clix:listed-constant name="+http-request-time-out+"/>
-        <clix:listed-constant name="+http-conflict+"/>
-        <clix:listed-constant name="+http-gone+"/>
-        <clix:listed-constant name="+http-length-required+"/>
-        <clix:listed-constant name="+http-precondition-failed+"/>
-        <clix:listed-constant name="+http-request-entity-too-large+"/>
-        <clix:listed-constant name="+http-request-uri-too-large+"/>
-        <clix:listed-constant name="+http-unsupported-media-type+"/>
-        <clix:listed-constant name="+http-requested-range-not-satisfiable+"/>
-        <clix:listed-constant name="+http-expectation-failed+"/>
-        <clix:listed-constant name="+http-failed-dependency+"/>
-        <clix:listed-constant name="+http-internal-server-error+"/>
-        <clix:listed-constant name="+http-not-implemented+"/>
-        <clix:listed-constant name="+http-bad-gateway+"/>
-        <clix:listed-constant name="+http-service-unavailable+"/>
-        <clix:listed-constant name="+http-gateway-time-out+"/>
-        <clix:listed-constant name="+http-version-not-supported+"/>
-        <clix:description>
-          The values of these constants are 100, 101, 200, 201, 202,
-          203, 204, 205, 206, 207, 300, 301, 302, 303, 304, 305, 307,
-          400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411,
-          412, 413, 414, 415, 416, 417, 424, 500, 501, 502, 503, 504,
-          and 505. See <clix:ref>RETURN-CODE</clix:ref>.
-        </clix:description>
-      </clix:constants>
-
   <clix:special-variable name='*cleanup-function*'>
     <clix:description>A designator for a function without arguments which is called on a
 regular basis if <clix:ref>*CLEANUP-INTERVAL*</clix:ref> is not <code>NIL</code>.  The initial value is
@@ -2417,20 +2654,6 @@ This variable is only available on LispWorks.
 
     <clix:chapter name='dict' title='The HUNCHENTOOT dictionary'>
 
-  <clix:special-variable name='*default-content-type*'>
-    <clix:description>The default content-type header which is returned to the client.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*file-upload-hook*'>
-    <clix:description>If this is not NIL, it should be a unary function which will
-be called with a pathname for each file which is uploaded to
-Hunchentoot.  The pathname denotes the temporary file to which
-the uploaded file is written.  The hook is called directly before
-the file is created.
-    </clix:description>
-  </clix:special-variable>
-
   <clix:special-variable name='*header-stream*'>
     <clix:description>If this variable is not NIL, it should be bound to a stream to
 which incoming and outgoing headers will be written for debugging
@@ -2458,35 +2681,7 @@ had returned RESULT.  See the source code of REDIRECT for an example.
     </clix:description>
   </clix:function>
 
-  <clix:function name='authorization'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns as two values the user and password (if any) as encoded in
-the &#039;AUTHORIZATION&#039; header.  Returns NIL if there is no such header.
-    </clix:description>
-  </clix:function>
 
-
-
-
-
-
-  <clix:function name='handle-if-modified-since'>
-  <clix:lambda-list>time 
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Handles the &#039;If-Modified-Since&#039; header of REQUEST.  The date string
-is compared to the one generated from the supplied universal time
-TIME.
-    </clix:description>
-  </clix:function>
 
   <clix:function name='handle-static-file'>
   <clix:lambda-list>path 
@@ -2502,37 +2697,6 @@ via the file&#039;s suffix.
     </clix:description>
   </clix:function>
 
-  <clix:function generic='true' name='header-in'>
-  <clix:lambda-list>name request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='header-in*'>
-  <clix:lambda-list>name 
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the incoming header with name NAME.  NAME can be a keyword
-(recommended) or a string.
-    </clix:description>
-  </clix:function>
-
-  <clix:function name='host'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the &#039;Host&#039; incoming http header value.
-    </clix:description>
-  </clix:function>
   <clix:function name='http-token-p'>
   <clix:lambda-list>token
   </clix:lambda-list>
@@ -2564,44 +2728,6 @@ PATHSPEC (or NIL).
     </clix:description>
   </clix:function>
 
-  <clix:function name='raw-post-data'>
-  <clix:lambda-list>
-  <clix:lkw>key
-  </clix:lkw> request external-format force-text force-binary want-stream
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the content sent by the client if there was any (unless
-the content type was &quot;multipart/form-data&quot;).  By default, the result
-is a string if the type of the `Content-Type&#039; media type is &quot;text&quot;,
-and a vector of octets otherwise.  In the case of a string, the
-external format to be used to decode the content will be determined
-from the `charset&#039; parameter sent by the client (or otherwise
-*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT* will be used).
-
-You can also provide an external format explicitly (through
-EXTERNAL-FORMAT) in which case the result will unconditionally be a
-string.  Likewise, you can provide a true value for FORCE-TEXT which
-will force Hunchentoot to act as if the type of the media type had
-been &quot;text&quot;.  Or you can provide a true value for FORCE-BINARY which
-means that you want a vector of octets at any rate.
-
-If, however, you provide a true value for WANT-STREAM, the other
-parameters are ignored and you&#039;ll get the content (flexi) stream to
-read from it yourself.  It is then your responsibility to read the
-correct amount of data, because otherwise you won&#039;t be able to return
-a response to the client.  If the content type of the request was
-`multipart/form-data&#039; or `application/x-www-form-urlencoded&#039;, the
-content has been read by Hunchentoot already and you can&#039;t read from
-the stream anymore.
-
-You can call RAW-POST-DATA more than once per request, but you can&#039;t
-mix calls which have different values for WANT-STREAM.
-
-Note that this function is slightly misnamed because a client can send
-content even if the request method is not POST.
-    </clix:description>
-  </clix:function>
  
   <clix:function name='reason-phrase'>
   <clix:lambda-list>return-code
@@ -2613,18 +2739,8 @@ content even if the request method is not POST.
 doesn&#039;t know.
     </clix:description>
   </clix:function>
-  <clix:function name='recompute-request-parameters'>
-  <clix:lambda-list>
-  <clix:lkw>key
-  </clix:lkw> request external-format
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Recomputes the GET and POST parameters for the REQUEST object
-REQUEST.  This only makes sense if you&#039;re switching external formats
-during the request.
-    </clix:description>
-  </clix:function>
+
+
   <clix:function name='redirect'>
   <clix:lambda-list>target 
   <clix:lkw>key
@@ -2641,16 +2757,7 @@ Adds a session ID if ADD-SESSION-ID is true.  If CODE is a 3xx
 redirection code, it will be sent as status code.
     </clix:description>
   </clix:function>
-  <clix:function name='referer'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the &#039;Referer&#039; (sic!) http header.
-    </clix:description>
-  </clix:function>
+
 
   <clix:function name='require-authorization'>
   <clix:lambda-list>
@@ -2674,33 +2781,7 @@ redirection code, it will be sent as status code.
     <clix:description>Generates a time string according to RFC 1123.  Default is current time.
     </clix:description>
   </clix:function>
-  <clix:function generic='true' name='script-name'>
-  <clix:lambda-list>request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function specialized='(REQUEST)' name='script-name'>
-  <clix:lambda-list>(request request)
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>
-    </clix:description>
-  </clix:function>
-  <clix:function name='script-name*'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the file name of the REQUEST object REQUEST. That&#039;s the
-requested URI without the query string (i.e the GET parameters).
-    </clix:description>
-  </clix:function>
+
   <clix:function name='send-headers'>
   <clix:lambda-list>
   </clix:lambda-list>
@@ -2716,28 +2797,6 @@ full body as a string or as an array of octets you should NOT call
 this function.
     </clix:description>
   </clix:function>
-
-  <clix:function name='user-agent'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Returns the &#039;User-Agent&#039; http header.
-    </clix:description>
-  </clix:function>
-  <clix:function generic='true' name='header-out'>
-  <clix:lambda-list>new-value name 
-  <clix:lkw>optional
-  </clix:lkw> reply
-  </clix:lambda-list>
-    <clix:description>Changes the current value of the outgoing http
-header named NAME (a keyword or a string).  If a header with this
-name doesn&#039;t exist, it is created.
-    </clix:description>
-  </clix:function>
-
 
 
     </clix:chapter>

@@ -364,6 +364,8 @@ REQUEST."
   (cookies-in request))
 
 (defgeneric header-in (name request)
+  (:documentation "Returns the incoming header with name NAME.  NAME
+can be a keyword \(recommended) or a string.")
   (:method (name request)
    (cdr (assoc* name (headers-in request)))))
 
