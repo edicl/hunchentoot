@@ -390,49 +390,49 @@ no longer accepts requests.
   </clix:special-variable>
 
   <clix:readers generic='true'>
-    <clix:listed-reader name='acceptor-address'>
+    <clix:listed-reader generic='true' name='acceptor-address'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>address
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='acceptor-port'>
+    <clix:listed-reader generic='true' name='acceptor-port'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>port
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='acceptor-read-timeout'>
+    <clix:listed-reader generic='true' name='acceptor-read-timeout'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>read-timeout
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='acceptor-ssl-certificate-file'>
+    <clix:listed-reader generic='true' name='acceptor-ssl-certificate-file'>
     <clix:lambda-list>ssl-acceptor
     </clix:lambda-list>
     <clix:returns>ssl-certificate-file
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='acceptor-ssl-privatekey-file'>
+    <clix:listed-reader generic='true' name='acceptor-ssl-privatekey-file'>
     <clix:lambda-list>ssl-acceptor
     </clix:lambda-list>
     <clix:returns>ssl-privatekey-file
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='acceptor-ssl-privatekey-password'>
+    <clix:listed-reader generic='true' name='acceptor-ssl-privatekey-password'>
     <clix:lambda-list>ssl-acceptor
     </clix:lambda-list>
     <clix:returns>ssl-privatekey-password
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='acceptor-write-timeout'>
+    <clix:listed-reader generic='true' name='acceptor-write-timeout'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>write-timeout
@@ -449,63 +449,63 @@ initargs for all of them.
   </clix:readers>
 
   <clix:accessors generic='true'>
-    <clix:listed-accessor name='acceptor-access-logger'>
+    <clix:listed-accessor generic='true' name='acceptor-access-logger'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>access-logger
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-request-dispatcher'>
+    <clix:listed-accessor generic='true' name='acceptor-request-dispatcher'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>request-dispatcher
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-input-chunking-p'>
+    <clix:listed-accessor generic='true' name='acceptor-input-chunking-p'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>input-chunking-p
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-message-logger'>
+    <clix:listed-accessor generic='true' name='acceptor-message-logger'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>message-logger
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-name'>
+    <clix:listed-accessor generic='true' name='acceptor-name'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>name
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-output-chunking-p'>
+    <clix:listed-accessor generic='true' name='acceptor-output-chunking-p'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>output-chunking-p
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-persistent-connections-p'>
+    <clix:listed-accessor generic='true' name='acceptor-persistent-connections-p'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>persistent-connections-p
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-reply-class'>
+    <clix:listed-accessor generic='true' name='acceptor-reply-class'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>reply-class
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='acceptor-request-class'>
+    <clix:listed-accessor generic='true' name='acceptor-request-class'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
     <clix:returns>request-class
@@ -1588,21 +1588,21 @@ The return value of this function is ignored.
 
 
   <clix:readers generic='true'>
-    <clix:listed-reader name='cookies-in'>
+    <clix:listed-reader generic='true' name='cookies-in'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>cookies
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='get-parameters'>
+    <clix:listed-reader generic='true' name='get-parameters'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>get-parameters
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='header-in'>
+    <clix:listed-reader generic='true' name='header-in'>
     <clix:lambda-list>name request
     </clix:lambda-list>
     <clix:returns>result
@@ -1611,70 +1611,70 @@ The return value of this function is ignored.
       </clix:description>
     </clix:listed-reader>
 
-    <clix:listed-reader name='headers-in'>
+    <clix:listed-reader generic='true' name='headers-in'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>headers
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='post-parameters'>
+    <clix:listed-reader generic='true' name='post-parameters'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>post-parameters
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='query-string'>
+    <clix:listed-reader generic='true' name='query-string'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>query-string
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='remote-addr'>
+    <clix:listed-reader generic='true' name='remote-addr'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>address
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='remote-port'>
+    <clix:listed-reader generic='true' name='remote-port'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>port
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='request-acceptor'>
+    <clix:listed-reader generic='true' name='request-acceptor'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>acceptor
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='request-method'>
+    <clix:listed-reader generic='true' name='request-method'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>method
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='request-uri'>
+    <clix:listed-reader generic='true' name='request-uri'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>uri
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='server-protocol'>
+    <clix:listed-reader generic='true' name='server-protocol'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>protocol
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='script-name'>
+    <clix:listed-reader generic='true' name='script-name'>
     <clix:lambda-list>request
     </clix:lambda-list>
     <clix:returns>result
@@ -1919,21 +1919,21 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
       </clix:constants>
 
   <clix:readers generic='true'>
-    <clix:listed-reader name='content-length'>
+    <clix:listed-reader generic='true' name='content-length'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>content-length
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='content-type'>
+    <clix:listed-reader generic='true' name='content-type'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>content-type
     </clix:returns>
     </clix:listed-reader>
 
-    <clix:listed-reader name='headers-out'>
+    <clix:listed-reader generic='true' name='headers-out'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>headers-out
@@ -1951,21 +1951,21 @@ of the <clix:ref>ACCEPTOR</clix:ref> class.
   </clix:readers>
 
   <clix:accessors generic='true'>
-    <clix:listed-accessor name='cookies-out'>
+    <clix:listed-accessor generic='true' name='cookies-out'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>result
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='return-code'>
+    <clix:listed-accessor generic='true' name='return-code'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>result
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor name='reply-external-format'>
+    <clix:listed-accessor generic='true' name='reply-external-format'>
     <clix:lambda-list>reply
     </clix:lambda-list>
     <clix:returns>result

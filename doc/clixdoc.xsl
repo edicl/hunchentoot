@@ -398,6 +398,13 @@
           <xsl:otherwise>Reader</xsl:otherwise>
         </xsl:choose>
       </xsl:when>
+      <xsl:when test="name() = 'clix:listed-reader'">
+        <xsl:choose>
+          <xsl:when test="@generic = 'true'">Generic reader</xsl:when>
+          <xsl:when test="@specialized = 'true'">Specialized reader</xsl:when>
+          <xsl:otherwise>Reader</xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
       <xsl:when test="name() = 'clix:readers'">
         <xsl:choose>
           <xsl:when test="@generic = 'true'">Generic readers</xsl:when>
@@ -417,6 +424,13 @@
           <xsl:when test="@generic = 'true'">Generic writer</xsl:when>
           <xsl:when test="@specialized = 'true'">Specialized writer</xsl:when>
           <xsl:otherwise>Writer</xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:when test="name() = 'clix:listed-accessor'">
+        <xsl:choose>
+          <xsl:when test="@generic = 'true'">Generic accessor</xsl:when>
+          <xsl:when test="@specialized = 'true'">Specialized accessor</xsl:when>
+          <xsl:otherwise>Accessor</xsl:otherwise>
         </xsl:choose>
       </xsl:when>
       <xsl:when test="name() = 'clix:accessor'">
