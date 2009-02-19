@@ -443,7 +443,8 @@ no longer accepts requests.
 These are readers for various slots of <clix:ref>ACCEPTOR</clix:ref>
 objects (and some of them obviously only make sense
 for <clix:ref>SSL-ACCEPTOR</clix:ref> objects).  See the docstrings of
-these slots for more information.
+these slots for more information and note that there are corresponding
+initargs for all of them.
     </clix:description>
   </clix:readers>
 
@@ -513,15 +514,10 @@ these slots for more information.
 
     <clix:description>
 These are accessors for various slots of <clix:ref>ACCEPTOR</clix:ref>
-objects.  See the docstrings of these slots for more information.
+objects.  See the docstrings of these slots for more information and
+note that there are corresponding initargs for all of them.
     </clix:description>
   </clix:accessors>
-
-  <clix:special-variable name='*acceptor*'>
-    <clix:description>The current ACCEPTOR object while in the context of a request.
-    </clix:description>
-  </clix:special-variable>
-
 
   <clix:function generic='true' name='acceptor-ssl-p'>
   <clix:lambda-list>acceptor
@@ -765,65 +761,116 @@ associated with.
 
     </clix:subchapter>
 
-    <clix:subchapter name="request-dispatch" title="Request dispatch">
+    <clix:subchapter name="request-dispatch" title="Request dispatch and handling">
 
+The main job of <clix:ref>PROCESS-REQUEST</clix:ref> is to select and
+call a function which handles the request, i.e. which looks at the
+data the client has sent and prepares an appropriate reply to send
+back.  This is implemented as follows:
+<p>
+Each acceptor has a <a href="#acceptor-request-dispatcher"><em>request
+dispatcher</em></a> which is a unary function that accepts
+a <clix:ref>REQUEST</clix:ref> object.  This function is called by
+<clix:ref>PROCESS-REQUEST</clix:ref>.  The idea is that this function
+looks at the request object and depending on its contents decides to
+call another function which "does the work".  This "other" function is
+by convention called a <a class="none" name="handlers"><em>request
+handler</em></a>.  (Obviously, this is really only a convention as
+process-request doesn't "know" what the request dispatcher does.  You
+could as well say that the request dispatcher and the request handler
+have the same job.)
+</p>
+<p>
+The default behaviour, unless you implement your own request
+dispatcher, is that Hunchentoot walks through the list
+*dispatch-table* which consists of <em>dispatch functions</em>.  Each
+of these functions accepts the request object as its only argument and
+either returns a request handler to handle the request
+or <code>NIL</code> which means that the next dispatcher in the list
+will be tried.  If all dispatch functions return <code>NIL</code>, the
+return code
+<clix:ref>+HTTP-NOT-FOUND+</clix:ref> will be sent to the client.
+</p>
+<p>
+All functions and variables in this section are related to the
+standard request dispatch mechanism described above and are
+meaningless if you're using your own request dispatcher.
+</p>
+<p>
+Request handlers do their work by modifying
+the <a href="#replies">reply object</a> if necessary and by eventually
+returning the response body in the form of a string or a binary
+sequence.  As an alternative, they can also
+call <clix:ref>SEND-HEADERS</clix:ref> and write directly to a stream.
+</p>
 
-  <clix:function name='create-folder-dispatcher-and-handler'>
-  <clix:lambda-list>uri-prefix base-path 
-  <clix:lkw>optional
-  </clix:lkw> content-type
+  <clix:special-variable name='*dispatch-table*'>
+    <clix:description>A global list of dispatch functions.  The
+    initial value is a list consisting of the two
+    symbols <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref>
+    and <clix:ref>DEFAULT-DISPATCHER</clix:ref>.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:function name='default-dispatcher'>
+  <clix:lambda-list>request
   </clix:lambda-list>
   <clix:returns>result
   </clix:returns>
-    <clix:description>Creates and returns a dispatch function which will dispatch to a
-handler function which emits the file relative to BASE-PATH that is
-denoted by the URI of the request relative to URI-PREFIX.  URI-PREFIX
-must be a string ending with a slash, BASE-PATH must be a pathname
-designator for an existing directory.  If CONTENT-TYPE is not NIL,
-it&#039;ll be the content type used for all files in the folder.
-    </clix:description>
-  </clix:function>
-  <clix:function name='create-prefix-dispatcher'>
-  <clix:lambda-list>prefix handler
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Creates a request dispatch function which will dispatch to the
-function denoted by HANDLER if the file name of the current request
-starts with the string PREFIX.
-    </clix:description>
-  </clix:function>
-  <clix:function name='create-regex-dispatcher'>
-  <clix:lambda-list>regex handler
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Creates a request dispatch function which will dispatch to the
-function denoted by HANDLER if the file name of the current request
-matches the CL-PPCRE regular expression REGEX.
+    <clix:description>Default dispatch function which handles every request with the
+function stored in <clix:ref>*DEFAULT-HANDLER*</clix:ref>.
     </clix:description>
   </clix:function>
 
-      <clix:function name="handle-static-file">
-        <clix:lambda-list>path <clix:lkw>optional</clix:lkw> content-type</clix:lambda-list>
-        <clix:returns>nil</clix:returns>
+  <clix:special-variable name='*default-handler*'>
+    <clix:description>The name of the function which is always returned by
+<clix:ref>DEFAULT-DISPATCHER</clix:ref>.
+    </clix:description>
+  </clix:special-variable>
+
+      <clix:function name="create-prefix-dispatcher">
+        <clix:lambda-list>prefix handler</clix:lambda-list>
+        <clix:returns>dispatch-fn</clix:returns>
         <clix:description>
-          Sends the file denoted by the pathname designator
-          <clix:arg>path</clix:arg> with content type
-          <clix:arg>content-type</clix:arg> to the client.  Sets the
-          necessary handlers.  In particular the function employs
-          <clix:ref>HANDLE-IF-MODIFIED-SINCE</clix:ref>.
+          A convenience function which will return a dispatcher that
+          returns <clix:arg>handler</clix:arg> whenever the path part of
+          the request URI starts with the
+          string <clix:arg>prefix</clix:arg>.
+        </clix:description>
+      </clix:function>
+
+      <clix:function name="create-regex-dispatcher">
+        <clix:lambda-list>regex handler</clix:lambda-list>
+        <clix:returns>dispatch-fn</clix:returns>
+        <clix:description>
+          A convenience function which will return a dispatcher that
+          returns <clix:arg>handler</clix:arg> whenever the path part of
+          the request URI matches
+          the <a href="http://weitz.de/cl-ppcre/">CL-PPCRE</a> regular
+          expression <clix:arg>regex</clix:arg> (which can be a string, an
+          s-expression, or a scanner).
+        </clix:description>
+      </clix:function>
+
+      <clix:function name="create-folder-dispatcher-and-handler">
+        <clix:lambda-list>uri-prefix base-path <clix:lkw>optional</clix:lkw> content-type</clix:lambda-list>
+        <clix:returns>dispatch-fn</clix:returns>
+        <clix:description>
+          Creates and returns a dispatch function which will dispatch to
+          a handler function which emits the file relative
+          to <clix:arg>base-path</clix:arg> that is denoted by the URI of
+          the request relative
+          to <clix:arg>uri-prefix</clix:arg>.  <clix:arg>uri-prefix</clix:arg>
+          must be a string ending with a
+          slash, <clix:arg>base-path</clix:arg> must be a pathname
+          designator for an existing directory.
+          Uses <clix:ref>HANDLE-STATIC-FILE</clix:ref> internally.
           <p>
-            If <clix:arg>content-type</clix:arg> is <code>NIL</code> the
-            function tries to determine the correct content type from
-            the file's suffix or falls back
-            to <code>"application/octet-stream"</code> as a last resort.
-          </p>
-          <p>
-            Note that this function
-            calls <clix:ref>SEND-HEADERS</clix:ref> internally, so after
-            you've called it, the headers are sent and the return value
-            of your handler is ignored.
+            If <clix:arg>content-type</clix:arg> is <em>not</em>
+            <code>NIL</code>, it will be used as a the content type for
+            all files in the folder.  Otherwise (which is the default)
+            the content type of each file will be
+            determined <a href="#handle-static-file">as usual</a>.
           </p>
         </clix:description>
       </clix:function>
@@ -843,15 +890,6 @@ determine the content type via the file&#039;s suffix.
     </clix:description>
   </clix:function>
 
-  <clix:function name='default-dispatcher'>
-  <clix:lambda-list>request
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>Default dispatch function which handles every request with the
-function stored in *DEFAULT-HANDLER*.
-    </clix:description>
-  </clix:function>
 
       <clix:function macro="true" name="define-easy-handler">
         <clix:lambda-list>description lambda-list [[declaration* | documentation]] form*</clix:lambda-list>
@@ -1050,62 +1088,11 @@ function stored in *DEFAULT-HANDLER*.
   <clix:returns>result
   </clix:returns>
     <clix:description>This is a dispatcher which returns the appropriate handler
-defined with DEFINE-EASY-HANDLER, if there is one.
+defined with <clix:ref>DEFINE-EASY-HANDLER</clix:ref>, if there is one.
     </clix:description>
   </clix:function>
 
 
-  <clix:special-variable name='*default-handler*'>
-    <clix:description>The name of the function which is always returned by
-DEFAULT-DISPATCHER.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*dispatch-table*'>
-    <clix:description>A global list of dispatch functions.
-    </clix:description>
-  </clix:special-variable>
-
-    </clix:subchapter>
-
-    <clix:subchapter name="handlers" title="Handlers">
-
-  <clix:function name='abort-request-handler'>
-  <clix:lambda-list>
-  <clix:lkw>optional
-  </clix:lkw> result
-  </clix:lambda-list>
-  <clix:returns>result
-  </clix:returns>
-    <clix:description>This function can be called by a request handler
-at any time to immediately abort handling the request.  This works as
-if the handler had returned <clix:arg>result</clix:arg>.  See the
-source code of <clix:ref>REDIRECT</clix:ref> for an example.
-    </clix:description>
-  </clix:function>
-
-      <clix:function name="handle-if-modified-since">
-        <clix:lambda-list>time <clix:lkw>optional</clix:lkw> request</clix:lambda-list>
-        <clix:returns>|</clix:returns>
-        <clix:description>
-          This function is designed to be used inside
-          a <a href="#handlers">handler</a>. If the client has sent an
-          'If-Modified-Since' header
-          (see <a href="http://www.faqs.org/rfcs/rfc2616.html">RFC 2616</a>,
-          section 14.25) and the time specified matches the universal
-          time
-          <clix:arg>time</clix:arg> then the
-          header <clix:ref>+HTTP-NOT-MODIFIED+</clix:ref> with no content
-          is immediately returned to the client.
-          <p>
-            Note that for this function to be useful you should usually
-            send 'Last-Modified' headers back to the client. See the
-            code
-            of <clix:ref>CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER</clix:ref>
-            for an example.
-          </p>
-        </clix:description>
-      </clix:function>
 
     </clix:subchapter>
 
@@ -2434,7 +2421,7 @@ want to use your own session objects.
 
     <clix:subchapter name="cookies" title="Cookies">
 
-      Outgoing cookies are stored in the request's <code>REPLY</code>
+      Outgoing cookies are stored in the request's <clix:ref>REPLY</clix:ref>
       object (see <clix:ref>COOKIE-OUT</clix:ref>
       and <clix:ref>COOKIES-OUT*</clix:ref>). They are CLOS objects
       defined like this:
@@ -2599,25 +2586,8 @@ Should be one of <code>:ERROR</code>, <code>:WARNING</code>
 
     <clix:subchapter name="conditions" title="Conditions and error handling">
 
-  <clix:condition name='hunchentoot-condition'>
-    <clix:description>Superclass for all conditions related to Hunchentoot.
-    </clix:description>
-  </clix:condition>
-
-  <clix:condition name='hunchentoot-error'>
-    <clix:description>Superclass for all errors related to Hunchentoot and a subclass of <clix:ref>HUNCHENTOOT-CONDITION</clix:ref>.
-    </clix:description>
-  </clix:condition>
-
-  <clix:condition name='parameter-error'>
-    <clix:description>Signalled if a function was called with incosistent or illegal parameters.  A subclass of <clix:ref>HUNCHENTOOT-ERROR</clix:ref>.
-    </clix:description>
-  </clix:condition>
-
-  <clix:condition name='hunchentoot-warning'>
-    <clix:description>Superclass for all warnings related to Hunchentoot and a subclass of <clix:ref>HUNCHENTOOT-CONDITION</clix:ref>.
-    </clix:description>
-  </clix:condition>
+This section describes how Hunchentoot deals with exceptional
+situations.  See also the secion about <a href="#logging">logging</a>.
 
   <clix:special-variable name='*show-lisp-errors-p*'>
     <clix:description>Whether Lisp errors should be shown in HTML output.
@@ -2648,9 +2618,93 @@ and <clix:ref>*HANDLE-HTTP-ERRORS*</clix:ref> is true.
     </clix:description>
   </clix:special-variable>
 
+  <clix:condition name='hunchentoot-condition'>
+    <clix:description>Superclass for all conditions related to Hunchentoot.
+    </clix:description>
+  </clix:condition>
+
+  <clix:condition name='hunchentoot-error'>
+    <clix:description>Superclass for all errors related to Hunchentoot and a subclass of <clix:ref>HUNCHENTOOT-CONDITION</clix:ref>.
+    </clix:description>
+  </clix:condition>
+
+  <clix:condition name='parameter-error'>
+    <clix:description>Signalled if a function was called with incosistent or illegal parameters.  A subclass of <clix:ref>HUNCHENTOOT-ERROR</clix:ref>.
+    </clix:description>
+  </clix:condition>
+
+  <clix:condition name='hunchentoot-warning'>
+    <clix:description>Superclass for all warnings related to Hunchentoot and a subclass of <clix:ref>HUNCHENTOOT-CONDITION</clix:ref>.
+    </clix:description>
+  </clix:condition>
+
     </clix:subchapter>
 
     <clix:subchapter name="misc" title="Miscellaneous">
+
+      Various functions and variables which didn't fit into one of the
+      other categories.
+
+  <clix:function name='abort-request-handler'>
+  <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> result
+  </clix:lambda-list>
+  <clix:returns>result
+  </clix:returns>
+    <clix:description>This function can be called by a request handler
+at any time to immediately abort handling the request.  This works as
+if the handler had returned <clix:arg>result</clix:arg>.  See the
+source code of <clix:ref>REDIRECT</clix:ref> for an example.
+    </clix:description>
+  </clix:function>
+
+      <clix:function name="handle-if-modified-since">
+        <clix:lambda-list>time <clix:lkw>optional</clix:lkw> request</clix:lambda-list>
+        <clix:returns>|</clix:returns>
+        <clix:description>
+          This function is designed to be used inside
+          a <a href="#handlers">handler</a>. If the client has sent an
+          'If-Modified-Since' header
+          (see <a href="http://www.faqs.org/rfcs/rfc2616.html">RFC 2616</a>,
+          section 14.25) and the time specified matches the universal
+          time
+          <clix:arg>time</clix:arg> then the
+          header <clix:ref>+HTTP-NOT-MODIFIED+</clix:ref> with no content
+          is immediately returned to the client.
+          <p>
+            Note that for this function to be useful you should usually
+            send 'Last-Modified' headers back to the client. See the
+            code
+            of <clix:ref>CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER</clix:ref>
+            for an example.
+          </p>
+        </clix:description>
+      </clix:function>
+
+      <clix:function name="handle-static-file">
+        <clix:lambda-list>path <clix:lkw>optional</clix:lkw> content-type</clix:lambda-list>
+        <clix:returns>nil</clix:returns>
+        <clix:description>
+          Sends the file denoted by the pathname designator
+          <clix:arg>path</clix:arg> with content type
+          <clix:arg>content-type</clix:arg> to the client.  Sets the
+          necessary handlers.  In particular the function employs
+          <clix:ref>HANDLE-IF-MODIFIED-SINCE</clix:ref>.
+          <p>
+            If <clix:arg>content-type</clix:arg> is <code>NIL</code> the
+            function tries to determine the correct content type from
+            the file's suffix or falls back
+            to <code>"application/octet-stream"</code> as a last resort.
+          </p>
+          <p>
+            Note that this function
+            calls <clix:ref>SEND-HEADERS</clix:ref> internally, so after
+            you've called it, the headers are sent and the return value
+            of your handler is ignored.
+          </p>
+        </clix:description>
+      </clix:function>
 
       <clix:function name="redirect">
         <clix:lambda-list>target <clix:lkw>key</clix:lkw> host port protocol add-session-id code</clix:lambda-list>
