@@ -1,3 +1,4 @@
+Fix STOP by supplying the :READY-ONLY keyword to USOCKET:WAIT-FOR-INPUT
 Enable SSL key passwords for Lisps other than LW (Vsevolod)
 
 Version 1.0.0
