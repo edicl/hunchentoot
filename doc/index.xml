@@ -353,10 +353,10 @@ same time.</p>
 required initargs, <code>:SSL-CERTIFICATE-FILE</code> and <code>:SSL-PRIVATEKEY-FILE</code>, for
 pathname designators denoting the certificate file and the key file in
 PEM format.  On LispWorks, you can have both in one file in which case
-the second initarg is optional.  On LispWorks, you can also use the
-<code>:SSL-PRIVATEKEY-PASSWORD</code> initarg to provide a password (as a string)
-for the key file (or <code>NIL</code>, the default, for no password).  On other
-Lisps, the key file must not be password-protected.
+the second initarg is optional.  You can also use the
+<code>:SSL-PRIVATEKEY-PASSWORD</code> initarg to provide a password
+(as a string) for the key file (or <code>NIL</code>, the default, for
+no password).
 <p>
 The default port for <clix:ref>SSL-ACCEPTOR</clix:ref> instances is 443 instead of 80
 </p>

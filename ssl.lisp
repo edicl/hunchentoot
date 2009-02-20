@@ -39,7 +39,6 @@ certificate file in PEM format.")
                         :documentation "A pathname designator for a
 private key file in PEM format, or \(only on LispWorks) NIL if the
 certificate file contains the private key.")
-   #+:lispworks
    (ssl-privatekey-password :initform nil
                             :initarg :ssl-privatekey-password
                             :reader acceptor-ssl-privatekey-password
@@ -52,10 +51,9 @@ private key file or NIL for no password."))
 required initargs, :SSL-CERTIFICATE-FILE and :SSL-PRIVATEKEY-FILE, for
 pathname designators denoting the certificate file and the key file in
 PEM format.  On LispWorks, you can have both in one file in which case
-the second initarg is optional.  On LispWorks, you can also use the
+the second initarg is optional.  You can also use the
 :SSL-PRIVATEKEY-PASSWORD initarg to provide a password \(as a string)
-for the key file \(or NIL, the default, for no password).  On other
-Lisps, the key file must not be password-protected.
+for the key file \(or NIL, the default, for no password).
 
 The default port for SSL-ACCEPTOR instances is 443 instead of 80"))
 
@@ -85,11 +83,12 @@ The default port for SSL-ACCEPTOR instances is 443 instead of 80"))
   (call-next-method acceptor
                     (cl+ssl:make-ssl-server-stream stream
                                                    :certificate (acceptor-ssl-certificate-file acceptor)
-                                                   :key (acceptor-ssl-privatekey-file acceptor))))
+                                                   :key (acceptor-ssl-privatekey-file acceptor)
+                                                   :password (acceptor-ssl-privatekey-password acceptor))))
 
 ;; LispWorks implementation
 
-#+lispworks
+#+:lispworks
 (defun make-ssl-server-stream (socket-stream &key certificate-file privatekey-file privatekey-password)
   "Given the acceptor socket stream SOCKET-STREAM attaches SSL to the
 stream using the certificate file CERTIFICATE-FILE and the private key
