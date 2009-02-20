@@ -114,7 +114,8 @@ requests.  This is the process started by COMM:START-UP-SERVER and no
 matter what kind of taskmaster you are using this will always be a new
 process different from the one where START was called.")
    #-:lispworks
-   (listen-socket :accessor acceptor-listen-socket
+   (listen-socket :initform nil
+                  :accessor acceptor-listen-socket
                   :documentation "The socket listening for incoming
 connections.")
    (acceptor-shutdown-p :initform nil
@@ -249,6 +250,8 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   (shutdown (acceptor-taskmaster acceptor))
   #-:lispworks
   (usocket:socket-close (acceptor-listen-socket acceptor))
+  #-:lispworks
+  (setf (acceptor-listen-socket acceptor) nil)
   acceptor)
 
 (defmethod initialize-connection-stream ((acceptor acceptor) stream)
@@ -347,6 +350,8 @@ chunked encoding, but acceptor is configured to not use it.")))))
 
 #-:lispworks
 (defmethod start-listening ((acceptor acceptor))
+  (when (acceptor-listen-socket acceptor)
+    (hunchentoot-error "acceptor ~A is already listening" acceptor))
   (setf (acceptor-listen-socket acceptor)
         (usocket:socket-listen (or (acceptor-address acceptor)
                                    usocket:*wildcard-host*)
@@ -361,7 +366,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
     (loop
      (when (acceptor-shutdown-p acceptor)
        (return))
-     (when (usocket:wait-for-input listener :timeout +new-connection-wait-time+)
+     (when (usocket:wait-for-input listener :ready-only t :timeout +new-connection-wait-time+)
        (handler-case
            (when-let (client-connection (usocket:socket-accept listener))
              (set-timeouts client-connection
