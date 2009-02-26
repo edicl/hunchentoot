@@ -216,37 +216,38 @@ change or replace this functionality unless you know what you're
 doing."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
-         (let* ((*request* request))
-           (multiple-value-bind (body error)
-               (catch 'handler-done
-                 (handler-bind ((error
-                                 (lambda (cond)
-                                   (when *log-lisp-errors-p*
-                                     (log-message *lisp-errors-log-level* "~A" cond))
-                                   ;; if the headers were already sent
-                                   ;; the error happens within the body
-                                   ;; and we have to close the stream
-                                   (when *headers-sent*
-                                     (setq *close-hunchentoot-stream* t))
-                                   (throw 'handler-done
-                                     (values nil cond))))
-                                (warning
-                                 (lambda (cond)
-                                   (when *log-lisp-warnings-p*
-                                     (log-message *lisp-warnings-log-level* "~A" cond)))))
-                   ;; skip dispatch if bad request
-                   (when (eql (return-code *reply*) +http-ok+)
-                     ;; now do the work
-                     (funcall (acceptor-request-dispatcher *acceptor*) *request*))))
-             (when error
-               (setf (return-code *reply*)
-                     +http-internal-server-error+))
-             (start-output :content (cond ((and error *show-lisp-errors-p*)
-                                           (format nil "<pre>~A</pre>"
-                                                   (escape-for-html (format nil "~A" error))))
-                                          (error
-                                           "An error has occured.")
-                                          (t body)))))
+         (with-mapped-conditions ()
+           (let* ((*request* request))
+             (multiple-value-bind (body error)
+                 (catch 'handler-done
+                   (handler-bind ((error
+                                   (lambda (cond)
+                                     (when *log-lisp-errors-p*
+                                       (log-message *lisp-errors-log-level* "~A" cond))
+                                     ;; if the headers were already sent
+                                     ;; the error happens within the body
+                                     ;; and we have to close the stream
+                                     (when *headers-sent*
+                                       (setq *close-hunchentoot-stream* t))
+                                     (throw 'handler-done
+                                       (values nil cond))))
+                                  (warning
+                                   (lambda (cond)
+                                     (when *log-lisp-warnings-p*
+                                       (log-message *lisp-warnings-log-level* "~A" cond)))))
+                     ;; skip dispatch if bad request
+                     (when (eql (return-code *reply*) +http-ok+)
+                       ;; now do the work
+                       (funcall (acceptor-request-dispatcher *acceptor*) *request*))))
+               (when error
+                 (setf (return-code *reply*)
+                       +http-internal-server-error+))
+               (start-output :content (cond ((and error *show-lisp-errors-p*)
+                                             (format nil "<pre>~A</pre>"
+                                                     (escape-for-html (format nil "~A" error))))
+                                            (error
+                                             "An error has occured.")
+                                            (t body))))))
       (dolist (path *tmp-files*)
         (when (and (pathnamep path) (probe-file path))
           ;; the handler may have chosen to (re)move the uploaded

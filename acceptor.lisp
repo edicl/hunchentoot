@@ -286,7 +286,8 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
                   (lambda (cond)
                     (log-message *lisp-warnings-log-level*
                                  "Warning while processing connection: ~A" cond))))
-    (call-next-method)))
+    (with-mapped-conditions ()
+      (call-next-method))))
 
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let ((*hunchentoot-stream*

@@ -320,3 +320,11 @@ not a chunked stream."
   "Whether the current connection to the client is secure."
   (acceptor-ssl-p acceptor))
 
+(defmacro with-mapped-conditions (() &body body)
+  "Run BODY with usocket condition mapping in effect, i.e. platform specific network errors will be
+  signalled as usocket conditions.  For Lispworks, no mapping is performed."
+  #+:lispworks
+  `(progn ,@body)
+  #-:lispworks
+  `(usocket:with-mapped-conditions ()
+    ,@body))
