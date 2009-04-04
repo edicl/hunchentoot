@@ -313,6 +313,7 @@
                                  ("text/x-dsrc" "d")
                                  ("text/x-haskell" "hs")
                                  ("text/x-java" "java")
+                                 ("text/javascript" "js")
                                  ("text/x-literate-haskell" "lhs")
                                  ("text/x-moc" "moc")
                                  ("text/x-pascal" "pp" "as")
