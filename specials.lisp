@@ -234,6 +234,11 @@ used by LOG-ACCESS-TO-FILE function.")
 (defvar-unbound *request*
   "The current REQUEST object while in the context of a request.")
 
+(defvar *within-request-p* nil
+  "True while in the context of a request (while *request* is bound),
+otherwise nil.  Outside callers should use exported function
+within-request-p to test this.")
+
 (defvar-unbound *reply*
   "The current REPLY object while in the context of a request.")
 

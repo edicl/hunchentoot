@@ -2854,6 +2854,15 @@ of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>.
   </clix:function>
 
       <clix:special-variable name="*tmp-directory*">
+  <clix:function name='within-request-p'>
+  <clix:lambda-list>
+  </clix:lambda-list>
+  <clix:returns>generalized-boolean
+  </clix:returns>
+    <clix:description>Returns true if in the context of a request. Otherwise, <code>NIL</code>.
+    </clix:description>
+  </clix:function>
+
         <clix:description>
           This should be a pathname denoting a directory where temporary
           files can be stored. It is used for <a href="#upload">file

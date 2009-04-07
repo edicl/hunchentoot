@@ -64,6 +64,7 @@
            "*METHODS-FOR-POST-PARAMETERS*"
            "*REPLY*"
            "*REQUEST*"
+           "WITHIN-REQUEST-P"
            "*REWRITE-FOR-SESSION-URLS*"
            "*SESSION*"
            "*SESSION-GC-FREQUENCY*"

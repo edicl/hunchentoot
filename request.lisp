@@ -217,7 +217,8 @@ doing."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
          (with-mapped-conditions ()
-           (let* ((*request* request))
+           (let* ((*request* request)
+                  (*within-request-p* t))
              (multiple-value-bind (body error)
                  (catch 'handler-done
                    (handler-bind ((error
@@ -254,6 +255,10 @@ doing."
           ;; file, so ignore errors that happen during deletion
           (ignore-errors
             (delete-file path)))))))
+
+(defun within-request-p ()
+  "True if we're in the context of a request, otherwise nil."
+  *within-request-p*)
 
 (defun parse-multipart-form-data (request external-format)
   "Parse the REQUEST body as multipart/form-data, assuming that its
