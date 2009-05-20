@@ -368,15 +368,17 @@ chunked encoding, but acceptor is configured to not use it.")))))
      (when (acceptor-shutdown-p acceptor)
        (return))
      (when (usocket:wait-for-input listener :ready-only t :timeout +new-connection-wait-time+)
-       (handler-case
-           (when-let (client-connection (usocket:socket-accept listener))
-             (set-timeouts client-connection
-                           (acceptor-read-timeout acceptor)
-                           (acceptor-write-timeout acceptor))
-             (handle-incoming-connection (acceptor-taskmaster acceptor)
-                                         client-connection))
-         ;; ignore condition
-         (usocket:connection-aborted-error ()))))))
+       (when-let (client-connection
+                  (handler-case
+                      (usocket:socket-accept listener)
+                               
+                    ;; ignore condition
+                    (usocket:connection-aborted-error ())))
+         (set-timeouts client-connection
+                       (acceptor-read-timeout acceptor)
+                       (acceptor-write-timeout acceptor))
+         (handle-incoming-connection (acceptor-taskmaster acceptor)
+                                     client-connection))))))
 
 ;; LispWorks implementation
 
