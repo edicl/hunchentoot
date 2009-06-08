@@ -285,6 +285,9 @@
       Here is some software which extends Hunchentoot or is based on it:
     </p>
     <ul>
+      <li>Tomo Matsumoto's web application
+      framework <a href="http://web4r.org/en/">web4r</a>.
+      </li>
       <li>
         <a href="http://common-lisp.net/project/cl-weblocks/">Weblocks</a>
         by Slava Akhmechet is a "continuations-based web framework" which is
