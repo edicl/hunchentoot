@@ -327,6 +327,7 @@ from and writing to a socket stream.")
   "A global lock to prevent two threads from modifying *session-db* at
 the same time \(or NIL for Lisps which don't have threads).")
 
+#-:lispworks
 (defconstant +new-connection-wait-time+ 2
   "Time in seconds to wait for a new connection to arrive before
 performing a cleanup run.")
