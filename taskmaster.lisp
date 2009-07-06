@@ -153,6 +153,11 @@ string and tries to act robustly in the presence of network problems."
              (zerop (mod *worker-counter* *cleanup-interval*)))
     (when *cleanup-function*
       (funcall *cleanup-function*)))
+  ;; We are handling all conditions here as we want to make sure that
+  ;; the acceptor process never crashes while trying to create a
+  ;; worker thread.  One such problem exists in
+  ;; GET-PEER-ADDRESS-AND-PORT which can signal socket conditions on
+  ;; some platforms in certain situations.
   (handler-case
       (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
                                        (multiple-value-list
