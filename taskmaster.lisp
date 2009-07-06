@@ -153,8 +153,12 @@ string and tries to act robustly in the presence of network problems."
              (zerop (mod *worker-counter* *cleanup-interval*)))
     (when *cleanup-function*
       (funcall *cleanup-function*)))
-  (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
-                                   (multiple-value-list
-                                    (get-peer-address-and-port handle)))
-                           nil #'process-connection
-                           (taskmaster-acceptor taskmaster) handle))
+  (handler-case
+      (mp:process-run-function (format nil "Hunchentoot worker \(client: ~{~A:~A~})"
+                                       (multiple-value-list
+                                        (get-peer-address-and-port handle)))
+                               nil #'process-connection
+                               (taskmaster-acceptor taskmaster) handle)
+    (error (cond)
+      (log-message *lisp-errors-log-level*
+                   "Error while creating worker thread for new incoming connection: ~A" cond))))
