@@ -352,7 +352,12 @@ object REQUEST."
   (get-parameters request))
 
 (defmethod post-parameters :before ((request request))
-  (maybe-read-post-parameters :request request))
+  ;; Force here because if someone calls POST-PARAMETERS they actually
+  ;; want them, regardless of why the RAW-POST-DATA has been filled
+  ;; in. (For instance, if SEND-HEADERS has been called, filling in
+  ;; RAW-POST-DATA, and then subsequent code calls POST-PARAMETERS,
+  ;; without the :FORCE flag POST-PARAMETERS would return NIL.)
+  (maybe-read-post-parameters :request request :force t))
 
 (defun post-parameters* (&optional (request *request*))
   "Returns an alist of the POST parameters associated with the REQUEST
