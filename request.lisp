@@ -289,7 +289,9 @@ Content-Type header of the request or from
   (when (and (header-in :content-type request)
              (member (request-method request) *methods-for-post-parameters* :test #'eq)
              (or force
-                 (not (slot-value request 'raw-post-data))))
+                 (not (slot-value request 'raw-post-data)))
+	     ;; can't reparse multipart posts, even when FORCEd
+	     (not (eq t (slot-value request 'raw-post-data))))
     (unless (or (header-in :content-length request)
                 (input-chunking-p))
       (log-message :warning "Can't read request body because there's ~
@@ -357,7 +359,8 @@ object REQUEST."
   ;; in. (For instance, if SEND-HEADERS has been called, filling in
   ;; RAW-POST-DATA, and then subsequent code calls POST-PARAMETERS,
   ;; without the :FORCE flag POST-PARAMETERS would return NIL.)
-  (maybe-read-post-parameters :request request :force t))
+  (maybe-read-post-parameters
+   :request request :force (not (slot-value request 'post-parameters))))
 
 (defun post-parameters* (&optional (request *request*))
   "Returns an alist of the POST parameters associated with the REQUEST
