@@ -184,7 +184,7 @@ returns a true value.
 
 ACCEPTOR-NAMES \(which is evaluated) can be a list of symbols which
 means that the handler will be returned by DISPATCH-EASY-HANDLERS in
-acceptor which have one of these names \(see ACCEPTOR-NAME).
+acceptors which have one of these names \(see ACCEPTOR-NAME).
 ACCEPTOR-NAMES can also be the symbol T which means that the handler
 will be returned by DISPATCH-EASY-HANDLERS in every acceptor.
 

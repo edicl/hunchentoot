@@ -270,7 +270,7 @@ initiating another request, which is permissible.)")
 DEFAULT-DISPATCHER.")
 
 (defvar *easy-handler-alist* nil
-  "An alist of \(URI server-names function) lists defined by
+  "An alist of \(URI acceptor-names function) lists defined by
 DEFINE-EASY-HANDLER.")
 
 (defvar *http-error-handler* nil
