@@ -313,7 +313,7 @@ unknown character set ~A in request content type."
                   (cond ((and (string-equal type "application")
                               (string-equal subtype "x-www-form-urlencoded"))
                          (form-url-encoded-list-to-alist
-                          (split "&" (raw-post-data :external-format +latin-1+))
+                          (split "&" (raw-post-data :request request :external-format +latin-1+))
                           external-format))
                         ((and (string-equal type "multipart")
                               (string-equal subtype "form-data"))
