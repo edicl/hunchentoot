@@ -908,7 +908,7 @@ determine the content type via the file&#039;s suffix.
             <a href="http://www.lispworks.com/documentation/HyperSpec/Body/03_de.htm">destructuring
               lambda list</a>
           </p>
-          <pre>(name &amp;key uri server-names default-parameter-type default-request-type).</pre>
+          <pre>(name &amp;key uri acceptor-names default-parameter-type default-request-type).</pre>
           <clix:arg>lambda-list</clix:arg> is a list the elements of which
           are either a symbol <clix:arg>var</clix:arg> or a list matching
           the destructuring lambda list
@@ -939,14 +939,14 @@ determine the content type via the file&#039;s suffix.
               object</a> returns a true value.
           </p>
           <p>
-            <clix:arg>server-names</clix:arg> (which is evaluated) can be a
+            <clix:arg>acceptor-names</clix:arg> (which is evaluated) can be a
             list of symbols which means that the handler will only be
             returned by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref> in
-            servers which have one of these names
-            (see <clix:ref>SERVER-NAME</clix:ref>).  <clix:arg>server-names</clix:arg> can also be the
+            acceptors which have one of these names
+            (see <clix:ref>ACCEPTOR-NAME</clix:ref>).  <clix:arg>acceptor-names</clix:arg> can also be the
             symbol <code>T</code> which means that the handler will be
             returned by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref>
-            in <em>every</em> server.
+            in <em>every</em> acceptor.
           </p>
           <p>
             Whether the GET or POST parameter (or both) will be taken into
