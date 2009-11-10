@@ -1,3 +1,4 @@
+Treat :UNSPECIFIC like NIL in pathname components (reported by Frode Fjeld)
 Prepare for LispWorks 6 (Nico de Jager)
 Fix reading of post parameters (Peter Seibel)
 Fix STOP by supplying the :READY-ONLY keyword to USOCKET:WAIT-FOR-INPUT
