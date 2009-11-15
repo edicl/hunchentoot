@@ -350,7 +350,14 @@ active instances of <clix:ref>ACCEPTOR</clix:ref> (listening on different ports)
 same time.</p>
     </clix:description>
   </clix:class>
-
+  
+  <clix:class name='debugging-acceptor'>
+    <clix:description>The default Hunchentoot webserver behavior is to catch errors and
+    log them (see <clix:ref>*log-lisp-errors-p*</clix:ref> and
+    <clix:ref>*log-lisp-warnings-p*</clix:ref>). If you prefer to open a debugger window instead (e.g., for development), you can use this class instead of <clix:ref>acceptor</clix:ref>.
+    </clix:description>
+  </clix:class>
+  
   <clix:class name='ssl-acceptor'>
     <clix:description>Create and <clix:ref>START</clix:ref> an instance of this class
 (instead of <clix:ref>ACCEPTOR</clix:ref>) if you want an https server.  There are two
@@ -655,6 +662,23 @@ stream.
     </clix:description>
   </clix:function>
 
+  <clix:function generic='true' name='invoke-process-request-with-error-handling'>
+  <clix:lambda-list>acceptor request continuation</clix:lambda-list>
+  <clix:description>Can be used to override the error handling behavior of an acceptor.
+The default method of <clix:ref>ACCEPTOR</clix:ref> logs errors if
+<clix:ref>*log-lisp-errors-p*</clix:ref> is set.
+  </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='invoke-process-connection-with-error-handling'>
+  <clix:lambda-list>acceptor socket continuation</clix:lambda-list>
+  <clix:description>Can be used to override the error handling behavior for connection
+handling. The default method of <clix:ref>ACCEPTOR</clix:ref> logs connection errors
+as they occur, while <clix:ref>DEBUGGING-ACCEPTOR</clix:ref> invokes the debugger if
+debug-connection-errors-p is set.
+  </clix:description>
+  </clix:function>
+  
     </clix:subchapter>
 
     <clix:subchapter name="taskmasters" title="Taskmasters">
