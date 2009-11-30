@@ -95,20 +95,21 @@ You should not mess with the slots of these objects directly, but you
 can subclass REQUEST in order to implement your own behaviour.  See
 the REQUEST-CLASS slot of the ACCEPTOR class."))
 
+(defgeneric dispatch-request (request)
+  (:documentation "This function is called by PROCESS-REQUEST. It
+selects and calls a handler to process the request.
+
+This might be a good place to introduce around methods which bind
+special variables or do other interesting things that are relevant to
+the particular request. Note that DISPATCH-REQUEST is called once per
+connection and loops in case of a persistent connection, while
+PROCESS-REQUEST is called anew for each request."))
+  
 (defgeneric process-request (request)
   (:documentation "This function is called by PROCESS-CONNECTION after
-the incoming headers have been read.  It selects and calls a handler
-and sends the output of this handler to the client using START-OUTPUT.
-It also sets up simple error handling for the request handler.  Note
-that PROCESS-CONNECTION is called once per connection and loops in
-case of a persistent connection while PROCESS-REQUEST is called anew
-for each request.
-
-Like PROCESS-CONNECTION, this might be a good place to introduce
-around methods which bind special variables or do other interesting
-things.
-
-The return value of this function is ignored."))
+the incoming headers have been read.  It calls DISPATCH-REQUEST and
+sends its output to the client.  It also sets up simple error handling
+for the request handler."))
 
 (defun convert-hack (string external-format)
   "The rfc2388 package is buggy in that it operates on a character
@@ -210,6 +211,12 @@ slot values are computed in this :AFTER method."
         ;; we assume it's not our fault...
         (setf (return-code*) +http-bad-request+)))))
 
+(defmethod dispatch-request (request)
+  "Standard implementation of dispatching a request to the appropriate
+handler."
+  (funcall (acceptor-request-dispatcher *acceptor*)
+	   request))
+
 (defmethod process-request (request)
   "Standard implementation for processing a request.  You should not
 change or replace this functionality unless you know what you're
@@ -227,7 +234,7 @@ doing."
                      ;; skip dispatch if bad request
                      (when (eql (return-code *reply*) +http-ok+)
                        ;; now do the work
-                       (funcall (acceptor-request-dispatcher *acceptor*) *request*)))))
+                       (dispatch-request request)))))
               (when error
                 (setf (return-code *reply*)
                       +http-internal-server-error+))
