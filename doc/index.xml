@@ -953,7 +953,7 @@ determine the content type via the file&#039;s suffix.
             a <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_f.htm#function_designator">function
               designator</a> for a unary function.  In this case, the
             handler will be returned
-            by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref> ,
+            by <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref>,
             if <clix:arg>uri</clix:arg> is a string and
             the <a href="#script-name">script name</a> of the current
             request is <clix:arg>uri</clix:arg>, or
@@ -2897,7 +2897,6 @@ of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>.
     </clix:description>
   </clix:function>
 
-      <clix:special-variable name="*tmp-directory*">
   <clix:function name='within-request-p'>
   <clix:lambda-list>
   </clix:lambda-list>
@@ -2907,6 +2906,7 @@ of <clix:ref>*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</clix:ref>.
     </clix:description>
   </clix:function>
 
+      <clix:special-variable name="*tmp-directory*">
         <clix:description>
           This should be a pathname denoting a directory where temporary
           files can be stored. It is used for <a href="#upload">file

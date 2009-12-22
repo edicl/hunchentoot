@@ -224,8 +224,7 @@ doing."
   (let (*tmp-files* *headers-sent*)
     (unwind-protect
         (with-mapped-conditions ()
-          (let* ((*request* request)
-                 (*within-request-p* t))
+          (let* ((*request* request))
             (multiple-value-bind (body error)
                 (catch 'handler-done
                   (invoke-process-request-with-error-handling
@@ -253,7 +252,7 @@ doing."
 
 (defun within-request-p ()
   "True if we're in the context of a request, otherwise nil."
-  *within-request-p*)
+  (and (boundp '*request*) *request*))
 
 (defun parse-multipart-form-data (request external-format)
   "Parse the REQUEST body as multipart/form-data, assuming that its
