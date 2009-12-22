@@ -1594,33 +1594,17 @@ during the request.
   </clix:returns>
     <clix:description>
 This function is called by <clix:ref>PROCESS-CONNECTION</clix:ref>
-after the incoming headers have been read.  It
-calls <clix:ref>DISPATCH-REQUEST</clix:ref> and sends its output to
-the client.  It also sets up simple error handling for the request
-handler.
-<p>
-The return value of this function is ignored.
-</p>
-    </clix:description>
-  </clix:function>
-
-  <clix:function generic='true' name='dispatch-request'>
-  <clix:lambda-list>request
-  </clix:lambda-list>
-  <clix:returns>nil
-  </clix:returns>
-    <clix:description>
-This function is called by <clix:ref>PROCESS-REQUEST</clix:ref>. It
-selects and calls a
-<a href="#handlers">handler</a> to process the request. 
-<p>
-This might be a good place to introduce around methods which bind
-special variables or do other interesting things that are relevant to
-the particular request. Note
-that <clix:ref>DISPATCH-REQUEST</clix:ref> is called once per
-connection and loops in case of a persistent connection,
+after the incoming headers have been read.  It selects and calls a
+<a href="#handlers">handler</a> and sends the output of this handler
+to the client.  It also sets up simple error handling for the request
+handler.  Note that <clix:ref>PROCESS-CONNECTION</clix:ref> is called
+once per connection and loops in case of a persistent connection
 while <clix:ref>PROCESS-REQUEST</clix:ref> is called anew for each
 request.
+<p>
+Like <clix:ref>PROCESS-CONNECTION</clix:ref>, this might be a good
+place to introduce around methods which bind special variables or do
+other interesting things.
 </p>
 <p>
 The return value of this function is ignored.
