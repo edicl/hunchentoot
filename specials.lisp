@@ -199,6 +199,10 @@ purposes.")
 (defvar *log-lisp-errors-p* t
   "Whether Lisp errors in request handlers should be logged.")
 
+(defvar *log-lisp-backtraces-p* t
+  "Whether Lisp backtraces should be logged.  Only has an effect if
+*LOG-LISP-ERRORS-P* is true as well.")
+
 (defvar *log-lisp-warnings-p* t
   "Whether Lisp warnings in request handlers should be logged.")
 

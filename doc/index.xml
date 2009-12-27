@@ -85,6 +85,7 @@
       <li>Kevin Rosenberg's <a href="http://www.cliki.net/cl-base64">CL-BASE64</a>,</li>
       <li>Janis Dzerins' <a href="http://common-lisp.net/project/rfc2388/">RFC2388</a>,</li>
       <li>Peter Seibel's <a href="http://weitz.de/cl-fad/">CL-FAD</a>,</li>
+      <li>Gary King's <a href="http://common-lisp.net/project/trivial-backtrace/">trivial-backtrace</a>,</li>
       <li>Erik Huelsmann's <a href="http://common-lisp.net/project/usocket">usocket</a> (unless you're using LispWorks),</li>
       <li>Greg Pfeil's <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
           Threads</a> (unless you're using LispWorks),
@@ -2585,6 +2586,13 @@ means that <em>nothing</em> will be logged!
 
   <clix:special-variable name='*log-lisp-errors-p*'>
     <clix:description>Whether Lisp errors in request handlers should be logged.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*log-lisp-backtraces-p*'>
+    <clix:description>Whether Lisp backtraces should be logged.  Only
+    has an effect if <clix:ref>*LOG-LISP-ERRORS-P*</clix:ref> is true
+    as well.
     </clix:description>
   </clix:special-variable>
 

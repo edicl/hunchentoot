@@ -437,7 +437,10 @@ handler."
   (handler-bind ((error
                   (lambda (cond)
                     (when *log-lisp-errors-p*
-                      (log-message *lisp-errors-log-level* "~A" cond))
+                      (log-message *lisp-errors-log-level*
+                                   "~A~:[~*~;~%~:*~A~]"
+                                   cond
+                                   (and *log-lisp-backtraces-p* (get-backtrace))))
                     ;; if the headers were already sent, the error
                     ;; happened within the body and we have to close
                     ;; the stream
@@ -449,4 +452,5 @@ handler."
                   (lambda (cond)
                     (when *log-lisp-warnings-p*
                       (log-message *lisp-warnings-log-level* "~A" cond)))))
-    (funcall (acceptor-request-dispatcher *acceptor*) *request*)))
+    (with-debugger
+      (funcall (acceptor-request-dispatcher *acceptor*) *request*))))

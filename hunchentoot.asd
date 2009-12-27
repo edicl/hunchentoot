@@ -51,6 +51,7 @@ for diagnostic output.")
                #-(or :lispworks :hunchentoot-no-ssl) :cl+ssl
                :md5
                :rfc2388
+               :trivial-backtrace
                #-:lispworks :usocket
                #-:lispworks :bordeaux-threads)
   :components ((:module url-rewrite

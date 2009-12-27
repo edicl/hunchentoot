@@ -114,3 +114,12 @@ specialize it on specific condition classes for debugging purposes.")
   "Like HANDLER-CASE, but observes *CATCH-ERRORS-P*."
   `(handler-case (with-debugger ,expression)
      ,@clauses))
+
+(defun get-backtrace ()
+  "Returns a string with a backtrace of what the Lisp system thinks is
+the \"current\" error."
+  (handler-case
+      (with-output-to-string (s)
+        (trivial-backtrace:print-backtrace-to-stream s))
+    (error (condition)
+      (format nil "Could not generate backtrace: ~A." condition))))
