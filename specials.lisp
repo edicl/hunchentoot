@@ -228,6 +228,10 @@ used by LOG-MESSAGE-TO-FILE function.")
   "A global lock to prevent concurrent access to the log file
 used by LOG-ACCESS-TO-FILE function.")
 
+(defvar *catch-errors-p* t
+  "Whether Hunchentoot should catch and log errors \(or rather invoke
+the debugger).")
+
 (defvar-unbound *acceptor*
   "The current ACCEPTOR object while in the context of a request.")
 
@@ -239,15 +243,6 @@ used by LOG-ACCESS-TO-FILE function.")
 
 (defvar-unbound *session*
   "The current session while in the context of a request, or NIL.")
-
-(defvar *break-even-while-reading-request-type-p* nil
-  "If this variable is set to true, Hunchentoot will not bind
-*BREAK-ON-SIGNALS* to NIL while reading the next request type from an
-incoming connection.  By default, Hunchentoot will not enter the
-debugger if an error occurs during the reading of the request type, as
-this will happen regularily and legitimately.  \(The incoming
-connection times out or the client closes the connection without
-initiating another request, which is permissible.)")
 
 (defconstant +implementation-link+
   #+:cmu "http://www.cons.org/cmucl/"

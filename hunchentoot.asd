@@ -40,7 +40,7 @@ for diagnostic output.")
 
 (export '*hunchentoot-version*)
 
-(asdf:defsystem :hunchentoot
+(defsystem :hunchentoot
   :serial t
   :version #.*hunchentoot-version*
   :depends-on (:chunga
@@ -79,3 +79,26 @@ for diagnostic output.")
                (:file "taskmaster")
                (:file "acceptor")
                #-:hunchentoot-no-ssl (:file "ssl")))
+
+(defsystem :hunchentoot-test
+  :components ((:module "test"
+                        :serial t
+                        :components ((:file "packages")
+                                     (:file "test-handlers")
+                                     (:file "script-engine")
+                                     (:file "script"))))
+  :depends-on (:hunchentoot :cl-who :cl-ppcre :drakma))
+
+(defmethod perform ((o test-op) (c (eql (find-system 'hunchentoot))))
+  (operate 'load-op 'hunchentoot-test)
+  (format t "~&;; Starting web server on localhost:4242.")
+  (force-output)
+  (funcall (intern (symbol-name :start) (find-package :hunchentoot))
+           (make-instance (intern (symbol-name :acceptor) (find-package :hunchentoot)) :port 4242))
+  (format t "~&;; Sleeping 2 seconds...")
+  (force-output)
+  (sleep 2)
+  (format t "~&;; Now running confidence tests.")
+  (force-output)
+  (funcall (intern (symbol-name :test-hunchentoot) (find-package :hunchentoot-test))
+           "http://localhost:4242"))

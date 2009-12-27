@@ -127,18 +127,18 @@ string and tries to act robustly in the presence of network problems."
 
 #-:lispworks
 (defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) socket)
-  ;; We are handling all conditions here as we want to make sure that
+  ;; we are handling all conditions here as we want to make sure that
   ;; the acceptor process never crashes while trying to create a
-  ;; worker thread.  One such problem exists in
+  ;; worker thread; one such problem exists in
   ;; GET-PEER-ADDRESS-AND-PORT which can signal socket conditions on
   ;; some platforms in certain situations.
-  (handler-case
+  (handler-case*
       (bt:make-thread (lambda ()
                         (process-connection (taskmaster-acceptor taskmaster) socket))
                       :name (format nil "Hunchentoot worker \(client: ~A)" (client-as-string socket)))
     
     (error (cond)
-      ;; Need to bind *ACCEPTOR* so that LOG-MESSAGE can do its work.
+      ;; need to bind *ACCEPTOR* so that LOG-MESSAGE can do its work.
       (let ((*acceptor* (taskmaster-acceptor taskmaster)))
         (log-message *lisp-errors-log-level*
                      "Error while creating worker thread for new incoming connection: ~A" cond)))))

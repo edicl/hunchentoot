@@ -120,3 +120,5 @@ used to set the timeouts."
 
 (editor:setup-indent "def-http-return-code" 1 2 4)
 
+(editor:setup-indent "handler-case*" 1 2 4)
+

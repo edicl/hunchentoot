@@ -50,7 +50,7 @@ NIL unconditionally."
     (string argument)
     (character (and (= (length argument) 1)
                     (char argument 0)))
-    (integer (ignore-errors (parse-integer argument :junk-allowed t)))
+    (integer (ignore-errors* (parse-integer argument :junk-allowed t)))
     (keyword (as-keyword argument :destructivep nil))
     (boolean t)
     (otherwise (funcall type argument))))

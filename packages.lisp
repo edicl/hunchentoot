@@ -41,6 +41,7 @@
   (:export "*ACCEPTOR*"
            "*ACCESS-LOG-PATHNAME*"
            "*APPROVED-RETURN-CODES*"
+           "*CATCH-ERRORS-P*"
            #+:lispworks
            "*CLEANUP-FUNCTION*"
            #+:lispworks
@@ -132,9 +133,6 @@
            "ACCEPTOR-REPLY-CLASS"
            "ACCEPTOR-REQUEST-CLASS"
            "ACCEPTOR-SSL-P"
-           "DEBUGGING-ACCEPTOR"
-           "INVOKE-PROCESS-REQUEST-WITH-ERROR-HANDLING"
-           "INVOKE-PROCESS-CONNECTION-WITH-ERROR-HANDLING"
            #-:hunchentoot-no-ssl "ACCEPTOR-SSL-CERTIFICATE-FILE"               
            #-:hunchentoot-no-ssl "ACCEPTOR-SSL-PRIVATEKEY-FILE"
            #-:hunchentoot-no-ssl "ACCEPTOR-SSL-PRIVATEKEY-PASSWORD"
@@ -174,6 +172,7 @@
            "GET-PARAMETERS*"
            "HANDLE-INCOMING-CONNECTION"
            "HANDLE-IF-MODIFIED-SINCE"
+           "HANDLE-REQUEST"
            "HANDLE-STATIC-FILE"
            "HEADER-IN"
            "HEADER-IN*"
@@ -189,6 +188,7 @@
            "HUNCHENTOOT-WARNING"
            "INITIALIZE-CONNECTION-STREAM"
            "LOG-MESSAGE"
+           "MAYBE-INVOKE-DEBUGGER"
            "MIME-TYPE"
            "NEXT-SESSION-ID"
            "NO-CACHE"

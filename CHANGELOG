@@ -1,4 +1,5 @@
-Added debugging acceptors and the corresponding generic methods (Andreas Fuchs)
+Architectural changes - see HANDLE-REQUEST (thanks to Andreas Fuchs and Frode Fjeld)
+Re-introduced *CATCH-ERRORS-P* and MAYBE-INVOKE-DEBUGGER
 Treat :UNSPECIFIC like NIL in pathname components (reported by Frode Fjeld)
 Prepare for LispWorks 6 (Nico de Jager)
 Fix reading of post parameters (Peter Seibel)

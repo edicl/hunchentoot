@@ -351,13 +351,6 @@ same time.</p>
     </clix:description>
   </clix:class>
   
-  <clix:class name='debugging-acceptor'>
-    <clix:description>The default Hunchentoot webserver behavior is to catch errors and
-    log them (see <clix:ref>*log-lisp-errors-p*</clix:ref> and
-    <clix:ref>*log-lisp-warnings-p*</clix:ref>). If you prefer to open a debugger window instead (e.g., for development), you can use this class instead of <clix:ref>acceptor</clix:ref>.
-    </clix:description>
-  </clix:class>
-  
   <clix:class name='ssl-acceptor'>
     <clix:description>Create and <clix:ref>START</clix:ref> an instance of this class
 (instead of <clix:ref>ACCEPTOR</clix:ref>) if you want an https server.  There are two
@@ -662,23 +655,6 @@ stream.
     </clix:description>
   </clix:function>
 
-  <clix:function generic='true' name='invoke-process-request-with-error-handling'>
-  <clix:lambda-list>acceptor request continuation</clix:lambda-list>
-  <clix:description>Can be used to override the error handling behavior of an acceptor.
-The default method of <clix:ref>ACCEPTOR</clix:ref> logs errors if
-<clix:ref>*log-lisp-errors-p*</clix:ref> is set.
-  </clix:description>
-  </clix:function>
-
-  <clix:function generic='true' name='invoke-process-connection-with-error-handling'>
-  <clix:lambda-list>acceptor socket continuation</clix:lambda-list>
-  <clix:description>Can be used to override the error handling behavior for connection
-handling. The default method of <clix:ref>ACCEPTOR</clix:ref> logs connection errors
-as they occur, while <clix:ref>DEBUGGING-ACCEPTOR</clix:ref> invokes the debugger if
-debug-connection-errors-p is set.
-  </clix:description>
-  </clix:function>
-  
     </clix:subchapter>
 
     <clix:subchapter name="taskmasters" title="Taskmasters">
@@ -2615,6 +2591,41 @@ Should be one of <code>:ERROR</code>, <code>:WARNING</code>
 
 This section describes how Hunchentoot deals with exceptional
 situations.  See also the secion about <a href="#logging">logging</a>.
+
+  <clix:special-variable name='*catch-errors-p*'>
+    <clix:description>
+If the value of this variable is <code>NIL</code>
+(the default is <code>T</code>), then errors which happen while a
+request is handled aren't <a href="#logging">caught as usual</a>, but
+instead your
+Lisp's <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_d.htm#debugger">debugger</a>
+is <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/f_invoke.htm">invoked</a>.
+This variable should obviously always be set to a <em>true</em> value
+in a production environment.
+See <clix:ref>MAYBE-INVOKE-DEBUGGER</clix:ref>
+if you want to fine-tune this behaviour.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:function generic='true' name='maybe-invoke-debugger'>
+  <clix:lambda-list>condition
+  </clix:lambda-list>
+  <clix:returns>|
+  </clix:returns>
+    <clix:description>
+This generic function is called whenever a
+<a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm">condition</a> <code><i>condition</i></code>
+is signaled in Hunchentoot.  You might want to specialize it on
+specific condition classes for debugging purposes.  The default
+method <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/f_invoke.htm">invokes
+the debugger</a> with <clix:arg>condition</clix:arg> if
+<clix:ref>*CATCH-ERRORS-P*</clix:ref> is <code>NIL</code>.
+    </clix:description>
+  </clix:function>
 
   <clix:special-variable name='*show-lisp-errors-p*'>
     <clix:description>Whether Lisp errors should be shown in HTML output.

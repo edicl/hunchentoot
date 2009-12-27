@@ -183,7 +183,7 @@ slot values are computed in this :AFTER method."
   (declare (ignore init-args))
   (with-slots (headers-in cookies-in get-parameters script-name query-string session)
       request
-    (handler-case
+    (handler-case*
         (progn
           (let* ((uri (request-uri request))
                  (match-start (position #\? uri)))
@@ -219,14 +219,10 @@ doing."
         (with-mapped-conditions ()
           (let* ((*request* request))
             (multiple-value-bind (body error)
-                (catch 'handler-done
-                  (invoke-process-request-with-error-handling
-                   *acceptor* *request*
-                   (lambda ()
-                     ;; skip dispatch if bad request
-                     (when (eql (return-code *reply*) +http-ok+)
-                       ;; now do the work
-                       (funcall (acceptor-request-dispatcher *acceptor*) *request*)))))
+                ;; skip dispatch if bad request
+                (when (eql (return-code *reply*) +http-ok+)
+                  (catch 'handler-done
+                    (handle-request *acceptor* *request*)))
               (when error
                 (setf (return-code *reply*)
                       +http-internal-server-error+))
@@ -240,7 +236,7 @@ doing."
         (when (and (pathnamep path) (probe-file path))
           ;; the handler may have chosen to (re)move the uploaded
           ;; file, so ignore errors that happen during deletion
-          (ignore-errors
+          (ignore-errors*
             (delete-file path)))))))
 
 (defun within-request-p ()
@@ -251,7 +247,7 @@ doing."
   "Parse the REQUEST body as multipart/form-data, assuming that its
 content type has already been verified.  Returns the form data as
 alist or NIL if there was no data or the data could not be parsed."
-  (handler-case
+  (handler-case*
       (let ((content-stream (make-flexi-stream (content-stream request) :external-format +latin-1+)))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type request) external-format)
@@ -284,12 +280,12 @@ Content-Type header of the request or from
       (log-message :warning "Can't read request body because there's ~
 no Content-Length header and input chunking is off.")
       (return-from maybe-read-post-parameters nil))
-    (handler-case
+    (handler-case*
         (multiple-value-bind (type subtype charset)
               (parse-content-type (header-in :content-type request))
           (let ((external-format (or external-format
                                      (when charset
-                                       (handler-case
+                                       (handler-case*
                                            (make-external-format charset :eol-style :lf)
                                          (error ()
                                            (hunchentoot-warn "Ignoring ~
@@ -473,7 +469,7 @@ type was not set or if the character set specified was invalid, NIL is
 returned."
   (when content-type
     (when-let (charset (nth-value 2 (parse-content-type content-type)))
-      (handler-case
+      (handler-case*
           (make-external-format (as-keyword charset) :eol-style :lf)
         (error ()
           (hunchentoot-warn "Invalid character set ~S in request has been ignored."

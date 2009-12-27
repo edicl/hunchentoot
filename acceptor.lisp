@@ -174,17 +174,6 @@ Unless you are in a Lisp without MP capabilities, you can have several
 active instances of ACCEPTOR \(listening on different ports) at the
 same time."))
 
-(defclass debugging-acceptor (acceptor)
-     ((debug-connection-errors-p :initarg :debug-connection-errors-p
-                                 :accessor debug-connection-errors-p
-                                 :documentation "A flag that enables 
-entering the debugger if a connection-related error (e.g. a premature
-connection drop by the client) occurs."))
-  (:default-initargs
-      :debug-connection-errors-p nil)
-  (:documentation "This class provides a Hunchentoot webserver that
-enters the debugger if an error handler occurs during request handling."))
-
 (defmethod print-object ((acceptor acceptor) stream)
   (print-unreadable-object (acceptor stream :type t)
     (format stream "\(host ~A, port ~A)"
@@ -236,29 +225,22 @@ done in a loop until the stream has to be closed or until a connection
 timeout occurs.
 
 It is probably not a good idea to re-implement this method until you
-really, really know what you're doing, but you can for example write
-an around method specialized for your subclass of ACCEPTOR which binds
-or rebinds special variables which can then be accessed by your
-handlers."))
+really, really know what you're doing."))
+
+(defgeneric handle-request (acceptor request)
+  (:documentation "This function is called once the request has been
+read and a REQUEST object has been created.  Its job is to actually
+handle the request, i.e. to return something to the client.
+
+Might be a good place for around methods specialized for your subclass
+of ACCEPTOR which bind or rebind special variables which can then be
+accessed by your handlers."))
 
 (defgeneric acceptor-ssl-p (acceptor) 
   (:documentation "Returns a true value if ACCEPTOR uses SSL
 connections.  The default is to unconditionally return NIL and
 subclasses of ACCEPTOR must specialize this method to signal that
 they're using secure connections - see the SSL-ACCEPTOR class."))
-
-(defgeneric invoke-process-connection-with-error-handling
-    (acceptor socket continuation)
-  (:documentation "Handles connection errors on SOCKET for ACCEPTOR
-that occur while running CONTINUATION."))
-
-(defgeneric invoke-process-request-with-error-handling
-    (acceptor request continuation)
-  (:documentation "Handles errors that occur while running
-CONTINUATION to process a REQUEST on ACCEPTOR.
-
-This is useful to specialize if you want to handle errors that occur
-only on specific requests."))
 
 ;; general implementation
 
@@ -295,38 +277,23 @@ only on specific requests."))
          (chunked-stream-stream stream))
         (t stream)))
 
-(defmethod invoke-process-connection-with-error-handling ((*acceptor* acceptor)
-                                                          socket continuation)
+(defmethod process-connection :around ((*acceptor* acceptor) (socket t))
+  ;; this around method is used for error handling
   (declare (ignore socket))
-  ;; Handle connection errors if they occur.
+  ;; note that this method also binds *ACCEPTOR*
   (handler-bind ((error
                   ;; abort if there's an error which isn't caught inside
                   (lambda (cond)
                     (log-message *lisp-errors-log-level*
                                  "Error while processing connection: ~A" cond)
-                    (return-from invoke-process-connection-with-error-handling)))
+                    (return-from process-connection)))
                  (warning
                   ;; log all warnings which aren't caught inside
                   (lambda (cond)
                     (log-message *lisp-warnings-log-level*
                                  "Warning while processing connection: ~A" cond))))
-    (funcall continuation)))
-
-(defmethod invoke-process-connection-with-error-handling ((*acceptor* debugging-acceptor)
-                                                          socket continuation)
-  (declare (ignore socket))
-  ;; Use the default error handling behavior, which is governed by the
-  ;; host lisp's *debugger-hook*
-  (if (debug-connection-errors-p *acceptor*)
-      (funcall continuation)
-      (call-next-method)))
-
-(defmethod process-connection :around ((*acceptor* acceptor) (socket t))
-  ;; this around method is used for error handling
-  (declare (ignore socket))
-  ;; note that this method also binds *ACCEPTOR*
-  (with-mapped-conditions ()
-    (invoke-process-connection-with-error-handling *acceptor* socket #'call-next-method)))
+    (with-mapped-conditions ()
+      (call-next-method))))
 
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let ((*hunchentoot-stream*
@@ -378,7 +345,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
         ;; as we are at the end of the request here, we ignore all
         ;; errors that may occur while flushing and/or closing the
         ;; stream.
-        (ignore-errors
+        (ignore-errors*
           (force-output *hunchentoot-stream*)
           (close *hunchentoot-stream* :abort t))))))
   
@@ -408,9 +375,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
        (return))
      (when (usocket:wait-for-input listener :ready-only t :timeout +new-connection-wait-time+)
        (when-let (client-connection
-                  (handler-case
-                      (usocket:socket-accept listener)
-                               
+                  (handler-case* (usocket:socket-accept listener)                               
                     ;; ignore condition
                     (usocket:connection-aborted-error ())))
          (set-timeouts client-connection
@@ -464,20 +429,18 @@ either return a handler or neglect by returning NIL."
         when action return (funcall action)
         finally (setf (return-code *reply*) +http-not-found+)))
 
-;;; Handling errors that occur in request handling:
-
-(defmethod invoke-process-request-with-error-handling ((*acceptor* acceptor)
-                                                       *request* continuation)
-  "Standard error handling mechanism for the request processor.  Logs
-errors if *LOG-LISP-ERRORS-P* is set and logs warnings for
-*LOG-LISP-WARNINGS-P*."
+(defmethod handle-request ((*acceptor* acceptor) (*request* request))
+  "Standard method for request handling.  Calls the request dispatcher
+of *ACCEPTOR* to determine how the request should be handled.  Also
+sets up standard error handling which catches any errors within the
+handler."
   (handler-bind ((error
                   (lambda (cond)
                     (when *log-lisp-errors-p*
                       (log-message *lisp-errors-log-level* "~A" cond))
-                    ;; if the headers were already sent
-                    ;; the error happens within the body
-                    ;; and we have to close the stream
+                    ;; if the headers were already sent, the error
+                    ;; happened within the body and we have to close
+                    ;; the stream
                     (when *headers-sent*
                       (setq *close-hunchentoot-stream* t))
                     (throw 'handler-done
@@ -486,29 +449,4 @@ errors if *LOG-LISP-ERRORS-P* is set and logs warnings for
                   (lambda (cond)
                     (when *log-lisp-warnings-p*
                       (log-message *lisp-warnings-log-level* "~A" cond)))))
-    (funcall continuation)))
-
-(defmethod invoke-process-request-with-error-handling ((*acceptor*
-                                                        debugging-acceptor)
-                                                       *request* continuation)
-  "Mechanism for entering the debugger if an unhandled error occurs
-while handling a request."
-  (let* ((aborted t))
-    (unwind-protect
-        (let ((*debugger-hook*
-               (lambda (cond prev-hook)
-                 (setf aborted cond)
-                 (let ((*debugger-hook* prev-hook))
-                   (invoke-debugger cond)))))
-          (with-simple-restart (abort "Abort handling ~A ~A"
-                                      (request-method *request*)
-                                      (request-uri *request*))
-            (multiple-value-prog1
-              (funcall continuation)
-              ;; When execution continues, close the stream only if so
-              ;; desired:
-              (setq aborted nil))))
-      (when aborted
-        (when *headers-sent*
-          (setq *close-hunchentoot-stream* t))
-        (throw 'handler-done (values nil aborted))))))
+    (funcall (acceptor-request-dispatcher *acceptor*) *request*)))
