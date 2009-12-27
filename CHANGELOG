@@ -3,7 +3,7 @@ Re-introduced *CATCH-ERRORS-P* and MAYBE-INVOKE-DEBUGGER
 Integration with trivial-backtrace (see *LOG-LISP-BACKTRACES-P*)
 Treat :UNSPECIFIC like NIL in pathname components (reported by Frode Fjeld)
 Prepare for LispWorks 6 (Nico de Jager)
-Fix reading of post parameters (Peter Seibel)
+Fix reading of post parameters (Peter Seibel and Stephen P. Compall)
 Fix STOP by supplying the :READY-ONLY keyword to USOCKET:WAIT-FOR-INPUT
 Enable SSL key passwords for Lisps other than LW (Vsevolod)
 
