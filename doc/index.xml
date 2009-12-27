@@ -613,18 +613,11 @@ new client connection has been established.  Its arguments are the
 stream object in <clix:arg>socket</clix:arg>.  It reads the request headers, sets up the
 <a href="#requests">request</a> and <a href="#replies">reply</a>
 objects, and hands over to <clix:ref>PROCESS-REQUEST</clix:ref> which
-selects and calls a handler for the request and sends its reply to the
-client.  This is done in a loop until the stream has to be closed or
-until a connection timeout occurs.
-
-<p>
-It is probably not a good idea to re-implement this method until you
-really, really know what you're doing, but you can for example write
-an around method specialized for your subclass
-of <clix:ref>ACCEPTOR</clix:ref> which binds or rebinds special
-variables which can then be accessed by
-your <a href="#handlers">handlers</a>.
-</p>
+calls <clix:ref>HANDLE-REQUEST</clix:ref> to select and call a handler
+for the request and sends its reply to the client.  This is done in a
+loop until the stream has to be closed or until a connection timeout
+occurs.  It is probably not a good idea to re-implement this method
+until you really, really know what you're doing.
     </clix:description>
   </clix:function>
 
@@ -766,33 +759,39 @@ associated with.
 
     <clix:subchapter name="request-dispatch" title="Request dispatch and handling">
 
-The main job of <clix:ref>PROCESS-REQUEST</clix:ref> is to select and
+The main job of <clix:ref>HANDLE-REQUEST</clix:ref> is to select and
 call a function which handles the request, i.e. which looks at the
 data the client has sent and prepares an appropriate reply to send
-back.  This is implemented as follows:
+back.  This is by default implemented as follows:
 <p>
 Each acceptor has a <a href="#acceptor-request-dispatcher"><em>request
 dispatcher</em></a> which is a unary function that accepts
-a <clix:ref>REQUEST</clix:ref> object.  This function is called by
-<clix:ref>PROCESS-REQUEST</clix:ref>.  The idea is that this function
-looks at the request object and depending on its contents decides to
-call another function which "does the work".  This "other" function is
-by convention called a <a class="none" name="handlers"><em>request
-handler</em></a>.  (Obviously, this is really only a convention as
-process-request doesn't "know" what the request dispatcher does.  You
-could as well say that the request dispatcher and the request handler
-have the same job.)
+a <clix:ref>REQUEST</clix:ref> object.  This function is called by the
+default method of <clix:ref>HANDLE-REQUEST</clix:ref>.  The idea is
+that this function looks at the request object and depending on its
+contents decides to call another function which "does the work".  This
+"other" function is by convention called a <a class="none"
+name="handlers"><em>request handler</em></a>.  (Obviously, this is
+really only a convention as <clix:ref>HANDLE-REQUEST</clix:ref>
+doesn't "know" what the request dispatcher does.  You could as well
+say that the request dispatcher and the request handler have the same
+job.)
 </p>
 <p>
-The default behaviour, unless you implement your own request
+The default behaviour, unless your acceptor has its own request
 dispatcher, is that Hunchentoot walks through the list
-*dispatch-table* which consists of <em>dispatch functions</em>.  Each
-of these functions accepts the request object as its only argument and
-either returns a request handler to handle the request
-or <code>NIL</code> which means that the next dispatcher in the list
-will be tried.  If all dispatch functions return <code>NIL</code>, the
-return code
+<clix:ref>*DISPATCH-TABLE*</clix:ref> which consists of <em>dispatch
+functions</em>.  Each of these functions accepts the request object as
+its only argument and either returns a request handler to handle the
+request or <code>NIL</code> which means that the next dispatcher in
+the list will be tried.  If all dispatch functions
+return <code>NIL</code>, the return code
 <clix:ref>+HTTP-NOT-FOUND+</clix:ref> will be sent to the client.
+</p>
+<p>
+The default method of <clix:ref>HANDLE-REQUEST</clix:ref> also sets up
+<a href="#logging">standard error handling</a> before it calls the acceptor's request
+dispatcher.
 </p>
 <p>
 All functions and variables in this section are related to the
@@ -1570,24 +1569,48 @@ during the request.
   </clix:returns>
     <clix:description>
 This function is called by <clix:ref>PROCESS-CONNECTION</clix:ref>
-after the incoming headers have been read.  It selects and calls a
-<a href="#handlers">handler</a> and sends the output of this handler
-to the client.  It also sets up simple error handling for the request
-handler.  Note that <clix:ref>PROCESS-CONNECTION</clix:ref> is called
-once per connection and loops in case of a persistent connection
-while <clix:ref>PROCESS-REQUEST</clix:ref> is called anew for each
-request.
-<p>
-Like <clix:ref>PROCESS-CONNECTION</clix:ref>, this might be a good
-place to introduce around methods which bind special variables or do
-other interesting things.
-</p>
+after the incoming headers have been read.  It
+calls <clix:ref>HANDLE-REQUEST</clix:ref> (and is more or less just a
+thin wrapper around it) to select and call a
+<a href="#handlers">handler</a> and send the output of this handler to
+the client.  Note that <clix:ref>PROCESS-CONNECTION</clix:ref> is
+called once per connection and loops in case of a persistent
+connection while <clix:ref>PROCESS-REQUEST</clix:ref> is called anew
+for each request.
 <p>
 The return value of this function is ignored.
+</p>
+<p>
+Like <clix:ref>PROCESS-CONNECTION</clix:ref>, this is another function
+the behaviour of which you should only modify if you really, really
+know what you're doing.
 </p>
     </clix:description>
   </clix:function>
 
+  <clix:function generic='true' name='handle-request'>
+  <clix:lambda-list>acceptor request
+  </clix:lambda-list>
+  <clix:returns>content
+  </clix:returns>
+    <clix:description>
+This function is called by <clix:ref>PROCESS-REQUEST</clix:ref> once
+the request has been read and a <clix:ref>REQUEST</clix:ref> object
+has been created.  Its job is to actually handle the request, i.e. to
+return something to the client.
+<p>
+The default method calls the
+acceptor's <a href="#request-dispatch">request dispatcher</a>, but you
+can of course implement a different behaviour.  The default method
+also sets up <a href="#logging">standard error handling</a> for
+the <a href="#handlers">handler</a>.
+</p>
+<p>
+Might be a good place to bind or rebind special variables which can
+then be accessed by your <a href="#handlers">handlers</a>.
+</p>
+    </clix:description>
+  </clix:function>
 
 
   <clix:readers generic='true'>
