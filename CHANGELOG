@@ -2,10 +2,11 @@ Architectural changes - see HANDLE-REQUEST (thanks to Andreas Fuchs and Frode Fj
 Re-introduced *CATCH-ERRORS-P* and MAYBE-INVOKE-DEBUGGER
 Integration with trivial-backtrace (see *LOG-LISP-BACKTRACES-P*)
 Treat :UNSPECIFIC like NIL in pathname components (reported by Frode Fjeld)
-Prepare for LispWorks 6 (Nico de Jager)
-Fix reading of post parameters (Peter Seibel and Stephen P. Compall)
-Fix STOP by supplying the :READY-ONLY keyword to USOCKET:WAIT-FOR-INPUT
-Enable SSL key passwords for Lisps other than LW (Vsevolod)
+Fixed RESET-SESSIONS
+Prepared for LispWorks 6 (Nico de Jager)
+Fixed reading of post parameters (Peter Seibel and Stephen P. Compall)
+Fixed STOP by supplying the :READY-ONLY keyword to USOCKET:WAIT-FOR-INPUT
+Enabled SSL key passwords for Lisps other than LW (Vsevolod)
 
 Version 1.0.0
 2009-02-19
