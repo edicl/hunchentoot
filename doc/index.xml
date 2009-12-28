@@ -2134,10 +2134,15 @@ database</a>.
 
   <clix:function name='reset-sessions'>
   <clix:lambda-list>
+  <clix:lkw>optional
+  </clix:lkw> acceptor
   </clix:lambda-list>
   <clix:returns>|
   </clix:returns>
-    <clix:description>Removes <em>all</em> stored sessions.
+    <clix:description>Removes <em>all</em> stored sessions
+    of <clix:arg>acceptor</clix:arg>.  The default
+    for <clix:arg>acceptor</clix:arg>
+    is <clix:ref>*ACCEPTOR*</clix:ref>.
     </clix:description>
   </clix:function>
 

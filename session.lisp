@@ -353,10 +353,10 @@ if you want to maintain your own sessions."))
 cease to be valid."
   (setq *session-secret* (create-random-string 10 36)))
 
-(defun reset-sessions ()
-  "Removes ALL stored sessions."
-  (with-session-lock-held ((session-db-lock *acceptor*))
-    (loop for (nil . session) in (session-db *acceptor*)
+(defun reset-sessions (&optional (acceptor *acceptor*))
+  "Removes ALL stored sessions of ACCEPTOR."
+  (with-session-lock-held ((session-db-lock acceptor))
+    (loop for (nil . session) in (session-db acceptor)
           do (funcall *session-removal-hook* session))
     (setq *session-db* nil))
   (values))
