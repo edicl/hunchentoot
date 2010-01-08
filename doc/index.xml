@@ -125,7 +125,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.0.0.
+      The current version is 1.1.0.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via
