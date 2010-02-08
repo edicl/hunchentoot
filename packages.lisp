@@ -263,5 +263,6 @@
            "TASKMASTER-ACCEPTOR"
            "URL-DECODE"
            "URL-ENCODE"
-           "USER-AGENT"))
+           "USER-AGENT"
+           "WITHIN-REQUEST-P"))
 
