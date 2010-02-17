@@ -283,7 +283,7 @@ no Content-Length header and input chunking is off.")
               (parse-content-type (header-in :content-type request))
           (let ((external-format (or external-format
                                      (when charset
-                                       (handler-case*
+                                       (handler-case
                                            (make-external-format charset :eol-style :lf)
                                          (error ()
                                            (hunchentoot-warn "Ignoring ~
@@ -467,7 +467,7 @@ type was not set or if the character set specified was invalid, NIL is
 returned."
   (when content-type
     (when-let (charset (nth-value 2 (parse-content-type content-type)))
-      (handler-case*
+      (handler-case
           (make-external-format (as-keyword charset) :eol-style :lf)
         (error ()
           (hunchentoot-warn "Invalid character set ~S in request has been ignored."

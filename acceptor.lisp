@@ -375,7 +375,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
        (return))
      (when (usocket:wait-for-input listener :ready-only t :timeout +new-connection-wait-time+)
        (when-let (client-connection
-                  (handler-case* (usocket:socket-accept listener)                               
+                  (handler-case (usocket:socket-accept listener)                               
                     ;; ignore condition
                     (usocket:connection-aborted-error ())))
          (set-timeouts client-connection

@@ -238,7 +238,7 @@ will occur when the client has decided to not send another request but
 to close the connection instead, a timeout indicates that the
 connection timeout established by Hunchentoot has expired and we do
 not want to wait for another request any longer."
-  (handler-case*
+  (handler-case
       (let ((*current-error-message* "While reading initial request line:"))
         (with-mapped-conditions ()
           (read-line* stream)))
