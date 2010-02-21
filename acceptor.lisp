@@ -346,7 +346,8 @@ chunked encoding, but acceptor is configured to not use it.")))))
         ;; errors that may occur while flushing and/or closing the
         ;; stream.
         (ignore-errors*
-          (force-output *hunchentoot-stream*)
+          (force-output *hunchentoot-stream*))
+        (ignore-errors*
           (close *hunchentoot-stream* :abort t))))))
   
 (defmethod acceptor-ssl-p ((acceptor t))
