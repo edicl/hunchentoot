@@ -236,6 +236,16 @@ used by LOG-ACCESS-TO-FILE function.")
   "Whether Hunchentoot should catch and log errors \(or rather invoke
 the debugger).")
 
+(defparameter *max-debugging-threads* 5
+  "Maximum number of simultaneous active calls invoke-debuger")
+
+(defvar *debugging-threads* nil
+  "List debugged threads")
+
+(defvar *debugging-threads-lock* (make-lock "debugging threads lock")
+  "A global lock to prevent two threads from modifying *debugging-threads* at
+the same time")
+
 (defvar-unbound *acceptor*
   "The current ACCEPTOR object while in the context of a request.")
 

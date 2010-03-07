@@ -62,6 +62,7 @@
            "*LOG-LISP-BACKTRACES-P*"
            "*LOG-LISP-ERRORS-P*"
            "*LOG-LISP-WARNINGS-P*"
+           "*MAX-DEBUGGING-THREADS*"
            "*MESSAGE-LOG-PATHNAME*"
            "*METHODS-FOR-POST-PARAMETERS*"
            "*REPLY*"
@@ -264,5 +265,7 @@
            "URL-DECODE"
            "URL-ENCODE"
            "USER-AGENT"
-           "WITHIN-REQUEST-P"))
+           "WITHIN-REQUEST-P"
+           "DEBUG-MODE-ON"
+           "DEBUG-MODE-OFF"))
 
