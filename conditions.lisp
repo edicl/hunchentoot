@@ -104,10 +104,10 @@ SETUID for example) is not implemented for a specific Lisp."))
   "Used to enable debug mode"
   (setf *catch-errors-p* nil))
 
-(defun debug-mode-off (&optional (kill-debuging-threads t))
+(defun debug-mode-off (&optional (kill-debugging-threads t))
   "Used to turn off debug mode"
   (setf *catch-errors-p* t)
-  (when kill-debuging-threads
+  (when kill-debugging-threads
     (kill-all-debugging-threads)))
 
 (defun after-close-swank-connection (connection)
@@ -129,8 +129,8 @@ specialize it on specific condition classes for debugging purposes.")
     "The default method invokes the debugger with CONDITION if
 *CATCH-ERRORS-P* is NIL."
     (unless (or *catch-errors-p*
-                (< *max-debugging-threads*
-                   (length *debugging-threads*)))
+                (<= *max-debugging-threads*
+                    (length *debugging-threads*)))
       (let ((thread (bt:current-thread)))
         (with-lock-held (*debugging-threads-lock*)
           (push thread *debugging-threads*))

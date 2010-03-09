@@ -152,6 +152,12 @@
       <a href="http://common-lisp.net/~loliveira/ediware/">http://common-lisp.net/~loliveira/ediware/</a>.
     </p>
 
+    <p>
+      Andrey Moskvitin maintains a <a href="http://git-scm.com/">git</a>
+      repository of Hunchentoot at
+      <a href="http://github.com/archimag/hunchentoot">http://github.com/archimag/hunchentoot</a>.
+    </p>
+
     <clix:subchapter name="proxy" title="Hunchentoot behind a proxy">
 
       If you're feeling unsecure about exposing Hunchentoot to the wild,
@@ -2646,6 +2652,45 @@ if you want to fine-tune this behaviour.
     </clix:description>
   </clix:special-variable>
 
+  <clix:function name='debug-mode-on'>
+    <clix:description>
+Enable debug mode: sets the value of <clix:ref>*CATCH-ERRORS-P*</clix:ref> to <code>NIL</code>.
+    </clix:description>
+  </clix:function>
+
+  <clix:function name='debug-mode-off'>
+   <clix:lambda-list><clix:lkw>optional</clix:lkw> kill-debugging-threads
+   </clix:lambda-list>
+    <clix:description>
+Disable debug mode: sets the value
+of <clix:ref>*CATCH-ERRORS-P*</clix:ref> to <code>T</code>.  If the
+value of <clix:arg>kill-debugging-threads</clix:arg>
+is <code>T</code>, which is the default, all threads that are sent to
+the debugger by <clix:ref>MAYBE-INVOKE-DEBUGGER</clix:ref> will be
+terminated.  If
+a <a href="http://common-lisp.net/project/slime/">swank</a> server is
+present, <code>(debug-mode-off t)</code> will be automatically be
+called after the connection to the swank server is established: this
+provides some protection when debug mode has accidentially been
+enabled in a production environment.
+    </clix:description>
+  </clix:function>
+
+  <clix:special-variable name='*max-debugging-threads*'>
+    <clix:description>
+This variable determines the maximum number of threads that are sent
+to
+the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_d.htm#debugger">debugger</a>
+by <clix:ref>MAYBE-INVOKE-DEBUGGER</clix:ref>.  The default for this
+parameter is 5.  Once this limit is
+reached, <clix:ref>MAYBE-INVOKE-DEBUGGER</clix:ref> does not invoke
+the debugger for new threads that signal an error.  This behavior can
+be helpful for safer debugging a production environment.
+See <clix:ref>MAYBE-INVOKE-DEBUGGER</clix:ref> if you want to
+fine-tune this behaviour.
+    </clix:description>
+  </clix:special-variable>
+
   <clix:function generic='true' name='maybe-invoke-debugger'>
   <clix:lambda-list>condition
   </clix:lambda-list>
@@ -2660,7 +2705,9 @@ specific condition classes for debugging purposes.  The default
 method <a
 href="http://www.lispworks.com/documentation/HyperSpec/Body/f_invoke.htm">invokes
 the debugger</a> with <clix:arg>condition</clix:arg> if
-<clix:ref>*CATCH-ERRORS-P*</clix:ref> is <code>NIL</code>.
+<clix:ref>*CATCH-ERRORS-P*</clix:ref> is <code>NIL</code> and the number of active <a
+href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_d.htm#debugger">debuggers</a>
+is less than <clix:ref>*MAX-DEBUGGING-THREADS*</clix:ref>.
     </clix:description>
   </clix:function>
 
