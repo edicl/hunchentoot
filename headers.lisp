@@ -157,15 +157,15 @@ the stream to write to."
                           ((#.+http-internal-server-error+) content)
                           ((#.+http-moved-temporarily+ #.+http-moved-permanently+)
                            (format nil "The document has moved <a href='~A'>here</a>"
-                                   (header-out :location)))
+                                   (escape-for-html (header-out :location))))
                           ((#.+http-authorization-required+)
                            "The server could not verify that you are authorized to access the document requested.  Either you supplied the wrong credentials \(e.g., bad password), or your browser doesn't understand how to supply the credentials required.")
                           ((#.+http-forbidden+)
                            (format nil "You don't have permission to access ~A on this server."
-                                   (script-name request)))
+                                   (escape-for-html (script-name request))))
                           ((#.+http-not-found+)
                            (format nil "The requested URL ~A was not found on this server."
-                                   (script-name request)))
+                                   (escape-for-html (script-name request))))
                           ((#.+http-bad-request+)
                            "Your browser sent a request that this server could not understand.")
                           (otherwise ""))

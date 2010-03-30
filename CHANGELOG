@@ -1,3 +1,4 @@
+Safeguard measures against XSS attacks (J.P. Larocque)
 Prevent potential leak when closing stream (Matt Lamari, Martin Simmons)
 Change some occurrences of HANDLER-CASE* to HANDLER-CASE (Hans Hübner, Allan Dee)
 
