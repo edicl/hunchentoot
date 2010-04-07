@@ -90,55 +90,15 @@ SETUID for example) is not implemented for a specific Lisp."))
   "Used to signal an error if an operation named NAME is not implemented."
   (error 'operation-not-implemented :operation name))
 
-(defun kill-all-debugging-threads ()
-  "Used for destroy all debugging threads"
-  (with-lock-held (*debugging-threads-lock*)
-    (dolist (thread *debugging-threads*)
-      (when (ignore-errors
-              (bt:destroy-thread thread)
-              t)
-        (setf *debugging-threads*
-              (remove thread *debugging-threads*))))))
-
-(defun debug-mode-on ()
-  "Used to enable debug mode"
-  (setf *catch-errors-p* nil))
-
-(defun debug-mode-off (&optional (kill-debugging-threads t))
-  "Used to turn off debug mode"
-  (setf *catch-errors-p* t)
-  (when kill-debugging-threads
-    (kill-all-debugging-threads)))
-
-(defun after-close-swank-connection (connection)
-  "Turns off debug mode and destroy debugging threads after closing the connection with the swank-server"
-  (declare (ignore connection))
-  (debug-mode-off t))
-
-(when (find-package :swank)
-  (ignore-errors
-    (eval `(,(find-symbol (string '#:add-hook) :swank) 
-             ,(find-symbol (string '#:*connection-closed-hook*) :swank)
-             'after-close-swank-connection))))
-
 (defgeneric maybe-invoke-debugger (condition)
   (:documentation "This generic function is called whenever a
 condition CONDITION is signaled in Hunchentoot.  You might want to
 specialize it on specific condition classes for debugging purposes.")
   (:method (condition)
-    "The default method invokes the debugger with CONDITION if
+   "The default method invokes the debugger with CONDITION if
 *CATCH-ERRORS-P* is NIL."
-    (unless (or *catch-errors-p*
-                (<= *max-debugging-threads*
-                    (length *debugging-threads*)))
-      (let ((thread (bt:current-thread)))
-        (with-lock-held (*debugging-threads-lock*)
-          (push thread *debugging-threads*))
-        (unwind-protect
-             (invoke-debugger condition)
-          (with-lock-held (*debugging-threads-lock*)
-            (setf *debugging-threads*
-                  (remove thread *debugging-threads*))))))))
+   (unless *catch-errors-p*
+     (invoke-debugger condition))))
 
 (defmacro with-debugger (&body body)
   "Executes BODY and invokes the debugger if an error is signaled and
