@@ -439,7 +439,7 @@ handler."
                   (lambda (cond)
                     (when *log-lisp-errors-p*
                       (log-message *lisp-errors-log-level*
-                                   "~A~:[~*~;~%~:*~A~]"
+                                   "~A~@[~%~A~]"
                                    cond
                                    (and *log-lisp-backtraces-p* (get-backtrace))))
                     ;; if the headers were already sent, the error
