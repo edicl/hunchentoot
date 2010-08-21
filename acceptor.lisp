@@ -382,10 +382,11 @@ chunked encoding, but acceptor is configured to not use it.")))))
          (set-timeouts client-connection
                        (acceptor-read-timeout acceptor)
                        (acceptor-write-timeout acceptor))
+         ;; This will bail if the taskmaster has reached its thread limit
          (handle-incoming-connection (acceptor-taskmaster acceptor)
                                      client-connection))))))
 
-;; LispWorks implementation
+;;; LispWorks implementation
 
 #+:lispworks
 (defmethod start-listening ((acceptor acceptor))

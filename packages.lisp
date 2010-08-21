@@ -31,21 +31,17 @@
 
 (defpackage "HUNCHENTOOT"
   (:nicknames "TBNL")
-  (:use :cl :cl-ppcre :chunga :flexi-streams :url-rewrite)
+  (:use :cl :cl-ppcre :chunga :flexi-streams :url-rewrite :hunchentoot-version)
   (:shadow "DEFCONSTANT"
            "URL-ENCODE")
-  ;; see ASDF system definition
-  (:import-from :hunchentoot-asd :*hunchentoot-version*)
   #+:lispworks
   (:import-from :lw "WITH-UNIQUE-NAMES" "WHEN-LET")
   (:export "*ACCEPTOR*"
            "*ACCESS-LOG-PATHNAME*"
            "*APPROVED-RETURN-CODES*"
            "*CATCH-ERRORS-P*"
-           #+:lispworks
-           "*CLEANUP-FUNCTION*"
-           #+:lispworks
-           "*CLEANUP-INTERVAL*"
+           #+:lispworks "*CLEANUP-FUNCTION*"
+           #+:lispworks "*CLEANUP-INTERVAL*"
            "*CONTENT-TYPES-FOR-URL-REWRITE*"
            "*DEFAULT-CONNECTION-TIMEOUT*"
            "*DEFAULT-CONTENT-TYPE*"
@@ -120,11 +116,10 @@
            "+HTTP-USE-PROXY+"
            "+HTTP-VERSION-NOT-SUPPORTED+"
            "ABORT-REQUEST-HANDLER"
+           "ACCEPT-CONNECTIONS"
            "ACCEPTOR"
            "ACCEPTOR-ACCESS-LOGGER"
            "ACCEPTOR-ADDRESS"
-           "ACCEPT-CONNECTIONS"
-           "ACCEPTOR-REQUEST-DISPATCHER"
            "ACCEPTOR-INPUT-CHUNKING-P"
            "ACCEPTOR-MESSAGE-LOGGER"
            "ACCEPTOR-NAME"
@@ -134,6 +129,7 @@
            "ACCEPTOR-READ-TIMEOUT"
            "ACCEPTOR-REPLY-CLASS"
            "ACCEPTOR-REQUEST-CLASS"
+           "ACCEPTOR-REQUEST-DISPATCHER"
            "ACCEPTOR-SSL-P"
            #-:hunchentoot-no-ssl "ACCEPTOR-SSL-CERTIFICATE-FILE"               
            #-:hunchentoot-no-ssl "ACCEPTOR-SSL-PRIVATEKEY-FILE"
@@ -162,6 +158,8 @@
            "CREATE-PREFIX-DISPATCHER"
            "CREATE-REGEX-DISPATCHER"
            "CREATE-STATIC-FILE-DISPATCHER-AND-HANDLER"
+           "CREATE-TASKMASTER-THREAD"
+           "DECREMENT-TASKMASTER-REQUEST-COUNT"
            "DEFAULT-DISPATCHER"
            "DEFINE-EASY-HANDLER"
            "DELETE-AUX-REQUEST-VALUE"
@@ -172,8 +170,8 @@
            "GET-PARAMETER"
            "GET-PARAMETERS"
            "GET-PARAMETERS*"
-           "HANDLE-INCOMING-CONNECTION"
            "HANDLE-IF-MODIFIED-SINCE"
+           "HANDLE-INCOMING-CONNECTION"
            "HANDLE-REQUEST"
            "HANDLE-STATIC-FILE"
            "HEADER-IN"
@@ -188,6 +186,7 @@
            "HUNCHENTOOT-CONDITION"
            "HUNCHENTOOT-ERROR"
            "HUNCHENTOOT-WARNING"
+           "INCREMENT-TASKMASTER-REQUEST-COUNT"
            "INITIALIZE-CONNECTION-STREAM"
            "LOG-MESSAGE"
            "MAYBE-INVOKE-DEBUGGER"
@@ -226,8 +225,8 @@
            "REQUEST-URI*"
            "REQUIRE-AUTHORIZATION"
            "RESET-CONNECTION-STREAM"
-           "RESET-SESSIONS"
            "RESET-SESSION-SECRET"
+           "RESET-SESSIONS"
            "RETURN-CODE"
            "RETURN-CODE*"
            "RFC-1123-DATE"
@@ -261,6 +260,10 @@
            "STOP"
            "TASKMASTER"
            "TASKMASTER-ACCEPTOR"
+           "TASKMASTER-MAX-ACCEPT-COUNT"
+           "TASKMASTER-MAX-THREAD-COUNT"
+           "TASKMASTER-REQUEST-COUNT"
+           "TOO-MANY-TASKMASTER-REQUESTS"
            "URL-DECODE"
            "URL-ENCODE"
            "USER-AGENT"

@@ -561,8 +561,8 @@ eventually call <clix:ref>ACCEPT-CONNECTIONS</clix:ref> which is
 responsible for settings things up to wait for clients to connect.
 For each connection which comes
 in, <clix:ref>HANDLE-INCOMING-CONNECTION</clix:ref> is applied to the
-taskmaster which will call <clix:ref>PROCESS-CONNECTION</clix:ref>.
-<clix:ref>PROCESS-CONNECTION</clix:ref>
+taskmaster which will call either call <clix:ref>PROCESS-CONNECTION</clix:ref>
+directly, or will create a thread to call it. <clix:ref>PROCESS-CONNECTION</clix:ref>
 calls <clix:ref>INITIALIZE-CONNECTION-STREAM</clix:ref> before it does
 anything else, then it selects and calls a function which handles
 the <a href="#requests">request</a>, and finally it sends
@@ -669,17 +669,54 @@ each incoming connection and one which handles all requests
 sequentially.  It should for example be relatively straightforward to
 create a taskmaster which allocates threads from a fixed pool instead
 of creating a new one for each connection.
+
+<p>
+You can control the resources consumed by a threaded taskmaster via
+two initargs. <code>:max-thread-count</code> lets you set the maximum
+number of request threads that can be processes simultaneously.  If
+this is <code>nil</code>, the is no thread limit imposed.
+
+<code>:max-accept-count</code> lets you set the maximum number of requests
+that can be outstanding (i.e. being processed or queued for processing).
+
+If <code>:max-thread-count</code> is supplied and <code>:max-accept-count</code>
+is <code>NIL</code>, then a <clix:ref>+HTTP-SERVICE-UNAVAILABLE+</clix:ref>
+error will be generated if there are more than the max-thread-count
+threads processing requests.  If both <code>:max-thread-count</code>
+and <code>:max-accept-count</code> are supplied, then max-thread-count
+must be less than max-accept-count; if more than max-thread-count
+requests are being processed, then requests up to max-accept-count
+will be queued until a thread becomes available.  If more than
+max-accept-count requests are outstanding, then a <clix:ref>+HTTP-SERVICE-UNAVAILABLE+</clix:ref>
+error will be generated.
+
+In a load-balanced environment with multiple Hunchentoot servers, it's
+reasonable to provide <code>:max-thread-count</code> but leave
+<code>:max-accept-count</code> null.   This will immediately result
+in <clix:ref>+HTTP-SERVICE-UNAVAILABLE+</clix:ref> when one server is
+out of resources, so the load balancer can try to find another server.
+
+In an environment with a single Hunchentoot server, it's reasonable
+to provide both <code>:max-thread-count</code> and a somewhat larger value
+for <code>:max-accept-count</code>.  This will cause a server that's almost
+ out of resources to wait a bit; if the server is completely out of resources,
+then the reply will be <clix:ref>+HTTP-SERVICE-UNAVAILABLE+</clix:ref>.
+The default for these values is 100 and 120, respectively.
+</p>
+
 <p>
 If you want to implement your own taskmasters, you should subclass
-<clix:ref>TASKMASTER</clix:ref> and specialize the generic functions in this section.
+<clix:ref>TASKMASTER</clix:ref> or one of its subclasses,
+<clix:ref>SINGLE-THREADED-TASKMASTER</clix:ref> or
+<clix:ref>ONE-THREAD-PER-CONNECTION-TASKMASTER</clix:ref>, and
+specialize the generic functions in this section.
 </p>
 
   <clix:class name='taskmaster'>
     <clix:description>An instance of this class is responsible for
 distributing the work of handling requests for its acceptor.
-This is
-an "abstract" class in the sense that usually only instances of
-subclasses of <clix:ref>TASKMASTER</clix:ref> will be used.
+This is an "abstract" class in the sense that usually only instances
+of subclasses of <clix:ref>TASKMASTER</clix:ref> will be used.
     </clix:description>
   </clix:class>
 
@@ -730,6 +767,37 @@ handle on LispWorks).  The taskmaster starts processing requests on
 the incoming connection by calling the <clix:ref>PROCESS-CONNECTION</clix:ref>
 method of the acceptor instance.  The <clix:arg>socket</clix:arg> argument is passed to
 <clix:ref>PROCESS-CONNECTION</clix:ref> as an argument.
+
+If the taskmaster is a multi-threaded taskmaster, <clix:ref>HANDLE-INCOMING-THREAD</clix:ref>
+will call <clix:ref>CREATE-TASKMASTER-THREAD</clix:ref>, which will call
+<clix:ref>PROCESS-CONNECTION</clix:ref> in a new thread.
+<clix:ref>HANDLE-INCOMING-THREAD</clix:ref> might issue a
+<clix:ref>+HTTP-SERVICE-UNAVAILABLE+</clix:ref> error
+if there are too many request threads or it might block waiting for a
+request thread to finish.
+    </clix:description>
+  </clix:function>
+
+  <clix:function generic='true' name='create-taskmaster-thread'>
+  <clix:lambda-list>taskmaster socket
+  </clix:lambda-list>
+  <clix:returns>thread
+  </clix:returns>
+    <clix:description>This function is called by <clix:ref>HANDLE-INCOMING-THREAD</clix:ref>
+to create a new thread which calls <clix:ref>PROCESS-CONNECTION</clix:ref>.
+If you specialize this function, you must be careful to have the thread
+call <clix:ref>DECREMENT-TASKMASTER-REQUEST-COUNT</clix:ref> before
+it exits.  A typical method will look like this:
+
+      <pre>(defmethod create-taskmaster-thread ((taskmaster monitor-taskmaster) socket)
+  (bt:make-thread
+   (lambda ()
+     (with-monitor-error-handlers
+       (unwind-protect
+            (with-monitor-variable-bindings
+              (process-connection (taskmaster-acceptor taskmaster) socket))
+         (decrement-taskmaster-request-count taskmaster))))))</pre>
+
     </clix:description>
   </clix:function>
 
