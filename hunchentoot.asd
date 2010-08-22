@@ -27,13 +27,22 @@
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :asdf)
+(in-package :cl-user)
 
-(load (merge-pathnames "version.lisp" *load-truename*))
+(defpackage :hunchentoot-asd
+  (:use :cl :asdf))
+
+(in-package :hunchentoot-asd)
+
+(defvar *hunchentoot-version* "1.1.0"
+  "A string denoting the current version of Hunchentoot.  Used
+for diagnostic output.")
+
+(export '*hunchentoot-version*)
 
 (defsystem :hunchentoot
   :serial t
-  :version #.hunchentoot-version:*hunchentoot-version*
+  :version #.*hunchentoot-version*
   :depends-on (:chunga
                :cl-base64
                :cl-fad
