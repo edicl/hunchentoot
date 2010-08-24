@@ -183,8 +183,10 @@
     For questions, bug reports, feature requests, improvements, or
     patches please use the
     <a href="http://common-lisp.net/mailman/listinfo/tbnl-devel">tbnl-devel
-      mailing list</a>. If you want to be notified about future
-    releases subscribe to the
+      mailing list</a> and take a look at
+      the <a href="http://bknr.net/trac/browser/trunk/thirdparty">BKNR
+      repository</a>. If you want to be notified about future releases
+      subscribe to the
     <a href="http://common-lisp.net/mailman/listinfo/tbnl-announce">tbnl-announce
       mailing list</a>. These mailing lists were made available thanks
     to the services of
