@@ -216,7 +216,7 @@ doing."
     (unwind-protect
         (with-mapped-conditions ()
           (let* ((*request* request))
-            (multiple-value-bind (body error)
+            (multiple-value-bind (body error backtrace)
                 ;; skip dispatch if bad request
                 (when (eql (return-code *reply*) +http-ok+)
                   (catch 'handler-done
@@ -224,9 +224,13 @@ doing."
               (when error
                 (setf (return-code *reply*)
                       +http-internal-server-error+))
+              (format t "show-error ~A show-backtrace ~A error ~A backtrace: ~A~%"
+                      *show-lisp-errors-p* *show-lisp-backtraces-p* error backtrace)
               (start-output :content (cond ((and error *show-lisp-errors-p*)
-                                            (format nil "<pre>~A</pre>"
-                                                    (escape-for-html (format nil "~A" error))))
+                                            (format nil "<pre>~A~@[~%~%Backtrace:~A~]</pre>"
+                                                    (escape-for-html (format nil "~A" error))
+                                                    (when *show-lisp-backtraces-p*
+                                                      (escape-for-html (format nil "~A" backtrace)))))
                                            (error
                                             "An error has occured.")
                                            (t body))))))

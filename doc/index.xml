@@ -2683,6 +2683,12 @@ the debugger</a> with <clix:arg>condition</clix:arg> if
     </clix:description>
   </clix:special-variable>
 
+  <clix:special-variable name='*show-lisp-backtraces-p*'>
+    <clix:description>Whether Lisp backtraces should be shown in HTML output if
+    <clix:ref>*SHOW-LISP-ERRORS-P*</clix:ref> is true and an error occurs.
+    </clix:description>
+  </clix:special-variable>
+
   <clix:special-variable name='*approved-return-codes*'>
     <clix:description>A list of return codes the server should <em>not</em> treat as an error -
 see <clix:ref>*HANDLE-HTTP-ERRORS-P*</clix:ref>.
@@ -3034,6 +3040,22 @@ This variable is only available on LispWorks.
       </clix:description>
     </clix:function>
 
+  </clix:chapter>
+
+  <clix:chapter name="debugging" title="Debugging">
+    By default, Hunchentoot intercepts all errors that occur while
+    executing request handlers, logs them to the log file and displays
+    a static error page to the user.  While developing applications,
+    you may want to change that behavior so that the debugger is
+    invoked when an error occurs.  You can set
+    the <clix:ref>*CATCH-ERRORS-P*</clix:ref> to <code>NIL</code> to
+    make that happen.  Alternatively, you may want to have Hunchentoot
+    display detailed error information in the error response page.
+    You can set the <clix:ref>*SHOW-LISP-ERRORS-P*</clix:ref> to a
+    true value to make that happen.  If you don't want to see Lisp
+    backtraces in these error pages, you can
+    set <clix:ref>*SHOW-LISP-BACKTRACES-P*</clix:ref>
+    to <code>NIL</code>.
   </clix:chapter>
 
   <clix:chapter name="history" title="History">

@@ -196,6 +196,9 @@ purposes.")
 (defvar *show-lisp-errors-p* nil
   "Whether Lisp errors in request handlers should be shown in HTML output.")
 
+(defvar *show-lisp-backtraces-p* t
+  "Whether Lisp errors shown in HTML output should contain backtrace information.")
+
 (defvar *log-lisp-errors-p* t
   "Whether Lisp errors in request handlers should be logged.")
 
