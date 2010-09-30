@@ -318,7 +318,7 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
                     (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
                 (when transfer-encodings
                   (setq transfer-encodings
-                        (split "\\s*,\\*" transfer-encodings))
+                        (split "\\s*,\\s*" transfer-encodings))
                   (when (member "chunked" transfer-encodings :test #'equalp)
                     (cond ((acceptor-input-chunking-p *acceptor*)
                            ;; turn chunking on before we read the request body

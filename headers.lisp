@@ -256,18 +256,21 @@ protocol of the request."
          (maybe-write-to-header-stream first-line)
          (let ((headers (and protocol (read-http-headers stream *header-stream*))))
            (unless protocol (setq protocol "HTTP/0.9"))
-           (when (equalp (cdr (assoc :expect headers :test #'eq)) "100-continue")
-             ;; handle 'Expect: 100-continue' header
-             (let ((continue-line
-                    (format nil "HTTP/1.1 ~D ~A"
-                            +http-continue+
-                            (reason-phrase +http-continue+))))
-               (write-sequence (map 'list #'char-code continue-line) stream)
-               (write-sequence +crlf+ stream)
-               (write-sequence +crlf+ stream)
-               (force-output stream)
-               (maybe-write-to-header-stream continue-line)
-               (maybe-write-to-header-stream "")))
+           ;; maybe handle 'Expect: 100-continue' header
+           (when-let (expectations (cdr (assoc* :expect headers)))
+             (when (member "100-continue" (split "\\s*,\\s*" expectations) :test #'equalp)
+               ;; according to 14.20 in the RFC - we should actually
+               ;; check if we have to respond with 417 here
+               (let ((continue-line
+                      (format nil "HTTP/1.1 ~D ~A"
+                              +http-continue+
+                              (reason-phrase +http-continue+))))
+                 (write-sequence (map 'list #'char-code continue-line) stream)
+                 (write-sequence +crlf+ stream)
+                 (write-sequence +crlf+ stream)
+                 (force-output stream)
+                 (maybe-write-to-header-stream continue-line)
+                 (maybe-write-to-header-stream ""))))
            (values headers
                    (as-keyword method)
                    url-string
