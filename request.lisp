@@ -224,8 +224,6 @@ doing."
               (when error
                 (setf (return-code *reply*)
                       +http-internal-server-error+))
-              (format t "show-error ~A show-backtrace ~A error ~A backtrace: ~A~%"
-                      *show-lisp-errors-p* *show-lisp-backtraces-p* error backtrace)
               (start-output :content (cond ((and error *show-lisp-errors-p*)
                                             (format nil "<pre>~A~@[~%~%Backtrace:~A~]</pre>"
                                                     (escape-for-html (format nil "~A" error))
