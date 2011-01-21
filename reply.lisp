@@ -154,5 +154,5 @@ name doesn't exist, it is created.")
    (setf (slot-value reply 'content-length) new-value))
   (:method :after (new-value (name (eql :content-type)) &optional (reply *reply*))
    "Special case for the `Content-Type' header."
-   (check-type new-value string)
+   (check-type new-value (or null string))
    (setf (slot-value reply 'content-type) new-value)))
