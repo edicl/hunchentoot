@@ -1,3 +1,4 @@
+Export two session functions (Nico de Jager)
 Allow no Content-Type header (Chaitanya Gupta)
 Patch for compilation with ECL (Sohail Somani)
 Fix DEFINE-EASY-HANDLER for multiple acceptors (Nicolas Neuss)
