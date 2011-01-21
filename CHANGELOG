@@ -1,3 +1,4 @@
+Patch for compilation with ECL (Sohail Somani)
 Fix DEFINE-EASY-HANDLER for multiple acceptors (Nicolas Neuss)
 Revived *SHOW-LISP-BACKTRACES-P*
 Made sure "100 Continue" is returned even if the client sends "Expect: 100-continue" twice (reported by Gordon Sims)

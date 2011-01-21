@@ -315,9 +315,10 @@ encode cookie values.")
   "The default connection timeout used when an acceptor is reading
 from and writing to a socket stream.")
 
-(define-symbol-macro *supports-threads-p*
-  #+:lispworks t
-  #-:lispworks bt:*supports-threads-p*)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+ (define-symbol-macro *supports-threads-p*
+   #+:lispworks t
+   #-:lispworks bt:*supports-threads-p*))
 
 (defvar *global-session-db-lock*
   (load-time-value (and *supports-threads-p* (make-lock "global-session-db-lock")))
