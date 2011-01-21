@@ -1,3 +1,4 @@
+Fix DEFINE-EASY-HANDLER for multiple acceptors (Nicolas Neuss)
 Revived *SHOW-LISP-BACKTRACES-P*
 Made sure "100 Continue" is returned even if the client sends "Expect: 100-continue" twice (reported by Gordon Sims)
 Fixed typo in code which interprets transfer encodings
@@ -24,7 +25,7 @@ Enabled SSL key passwords for Lisps other than LW (Vsevolod)
 Version 1.0.0
 2009-02-19
 Complete architectural redesign (together with Hans Hübner)
-Lots of small fixes and improvements, too many to enumerate here	
+Lots of small fixes and improvements, too many to enumerate here
 
 Version 0.15.6
 2008-04-09
@@ -75,7 +76,7 @@ Updated tutorial links
 
 Version 0.14.4
 2007-10-20
-Made log stream shared on OpenMCL (thanks to Gary Byers)	
+Made log stream shared on OpenMCL (thanks to Gary Byers)
 
 Version 0.14.3
 2007-10-07
@@ -83,12 +84,12 @@ Enabled GET-GID-FROM-NAME for newer versions of SBCL (patch by Cyrus Harmon)
 
 Version 0.14.2
 2007-09-26
-Better handling of PORT parameter in REDIRECT (thanks to Vladimir Sedach)	
+Better handling of PORT parameter in REDIRECT (thanks to Vladimir Sedach)
 
 Version 0.14.1
 2007-09-24
 Fixed bug where you couldn't set "Server" header (caught by Ralf Mattes)
-Documentation clarification for HEADER-OUT function	
+Documentation clarification for HEADER-OUT function
 
 Version 0.14.0
 2007-09-18
@@ -100,12 +101,12 @@ Added *METHODS-FOR-POST-PARAMETERS* (suggested by Jonathon McKitrick)
 
 Version 0.12.1
 2007-09-13
-Better support for WITH-TIMEOUT on SBCL/Win32 (thanks to Anton Vodonosov)	
-	
+Better support for WITH-TIMEOUT on SBCL/Win32 (thanks to Anton Vodonosov)
+
 Version 0.12.0
 2007-09-07
 Now uses bound for flexi stream returned by RAW-POST-DATA
-Needs FLEXI-STREAMS 0.12.0 or higher	
+Needs FLEXI-STREAMS 0.12.0 or higher
 
 Version 0.11.2
 2007-09-05
@@ -115,7 +116,7 @@ Added declaration in server.lisp to appease SBCL
 Version 0.11.1
 2007-05-25
 Fixes for OpenMCL (thanks to Lennart Staflin and Tiarnan O'Corrain)
-	
+
 Version 0.11.0
 2007-05-25
 Added server names and coupled them with easy handlers (suggested by Mac Chan)
@@ -137,7 +138,7 @@ Made DEF-HTTP-RETURN-CODE more flexible (suggested by Jong-won Choi)
 Version 0.9.1
 2007-04-29
 Added PORT parameter to REDIRECT (suggested by Cyrus Harmon)
-Exported REMOVE-SESSION (suggested by Vamsee Kanakala)	
+Exported REMOVE-SESSION (suggested by Vamsee Kanakala)
 
 Version 0.9.0
 2007-04-19
@@ -192,12 +193,12 @@ Fixed last change (thanks to Marko Kocic)
 Version 0.7.0
 2007-03-09
 Development port (no threads) to SBCL/Win32 (patch by Marko Kocic)
-Support for compilation without SSL	
+Support for compilation without SSL
 
 Version 0.6.2
 2007-02-22
 Don't use NSTRING-UPCASE for outgoing headers (bug caught by Saurabh Nanda)
-Changed ProxyPass example in docs from /lisp to /hunchentoot	
+Changed ProxyPass example in docs from /lisp to /hunchentoot
 
 Version 0.6.1
 2007-01-24
@@ -249,7 +250,7 @@ Fixed bug in START-OUTPUT which confused mod_lisp
 Version 0.4.7
 2006-11-06
 Changed behaviour of REAL-REMOTE-ADDR (as suggested by Robert J. Macomber)
-Fixed COOKIE-OUT (thanks to Robert J. Macomber)	
+Fixed COOKIE-OUT (thanks to Robert J. Macomber)
 
 Version 0.4.6
 2006-11-05
@@ -267,7 +268,7 @@ LOG-MESSAGE now checks for (BOUNDP '*SERVER*)
 Version 0.4.3
 2006-10-11
 OpenMCL fixes (by Ralf Stoye)
-	
+
 Version 0.4.2
 2006-10-10
 No timeouts for mod_lisp servers (as in Hunchentoot 0.3.x)
@@ -279,8 +280,8 @@ Fixed a typo in easy-handlers.lisp (caught by Travis Cross)
 Version 0.4.0
 2006-10-10
 Ported to CMUCL, SBCL, OpenMCL, and AllegroCL
-Merged with TBNL	
-Tons of small changes, too many to list them individually	
+Merged with TBNL
+Tons of small changes, too many to list them individually
 
 Version 0.3.2
 2006-09-14
@@ -297,17 +298,17 @@ Use Chunga for chunking
 
 Version 0.2.2
 2006-08-31
-Skip START-OUTPUT advice completely if working for TBNL	
+Skip START-OUTPUT advice completely if working for TBNL
 
 Version 0.2.1
 2006-08-28
 Added write timeouts for LW 5.0
-Updated LW links in documentation	
+Updated LW links in documentation
 
 Version 0.2.0
 2006-08-28
 Serves as infrastructure for TBNL now (to replace KMRCL)
-For HTTP/1.1 only send 'Keep-Alive' headers if explicitly requested	
+For HTTP/1.1 only send 'Keep-Alive' headers if explicitly requested
 
 Version 0.1.5
 2006-08-23
@@ -316,8 +317,8 @@ Connection headers are separated by commas, not semicolons
 Version 0.1.4
 2006-08-22
 Refactored streams.lisp to appease LW compiler (thanks to Martin Simmons)
-Changed handling of version string	
-Changed package handling in system definition (thanks to Christophe Rhodes)	
+Changed handling of version string
+Changed package handling in system definition (thanks to Christophe Rhodes)
 
 Version 0.1.3
 2006-02-08
@@ -334,5 +335,5 @@ Fixed package stuff and HYPERDOC support
 Version 0.1.0
 2005-12-31
 Initial public release
-	
+
 [For earlier changes see the file "CHANGELOG_TBNL" that is included with the release.]

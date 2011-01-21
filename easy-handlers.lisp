@@ -288,8 +288,11 @@ argument is provided."
               `(progn
                  (setq *easy-handler-alist*
                        (delete-if (lambda (list)
-                                    (or (equal ,uri (first list))
-                                        (eq ',name (third list))))
+                                    (and (or (equal ,uri (first list))
+                                             (eq ',name (third list)))
+                                         (or (eq ,acceptor-names t)
+                                             (intersection ,acceptor-names
+                                                           (second list)))))
                                   *easy-handler-alist*))
                  (push (list ,uri ,acceptor-names ',name) *easy-handler-alist*)))))
        (defun ,name (&key ,@(loop for part in lambda-list
