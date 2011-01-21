@@ -437,11 +437,6 @@ sets up standard error handling which catches any errors within the
 handler."
   (handler-bind ((error
                   (lambda (cond)
-                    (when *log-lisp-errors-p*
-                      (log-message *lisp-errors-log-level*
-                                   "~A~@[~%~A~]"
-                                   cond
-                                   (and *log-lisp-backtraces-p* (get-backtrace))))
                     ;; if the headers were already sent, the error
                     ;; happened within the body and we have to close
                     ;; the stream

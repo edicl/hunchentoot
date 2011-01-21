@@ -70,22 +70,15 @@ writes them directly to the client as an HTTP header line.")
   (:method (key value)
     (write-header-line key (princ-to-string value))))
 
-(defun start-output (&key (content nil content-provided-p)
-                          (request *request*))
+(defun start-output (&optional (content nil content-provided-p))
   "Sends all headers and maybe the content body to
 *HUNCHENTOOT-STREAM*.  Returns immediately and does nothing if called
 more than once per request.  Handles the supported return codes
 accordingly.  Called by PROCESS-REQUEST and/or SEND-HEADERS.  Returns
 the stream to write to."
-  ;; send headers only once
-  (when *headers-sent*
-    (return-from start-output))
-  (setq *headers-sent* t)
-  ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
-  (raw-post-data :force-binary t)
   (let* ((return-code (return-code*))
          (chunkedp (and (acceptor-output-chunking-p *acceptor*)
-                        (eq (server-protocol request) :http/1.1)
+                        (eq (server-protocol *request*) :http/1.1)
                         ;; only turn chunking on if the content
                         ;; length is unknown at this point...
                         (null (or (content-length*) content-provided-p))
@@ -94,11 +87,11 @@ the stream to write to."
                         ;; own content
                         (member return-code *approved-return-codes*)))
          (reason-phrase (reason-phrase return-code))
-         (request-method (request-method request))
+         (request-method (request-method *request*))
          (head-request-p (eq request-method :head))
          content-modified-p)
     (multiple-value-bind (keep-alive-p keep-alive-requested-p)
-        (keep-alive-p request)
+        (keep-alive-p *request*)
       (when keep-alive-p
         (setq keep-alive-p
               ;; use keep-alive if there's a way for the client to
@@ -115,7 +108,7 @@ the stream to write to."
       (cond (keep-alive-p
              (setf *close-hunchentoot-stream* nil)
              (when (and (acceptor-read-timeout *acceptor*)
-                        (or (not (eq (server-protocol request) :http/1.1))
+                        (or (not (eq (server-protocol *request*) :http/1.1))
                             keep-alive-requested-p))
                ;; persistent connections are implicitly assumed for
                ;; HTTP/1.1, but we return a 'Keep-Alive' header if the
@@ -162,20 +155,14 @@ the stream to write to."
                            "The server could not verify that you are authorized to access the document requested.  Either you supplied the wrong credentials \(e.g., bad password), or your browser doesn't understand how to supply the credentials required.")
                           ((#.+http-forbidden+)
                            (format nil "You don't have permission to access ~A on this server."
-                                   (escape-for-html (script-name request))))
+                                   (escape-for-html (script-name *request*))))
                           ((#.+http-not-found+)
                            (format nil "The requested URL ~A was not found on this server."
-                                   (escape-for-html (script-name request))))
+                                   (escape-for-html (script-name *request*))))
                           ((#.+http-bad-request+)
                            "Your browser sent a request that this server could not understand.")
                           (otherwise ""))
                         (address-string))))))
-    ;; start with status line      
-    (let ((first-line
-           (format nil "HTTP/1.1 ~D ~A" return-code reason-phrase)))
-      (write-sequence (map 'list #'char-code first-line) *hunchentoot-stream*)
-      (write-sequence +crlf+ *hunchentoot-stream*)
-      (maybe-write-to-header-stream first-line))
     (when (and (stringp content)
                (not content-modified-p)
                (starts-with-one-of-p (or (content-type*) "")
@@ -192,6 +179,18 @@ the stream to write to."
       ;; the Content-Length header properly; maybe the user specified
       ;; a different content length, but that will wrong anyway
       (setf (header-out :content-length) (length content)))
+    ;; send headers only once
+    (when *headers-sent*
+      (return-from start-output))
+    (setq *headers-sent* t)
+    ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
+    (raw-post-data :force-binary t)
+    ;; start with status line      
+    (let ((first-line
+           (format nil "HTTP/1.1 ~D ~A" return-code reason-phrase)))
+      (write-sequence (map 'list #'char-code first-line) *hunchentoot-stream*)
+      (write-sequence +crlf+ *hunchentoot-stream*)
+      (maybe-write-to-header-stream first-line))
     ;; write all headers from the REPLY object
     (loop for (key . value) in (headers-out*)
        when value

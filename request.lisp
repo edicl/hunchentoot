@@ -212,26 +212,32 @@ slot values are computed in this :AFTER method."
   "Standard implementation for processing a request.  You should not
 change or replace this functionality unless you know what you're
 doing."
-  (let (*tmp-files* *headers-sent*)
+  (let (*tmp-files*
+        *headers-sent*
+        (*request* request))
     (unwind-protect
-        (with-mapped-conditions ()
-          (let* ((*request* request))
-            (multiple-value-bind (body error backtrace)
-                ;; skip dispatch if bad request
-                (when (eql (return-code *reply*) +http-ok+)
-                  (catch 'handler-done
-                    (handle-request *acceptor* *request*)))
-              (when error
-                (setf (return-code *reply*)
-                      +http-internal-server-error+))
-              (start-output :content (cond ((and error *show-lisp-errors-p*)
-                                            (format nil "<pre>~A~@[~%~%Backtrace:~A~]</pre>"
-                                                    (escape-for-html (format nil "~A" error))
-                                                    (when *show-lisp-backtraces-p*
-                                                      (escape-for-html (format nil "~A" backtrace)))))
-                                           (error
-                                            "An error has occured.")
-                                           (t body))))))
+         (with-mapped-conditions ()
+           (labels
+               ((report-error-to-client (error &optional backtrace)
+                  (setf (return-code *reply*) +http-internal-server-error+)
+                  (when *log-lisp-errors-p*
+                    (log-message *lisp-errors-log-level* "~A~@[~%~A~]" error backtrace))
+                  (start-output (if *show-lisp-errors-p*
+                                    (format nil "<pre>~A</pre>" (escape-for-html (format nil "~A" error)))
+                                    "An error has occured") )))
+             (multiple-value-bind (body error backtrace)
+                 ;; skip dispatch if bad request
+                 (when (eql (return-code *reply*) +http-ok+)
+                   (catch 'handler-done
+                     (handle-request *acceptor* *request*)))
+               (when error
+                 ;; error occured in request handler
+                 (report-error-to-client error backtrace))
+               (handler-case
+                   (start-output body)
+                 (error (e)
+                   ;; error occured while writing to the client.  attempt to report.
+                   (report-error-to-client e))))))
       (dolist (path *tmp-files*)
         (when (and (pathnamep path) (probe-file path))
           ;; the handler may have chosen to (re)move the uploaded
