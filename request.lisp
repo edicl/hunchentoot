@@ -234,7 +234,8 @@ doing."
                  ;; error occured in request handler
                  (report-error-to-client error backtrace))
                (handler-case
-                   (start-output body)
+                   (with-debugger
+                     (start-output body))
                  (error (e)
                    ;; error occured while writing to the client.  attempt to report.
                    (report-error-to-client e))))))
