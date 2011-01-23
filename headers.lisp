@@ -183,6 +183,11 @@ the stream to write to."
     (when *headers-sent*
       (return-from start-output))
     (setq *headers-sent* t)
+    ;; access log message
+    (acceptor-log-access *acceptor*
+                         :return-code return-code
+                         :content content
+                         :content-length (content-length*))
     ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
     (raw-post-data :force-binary t)
     ;; start with status line      
@@ -201,12 +206,6 @@ the stream to write to."
     ;; all headers sent
     (write-sequence +crlf+ *hunchentoot-stream*)
     (maybe-write-to-header-stream "")
-    ;; access log message
-    (when-let (access-logger (acceptor-access-logger *acceptor*))
-      (funcall access-logger
-               :return-code return-code
-               :content content
-               :content-length (content-length*)))
     ;; now optional content
     (unless (or (null content) head-request-p)
       (write-sequence content *hunchentoot-stream*))

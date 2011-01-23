@@ -161,7 +161,7 @@ already been read."
                  (decf content-length already-read)
                  (when (input-chunking-p)
                    ;; see RFC 2616, section 4.4
-                   (log-message :warning "Got Content-Length header although input chunking is on."))
+                   (log-message* :warning "Got Content-Length header although input chunking is on."))
                  (let ((content (make-array content-length :element-type 'octet)))
                    (read-sequence content content-stream)
                    content))
@@ -204,7 +204,7 @@ slot values are computed in this :AFTER method."
                 session (session-verify request)
                 *session* session))
       (error (condition)
-        (log-message :error "Error when creating REQUEST object: ~A" condition)
+        (log-message* :error "Error when creating REQUEST object: ~A" condition)
         ;; we assume it's not our fault...
         (setf (return-code*) +http-bad-request+)))))
 
@@ -221,7 +221,7 @@ doing."
                ((report-error-to-client (error &optional backtrace)
                   (setf (return-code *reply*) +http-internal-server-error+)
                   (when *log-lisp-errors-p*
-                    (log-message *lisp-errors-log-level* "~A~@[~%~A~]" error backtrace))
+                    (log-message* *lisp-errors-log-level* "~A~@[~%~A~]" error backtrace))
                   (start-output (if *show-lisp-errors-p*
                                     (format nil "<pre>~A</pre>" (escape-for-html (format nil "~A" error)))
                                     "An error has occured") )))
@@ -263,7 +263,7 @@ alist or NIL if there was no data or the data could not be parsed."
               (hunchentoot-warn "~A octets of stray data after form-data sent by client."
                                 (length stray-data))))))
     (error (condition)
-      (log-message :error "While parsing multipart/form-data parameters: ~A" condition)
+      (log-message* :error "While parsing multipart/form-data parameters: ~A" condition)
       nil)))
 
 (defun maybe-read-post-parameters (&key (request *request*) force external-format)
@@ -284,7 +284,7 @@ Content-Type header of the request or from
 	     (not (eq t (slot-value request 'raw-post-data))))
     (unless (or (header-in :content-length request)
                 (input-chunking-p))
-      (log-message :warning "Can't read request body because there's ~
+      (log-message* :warning "Can't read request body because there's ~
 no Content-Length header and input chunking is off.")
       (return-from maybe-read-post-parameters nil))
     (handler-case*
@@ -310,7 +310,7 @@ unknown character set ~A in request content type."
                          (prog1 (parse-multipart-form-data request external-format)
                            (setf (slot-value request 'raw-post-data) t)))))))
       (error (condition)
-        (log-message :error "Error when reading POST parameters from body: ~A" condition)
+        (log-message* :error "Error when reading POST parameters from body: ~A" condition)
         ;; this is not the right thing to do because it could happen
         ;; that we aren't finished reading from the request stream and
         ;; can't send a reply - to be revisited

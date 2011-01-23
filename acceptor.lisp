@@ -122,31 +122,17 @@ connections.")
                         :accessor acceptor-shutdown-p
                         :documentation "A flag that makes the acceptor
 shutdown itself when set to something other than NIL.")
-   (access-logger :initarg :access-logger
-                  :accessor acceptor-access-logger
-                  :documentation "Designator for a function to call to
-log access to the acceptor.  The function must accept the RETURN-CODE,
-CONTENT and CONTENT-LENGTH keyword arguments which are used to pass in
-additional information about the request to log.  In addition, it can
-use the standard request accessor functions that are available to
-handler functions to find out more information about the request.
-This slot defaults to a function which logs the information to the
-file determined by *ACCESS-LOG-PATHNAME* \(unless that value is NIL)
-in a format that can be parsed by most Apache log analysis tools.
-
-If the value of this slot is NIL, access logging is turned off for
-this acceptor.")
-   (message-logger :initarg :message-logger
-                   :accessor acceptor-message-logger
-                   :documentation "Designator for a function to call
-to log messages by the acceptor.  It must accept a severity level for
-the message, which will be one of :ERROR, :INFO, or :WARNING, a format
-string and an arbitary number of formatting arguments.  This slot
-defaults to a function which writes to the file determined by
-*MESSAGE-LOG-PATHNAME* \(unless that value is NIL).
-
-If the value of this slot is NIL, message logging is turned off for
-this acceptor."))
+   (access-log-pathname :initarg :access-log-pathname
+                        :accessor acceptor-access-log-pathname
+                        :documentation "Pathname of the access log
+file which contains one log entry per request handled in a format
+   similar to Apache's access.log.")
+   (message-log-pathname :initarg :message-log-pathname
+                         :accessor acceptor-message-log-pathname
+                         :documentation "Pathname of the server error
+log file which is used to log informational,
+warning and error messages in a free-text
+format intended for human inspection"))
   (:default-initargs
    :address nil
    :port 80
@@ -161,8 +147,8 @@ this acceptor."))
    :persistent-connections-p t
    :read-timeout *default-connection-timeout*
    :write-timeout *default-connection-timeout*
-   :access-logger 'log-access-to-file
-   :message-logger 'log-message-to-file)
+   :access-log-pathname nil
+   :message-log-pathname nil)
   (:documentation "To create a Hunchentoot webserver, you make an
 instance of this class and use the generic function START to start it
 \(and STOP to stop it).  Use the :PORT initarg if you don't want to
@@ -284,14 +270,14 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   (handler-bind ((error
                   ;; abort if there's an error which isn't caught inside
                   (lambda (cond)
-                    (log-message *lisp-errors-log-level*
-                                 "Error while processing connection: ~A" cond)
+                    (log-message* *lisp-errors-log-level*
+                                  "Error while processing connection: ~A" cond)
                     (return-from process-connection)))
                  (warning
                   ;; log all warnings which aren't caught inside
                   (lambda (cond)
-                    (log-message *lisp-warnings-log-level*
-                                 "Warning while processing connection: ~A" cond))))
+                    (log-message* *lisp-warnings-log-level*
+                                  "Warning while processing connection: ~A" cond))))
     (with-mapped-conditions ()
       (call-next-method))))
 
@@ -353,7 +339,63 @@ chunked encoding, but acceptor is configured to not use it.")))))
 (defmethod acceptor-ssl-p ((acceptor t))
   ;; the default is to always answer "no"
   nil)
-	 	 
+
+(defgeneric acceptor-log-access (acceptor &key return-code content content-length)
+  (:documentation
+   "Function to call to log access to the acceptor.  The RETURN-CODE,
+CONTENT and CONTENT-LENGTH keyword arguments contain additional
+information about the request to log.  In addition, it can use the
+standard request accessor functions that are available to handler
+functions to find out more information about the request."))
+
+(defmethod acceptor-log-access ((acceptor acceptor) &key return-code content content-length)
+  "Default method for access logging.  It logs the information to the
+file determined by (ACCEPTOR-ACCESS-LOG-PATHNAME ACCEPTOR) \(unless
+that value is NIL) in a format that can be parsed by most Apache log
+analysis tools.)"
+
+  (with-open-file-or-console (stream (acceptor-access-log-pathname acceptor) *access-log-lock*)
+    (format stream "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] [~A] \"~A ~A~@[?~A~] ~
+                    ~A\" ~A ~:[~*-~;~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
+            (remote-addr*)
+            (header-in* :x-forwarded-for)
+            (authorization)
+            (iso-time)
+            (request-method*)
+            (script-name*)
+            (query-string*)
+            (server-protocol*)
+            return-code
+            content
+            content-length
+            (referer)
+            (user-agent))))
+
+(defgeneric acceptor-log-message (acceptor log-level format-string &rest format-arguments)
+  (:documentation
+   "Function to call to log messages by the ACCEPTOR.  It must accept
+a severity level for the message, which will be one of :ERROR, :INFO,
+or :WARNING, a format string and an arbitary number of formatting
+arguments."))
+
+(defmethod acceptor-log-message ((acceptor acceptor) log-level format-string &rest format-arguments)
+  "Default function to log server messages.  Sends a formatted message
+  to the file denoted by (ACCEPTOR-MESSAGE-LOG-PATHNAME ACCEPTOR).  FORMAT and
+  ARGS are as in FORMAT.  LOG-LEVEL is a keyword denoting the log
+  level or NIL in which case it is ignored."
+  (with-open-file-or-console (stream (acceptor-message-log-pathname acceptor) *message-log-lock*)
+    (format stream "[~A~@[ [~A]~]] ~?~%"
+            (iso-time) log-level
+            format-string format-arguments)))
+
+(defun log-message* (log-level format-string &rest format-arguments)
+  "Convenience function which calls the message logger of the current
+acceptor \(if there is one) with the same arguments it accepts.
+
+This is the function which Hunchentoot itself uses to log errors it
+catches during request processing."
+  (apply 'acceptor-log-message *acceptor* log-level format-string format-arguments))
+
 ;; usocket implementation
 
 #-:lispworks
@@ -447,6 +489,6 @@ handler."
                  (warning
                   (lambda (cond)
                     (when *log-lisp-warnings-p*
-                      (log-message *lisp-warnings-log-level* "~A" cond)))))
+                      (log-message* *lisp-warnings-log-level* "~A" cond)))))
     (with-debugger
       (funcall (acceptor-request-dispatcher *acceptor*) *request*))))

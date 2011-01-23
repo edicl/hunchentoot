@@ -217,23 +217,13 @@ purposes.")
   "Log level for Lisp warnings.  Should be one of :ERROR, :WARNING
 \(the default), or :INFO.")
 
-(defvar *message-log-pathname* nil
-  "A designator for the pathname of the message log file used by the
-LOG-MESSAGE-TO-FILE function.  The initial value is NIL which means
-that nothing will be logged.")
-
-(defvar *access-log-pathname* nil
-  "A designator for the pathname of the access log file used by the
-LOG-ACCESS-TO-FILE function.  The initial value is NIL which means
-that nothing will be logged.")
-
 (defvar *message-log-lock* (make-lock "global-message-log-lock")
-  "A global lock to prevent concurrent access to the log file
-used by LOG-MESSAGE-TO-FILE function.")
+  "A global lock to prevent concurrent access to the log file used by
+the ACCEPTOR-LOG-MESSAGE function.")
 
 (defvar *access-log-lock* (make-lock "global-access-log-lock")
-  "A global lock to prevent concurrent access to the log file
-used by LOG-ACCESS-TO-FILE function.")
+  "A global lock to prevent concurrent access to the log file used by
+the ACCEPTOR-LOG-ACCESS function.")
 
 (defvar *catch-errors-p* t
   "Whether Hunchentoot should catch and log errors \(or rather invoke

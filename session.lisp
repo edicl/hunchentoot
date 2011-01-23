@@ -288,7 +288,7 @@ will not create a new one."
     (when (and session
                (session-too-old-p session))
       (when *reply*
-        (log-message :info "Session with ID ~A too old" id))
+        (log-message* :info "Session with ID ~A too old" id))
       (remove-session session)
       (setq session nil))
     session))
@@ -332,9 +332,9 @@ if you want to maintain your own sessions."))
          (session
           ;; the session ID pointed to an existing session, but the
           ;; session string did not match the expected session string
-          (log-message :warning
-                       "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                       session-identifier user-agent remote-addr)
+          (log-message* :warning
+                        "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                        session-identifier user-agent remote-addr)
           ;; remove the session to make sure that it can't be used
           ;; again; the original legitimate user will be required to
           ;; log in again
@@ -343,9 +343,9 @@ if you want to maintain your own sessions."))
          (t
           ;; no session was found under the ID given, presumably
           ;; because it has expired.
-          (log-message :info
-                       "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                       session-identifier user-agent remote-addr)
+          (log-message* :info
+                        "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                        session-identifier user-agent remote-addr)
           nil))))))
 
 (defun reset-session-secret ()

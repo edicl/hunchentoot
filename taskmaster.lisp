@@ -140,8 +140,8 @@ string and tries to act robustly in the presence of network problems."
     (error (cond)
       ;; need to bind *ACCEPTOR* so that LOG-MESSAGE can do its work.
       (let ((*acceptor* (taskmaster-acceptor taskmaster)))
-        (log-message *lisp-errors-log-level*
-                     "Error while creating worker thread for new incoming connection: ~A" cond)))))
+        (log-message* *lisp-errors-log-level*
+                      "Error while creating worker thread for new incoming connection: ~A" cond)))))
 
 ;; LispWorks implementation
 

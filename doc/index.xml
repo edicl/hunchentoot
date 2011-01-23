@@ -468,10 +468,10 @@ initargs for all of them.
   </clix:readers>
 
   <clix:accessors generic='true'>
-    <clix:listed-accessor generic='true' name='acceptor-access-logger'>
+    <clix:listed-accessor generic='true' name='acceptor-access-log-pathname'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
-    <clix:returns>access-logger
+    <clix:returns>(or pathname null)
     </clix:returns>
     </clix:listed-accessor>
 
@@ -489,10 +489,10 @@ initargs for all of them.
     </clix:returns>
     </clix:listed-accessor>
 
-    <clix:listed-accessor generic='true' name='acceptor-message-logger'>
+    <clix:listed-accessor generic='true' name='acceptor-message-log-pathname'>
     <clix:lambda-list>acceptor
     </clix:lambda-list>
-    <clix:returns>message-logger
+    <clix:returns>(or pathname null)
     </clix:returns>
     </clix:listed-accessor>
 
@@ -663,6 +663,27 @@ called after a request has been processed and <em>must</em> return the
 stream.
     </clix:description>
   </clix:function>
+
+    <clix:function name="acceptor-log-access" generic="true">
+      <clix:lambda-list>acceptor &amp;key return-code content content-length</clix:lambda-list>
+      <clix:description>
+        Function to call to log access to the acceptor.  The <clix:arg>return-code</clix:arg>,
+        <clix:arg>content</clix:arg> and <clix:arg>content-length</clix:arg> keyword arguments contain additional
+        information about the request to log.  In addition, it can use the
+        standard request accessor functions that are available to handler
+        functions to find out more information about the request.
+      </clix:description>
+    </clix:function>
+
+    <clix:function name="acceptor-log-message" generic="true">
+      <clix:lambda-list>acceptor log-level format-string &amp;rest format-arguments</clix:lambda-list>
+      <clix:description>
+        Function to call to log messages by the <clix:arg>acceptor</clix:arg>.  It must accept
+        a severity level for the message, which will be one of :ERROR, :INFO,
+        or :WARNING, a format string and an arbitary number of formatting
+        arguments.
+      </clix:description>
+    </clix:function>
 
     </clix:subchapter>
 
@@ -2567,24 +2588,35 @@ want to use your own session objects.
 
 
     <clix:subchapter name="logging" title="Logging">
-
-By default, Hunchentoot logs accesses and errors to two separate files
-in the file system, but <em>only</em> if the special variables
-<clix:ref>*MESSAGE-LOG-PATHNAME*</clix:ref> and <clix:ref>*ACCESS-LOG-PATHNAME*</clix:ref> are set accordingly.
+Hunchentoot can log accesses and diagnostic messages to two separate
+files in the file system.  Logging to files is enabled and disabled by
+setting the <clix:code>ACCESS-LOG-PATHNAME</clix:code> and
+<clix:code>MESSAGE-LOG-PATHNAME</clix:code> slots in the
+<clix:ref>ACCEPTOR</clix:ref> instance of the running server, either
+by providing the :ACCESS-LOG-PATHNAME and :MESSAGE-LOG-PATHNAME
+initialization arguments when creating the acceptor or by setting the
+slots through its <clix:ref>ACCEPTOR-MESSAGE-LOG-PATHNAME</clix:ref>
+and <clix:ref>ACCEPTOR-ACCESS-LOG-PATHNAME</clix:ref> accessors.
+<p>
+When the path for the message or accept log is set to NIL,
+hunchentoots writes corresponding log entries to the *ERROR-OUTPUT* of
+the running Lisp.  This is the default.
+</p>
+<p>
 Access logging is done in a format similar to what
 the Apache web server can write so that logfile analysis using
 standard tools is possible.  Errors during request processing are
 logged to a separate file.
+</p>
 <p>
 The standard logging mechanism is deliberately simple and slow.  The
 log files are opened for each log entry and closed again after
-writing, and access to them is protected by a global lock.  If you
-want more sophisticated logging, use
-the <a href="#acceptor-access-logger"><code>:access-logger</code></a>
-and <a href="#acceptor-message-logger"><code>:message-logger</code></a>
-initargs of the acceptor class to establish your own logging
-functions.  See the docstrings of the corresponding slots for more
-information.
+writing, and access to them is protected by a global lock.  Derived
+acceptor classes can implement methods for the
+<clix:ref>ACCEPTOR-LOG-MESSAGE</clix:ref> and
+<clix:ref>ACCEPTOR-LOG-ACCESS</clix:ref> generic functions in order to
+log differently (e.g. to a central logging server or in a different
+file format.
 </p>
 <p>
 Errors happening within a <a href="#handlers">handler</a> which are
@@ -2592,7 +2624,7 @@ not caught by the handler itself are handled by Hunchentoot by logging
 them to the log file.
 </p>
 
-  <clix:function name='log-message'>
+  <clix:function name='log-message*'>
   <clix:lambda-list>log-level format-string 
   <clix:lkw>rest
   </clix:lkw> format-arguments
@@ -2609,22 +2641,6 @@ catches during request processing.
 </p>
     </clix:description>
   </clix:function>
-
-  <clix:special-variable name='*message-log-pathname*'>
-    <clix:description>
-A designator for the pathname of the message log file used by the
-<a href="#logging">default message logger</a>.  The initial value is <code>NIL</code> which
-means that <em>nothing</em> will be logged!
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*access-log-pathname*'>
-    <clix:description>
-A designator for the pathname of the access log file used by the
-<a href="#logging">default access logger</a>.  The initial value is <code>NIL</code> which
-means that <em>nothing</em> will be logged!
-    </clix:description>
-  </clix:special-variable>
 
   <clix:special-variable name='*log-lisp-errors-p*'>
     <clix:description>Whether Lisp errors in request handlers should be logged.
