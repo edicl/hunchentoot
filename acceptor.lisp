@@ -323,7 +323,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
                                       :method method
                                       :uri url-string
                                       :server-protocol protocol))))
-              (force-output *hunchentoot-stream*)
+              (finish-output *hunchentoot-stream*)
               (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
               (when *close-hunchentoot-stream*
                 (return)))))
@@ -332,7 +332,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
         ;; errors that may occur while flushing and/or closing the
         ;; stream.
         (ignore-errors*
-          (force-output *hunchentoot-stream*))
+          (finish-output *hunchentoot-stream*))
         (ignore-errors*
           (close *hunchentoot-stream* :abort t))))))
   
