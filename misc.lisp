@@ -95,19 +95,6 @@ true.  See the docs for URL-REWRITE:REWRITE-URLS."
                                           :cookie-name cookie-name
                                           :value value))))))))
 
-(defun default-dispatcher (request)
-  "Default dispatch function which handles every request with the
-function stored in *DEFAULT-HANDLER*."
-  (declare (ignore request))
-  *default-handler*)
-
-(defun default-handler ()
-  "The handler that is supposed to serve the request if no other
-handler is called."
-  (log-message* :info "Default handler called for script ~A" (script-name*))
-  (format nil "<html><head><title>Hunchentoot</title></head><body><h2>Hunchentoot Default Page</h2><p>This is the Hunchentoot default page. You're most likely seeing it because the server administrator hasn't set up a custom default page yet.</p><p>Hunchentoot is a web server written in <a href='http://www.lisp.org/'>Common Lisp</a>.  More info about Hunchentoot can be found at <a href='http://weitz.de/hunchentoot/'>http://weitz.de/hunchentoot/</a>.</p></p><p><hr>~A</p></body></html>"
-          (address-string)))
-
 (defun create-prefix-dispatcher (prefix handler)
   "Creates a request dispatch function which will dispatch to the
 function denoted by HANDLER if the file name of the current request
@@ -134,6 +121,30 @@ immediately abort handling the request.  This works as if the handler
 had returned RESULT.  See the source code of REDIRECT for an example."
   (throw 'handler-done result))
 
+(defun maybe-handle-range-header (file)
+  "Helper function for handle-static-file.  Determines whether the
+  requests specifies a Range header.  If so, parses the header and
+  position the already opened file to the location specified.  Returns
+  the number of bytes to transfer from the file.  Invalid specified
+  ranges are reported to the client with a HTTP 416 status code."
+  (let ((bytes-to-send (file-length file)))
+    (cl-ppcre:register-groups-bind
+        (start end)
+        ("^bytes (\\d+)-(\\d+)$" (header-in* :range) :sharedp t)
+      ;; body won't be executed if regular expression does not match
+      (setf start (parse-integer start)
+            end (parse-integer end))
+      (when (or (< start 0)
+                (>= end (file-length file)))
+        (setf (return-code*) +http-requested-range-not-satisfiable+)
+        (throw 'handler-done
+          (format nil "invalid request range (requested ~D-~D, accepted 0-~D)"
+                  start end (file-length file))))
+      (file-position file start)
+      (setf (return-code*) +http-partial-content+
+            bytes-to-send (1+ (- end start))))
+    bytes-to-send))
+
 (defun handle-static-file (path &optional content-type)
   "A function which acts like a Hunchentoot handler for the file
 denoted by PATH.  Sends a content type header corresponding to
@@ -145,7 +156,8 @@ via the file's suffix."
     ;; file does not exist
     (setf (return-code*) +http-not-found+)
     (abort-request-handler))
-  (let ((time (or (file-write-date path) (get-universal-time))))
+  (let ((time (or (file-write-date path) (get-universal-time)))
+        bytes-to-send)
     (setf (content-type*) (or content-type
                               (mime-type path)
                               "application/octet-stream"))
@@ -154,16 +166,23 @@ via the file's suffix."
                      :direction :input
                      :element-type 'octet
                      :if-does-not-exist nil)
-      (setf (header-out :last-modified) (rfc-1123-date time)
-            (content-length*) (file-length file))
-      (let ((out (send-headers)))
+      (setf (header-out :content-range) (format nil "bytes 0-~D/*" (file-length file))
+            (header-out :last-modified) (rfc-1123-date time)
+            bytes-to-send (maybe-handle-range-header file)
+            (content-length*) bytes-to-send)
+      (let ((out (send-headers))
+            (buf (make-array +buffer-length+ :element-type 'octet)))
         #+:clisp
         (setf (flexi-stream-element-type *hunchentoot-stream*) 'octet)
-        (loop with buf = (make-array +buffer-length+ :element-type 'octet)
-              for pos = (read-sequence buf file)
-              until (zerop pos)
-              do (write-sequence buf out :end pos)
-                 (finish-output out))))))
+        (loop
+           (when (zerop bytes-to-send)
+             (return))
+           (let* ((chunk-size (min +buffer-length+ bytes-to-send)))
+             (unless (eql chunk-size (read-sequence buf file :end chunk-size))
+               (error "can't read from input file"))
+             (write-sequence buf out :end chunk-size)
+             (decf bytes-to-send chunk-size)))
+        (finish-output out)))))
 
 (defun create-static-file-dispatcher-and-handler (uri path &optional content-type)
   "Creates and returns a request dispatch function which will dispatch

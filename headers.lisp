@@ -70,23 +70,25 @@ writes them directly to the client as an HTTP header line.")
   (:method (key value)
     (write-header-line key (princ-to-string value))))
 
-(defun start-output (&optional (content nil content-provided-p))
+(defun start-output (return-code &optional (content nil content-provided-p))
   "Sends all headers and maybe the content body to
 *HUNCHENTOOT-STREAM*.  Returns immediately and does nothing if called
-more than once per request.  Handles the supported return codes
-accordingly.  Called by PROCESS-REQUEST and/or SEND-HEADERS.  Returns
-the stream to write to."
-  (let* ((return-code (return-code*))
-         (chunkedp (and (acceptor-output-chunking-p *acceptor*)
+more than once per request.  Called by PROCESS-REQUEST and/or
+SEND-HEADERS.  The RETURN-CODE argument represents the integer return
+code of the request.  The corresponding reason phrase is determined by
+calling the REASON-PHRASE function.  The CONTENT provided represents
+the body data to send to the client, if any.  If it is not specified,
+no body is written to the client.  The handler function is expected to
+directly write to the stream in this case.
+
+Returns the stream that is connected to the client."
+  (let* ((chunkedp (and (acceptor-output-chunking-p *acceptor*)
                         (eq (server-protocol *request*) :http/1.1)
                         ;; only turn chunking on if the content
                         ;; length is unknown at this point...
-                        (null (or (content-length*) content-provided-p))
-                        ;; ...AND if the return code isn't one where
-                        ;; Hunchentoot (or a user error handler) sends its
-                        ;; own content
-                        (member return-code *approved-return-codes*)))
-         (reason-phrase (reason-phrase return-code))
+                        (null (or (content-length*) content-provided-p))))
+         (reason-phrase (or (reason-phrase return-code)
+                            "No reason phrase known"))
          (request-method (request-method *request*))
          (head-request-p (eq request-method :head))
          content-modified-p)
@@ -120,49 +122,8 @@ the stream to write to."
     (unless (and (header-out-set-p :server)
                  (null (header-out :server)))
       (setf (header-out :server) (or (header-out :server)
-                                     (server-name-header))))
+                                     (acceptor-server-name *acceptor*))))
     (setf (header-out :date) (rfc-1123-date))
-    (unless reason-phrase
-      (setq content (escape-for-html
-                     (format nil "Unknown http return code: ~A" return-code))
-            content-modified-p t
-            return-code +http-internal-server-error+
-            reason-phrase (reason-phrase return-code)))
-    (unless (or (not *handle-http-errors-p*)
-                (member return-code *approved-return-codes*))
-      ;; call error handler, if any - should return NIL if it can't
-      ;; handle the error
-      (let (error-handled-p)
-        (when *http-error-handler*
-          (setq error-handled-p (funcall *http-error-handler* return-code)
-                content (or error-handled-p content)
-                content-modified-p (or content-modified-p error-handled-p)))
-        ;; handle common return codes other than 200, which weren't
-        ;; handled by the error handler
-        (unless error-handled-p
-          (setf (content-type*)
-                "text/html; charset=iso-8859-1"
-                content-modified-p t
-                content
-                (format nil "<html><head><title>~D ~A</title></head><body><h1>~:*~A</h1>~A<p><hr>~A</p></body></html>"
-                        return-code reason-phrase
-                        (case return-code
-                          ((#.+http-internal-server-error+) content)
-                          ((#.+http-moved-temporarily+ #.+http-moved-permanently+)
-                           (format nil "The document has moved <a href='~A'>here</a>"
-                                   (escape-for-html (header-out :location))))
-                          ((#.+http-authorization-required+)
-                           "The server could not verify that you are authorized to access the document requested.  Either you supplied the wrong credentials \(e.g., bad password), or your browser doesn't understand how to supply the credentials required.")
-                          ((#.+http-forbidden+)
-                           (format nil "You don't have permission to access ~A on this server."
-                                   (escape-for-html (script-name *request*))))
-                          ((#.+http-not-found+)
-                           (format nil "The requested URL ~A was not found on this server."
-                                   (escape-for-html (script-name *request*))))
-                          ((#.+http-bad-request+)
-                           "Your browser sent a request that this server could not understand.")
-                          (otherwise ""))
-                        (address-string))))))
     (when (and (stringp content)
                (not content-modified-p)
                (starts-with-one-of-p (or (content-type*) "")
@@ -206,8 +167,11 @@ the stream to write to."
     ;; all headers sent
     (write-sequence +crlf+ *hunchentoot-stream*)
     (maybe-write-to-header-stream "")
+    ;; when processing a HEAD request, exit to return from PROCESS-REQUEST
+    (when head-request-p
+      (throw 'request-processed nil))
     ;; now optional content
-    (unless (or (null content) head-request-p)
+    (when content
       (write-sequence content *hunchentoot-stream*))
     (when chunkedp
       ;; turn chunking on after the headers have been sent
@@ -224,8 +188,11 @@ changes to *REPLY* don't have any effect.  Also, automatic handling of
 errors \(i.e. sending the corresponding status code to the browser,
 etc.) is turned off for this request.  If your handlers return the
 full body as a string or as an array of octets you should NOT call
-this function."
-  (start-output))
+this function.
+
+This function does not return control to the caller during HEAD
+request processing."
+  (start-output (return-code*)))
 
 (defun read-initial-request-line (stream)
   "Reads and returns the initial HTTP request line, catching permitted
@@ -241,6 +208,14 @@ not want to wait for another request any longer."
         (with-mapped-conditions ()
           (read-line* stream)))
     ((or end-of-file #-:lispworks usocket:timeout-error) ())))
+
+(defun send-bad-request-response (stream)
+  "Send a ``Bad Request'' response to the client."
+  (write-sequence (flex:string-to-octets
+                   (format nil "HTTP/1.0 ~D ~A~C~CConnection: close~C~C~C~CYour request could not be interpreted by this HTTP server~C~C"
+                           +http-bad-request+ (reason-phrase +http-bad-request+) #\Return #\Linefeed
+                           #\Return #\Linefeed #\Return #\Linefeed #\Return #\Linefeed))
+                  stream))
   
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
@@ -249,8 +224,11 @@ protocol of the request."
   (with-character-stream-semantics
    (let ((first-line (read-initial-request-line stream)))
      (when first-line
-       (destructuring-bind (method url-string &optional protocol)
+       (destructuring-bind (&optional method url-string protocol)
            (split "\\s+" first-line :limit 3)
+         (unless url-string
+           (send-bad-request-response stream)
+           (return-from get-request-data nil))
          (maybe-write-to-header-stream first-line)
          (let ((headers (and protocol (read-http-headers stream *header-stream*))))
            (unless protocol (setq protocol "HTTP/0.9"))

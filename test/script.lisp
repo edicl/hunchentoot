@@ -129,6 +129,54 @@ expecting certain responses."
     (http-request "upload.html"
                   :method :post :parameters '(("file1" #P"fz.jpg")))
     (http-request "upload.html")
-    (http-assert-body (format nil "fz.jpg.*>~A&nbsp;Bytes" (file-length-string #P"fz.jpg"))))
-  (values))
+    (http-assert-body (format nil "fz.jpg.*>~A&nbsp;Bytes" (file-length-string #P"fz.jpg")))
+
+    (say "Range tests")
+    (say " Upload file")
+    (let* ((range-test-file-size (* 256 1024))  ; large enough to have hunchentoot use multiple buffers when reading back data, should be aligned to 1024
+           (range-test-buffer (make-array range-test-file-size :element-type '(unsigned-byte 8)))
+           (uploaded-file-url "files/?path=user-stream") ; The uploaded file will appear under the name "user-stream" in hunchentoot
+           (expected-content-range (format nil "bytes 0-~D/*" range-test-file-size)))
+
+      (dotimes (i range-test-file-size)
+         (setf (aref range-test-buffer i) (random 256)))
+
+      (flex:with-input-from-sequence (upload-stream range-test-buffer)
+        (http-request "upload.html"
+                      :method :post :parameters `(("file1" ,upload-stream))))
+
+      (say " Request the uploaded file, verify contents")
+      (http-request uploaded-file-url)
+      (http-assert-header :content-length (princ-to-string range-test-file-size))
+      (http-assert 'body (complement #'mismatch) range-test-buffer)
+
+      (say " Verify responses to partial requests")
+
+      (say " Request just one byte")
+      (http-request uploaded-file-url :range '(0 0))
+      (http-assert 'status-code 206)
+      (http-assert 'body 'equalp (subseq range-test-buffer 0 1))
+      (http-assert-header :content-range expected-content-range)
+
+      (say " End out of range")
+      (http-request uploaded-file-url :range (list 0 range-test-file-size))
+      (http-assert 'status-code 416)
+      (http-assert-header :content-range expected-content-range)
+
+      (say " Request whole file as partial")
+      (http-request uploaded-file-url :range (list 0 (1- range-test-file-size)))
+      (http-assert 'status-code 206)
+      (http-assert 'body 'equalp range-test-buffer)
+      (http-assert-header :content-range expected-content-range)
+
+      (say " Request something in the middle")
+      (let ((start-offset (/ range-test-file-size 4))
+            (length (/ range-test-file-size 2)))
+        (http-request uploaded-file-url :range (list start-offset (1- length)))
+        (http-assert 'status-code 206)
+        (http-assert 'body 'equalp (subseq range-test-buffer start-offset length))
+        (http-assert-header :content-range expected-content-range)))
+
+
+    (values)))
 

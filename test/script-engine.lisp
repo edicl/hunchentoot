@@ -164,12 +164,13 @@ from the expansion environment."
                           content
                           content-type
                           content-length
+                          range
                           cookie-jar
                           basic-authorization
                           parameters
                           external-format-out)
   (declare (ignore protocol method content content-type content-length cookie-jar basic-authorization
-                   parameters external-format-out))
+                   range parameters external-format-out))
   (setf *last-reply* (make-instance 'http-reply))
   (with-slots (body status-code headers uri stream close) *last-reply*
     (setf (values body status-code headers uri stream close)

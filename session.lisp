@@ -164,7 +164,7 @@ old - see SESSION-TOO-OLD-P."
           (loop for id-session-pair in (session-db *acceptor*)
                 for (nil . session) = id-session-pair
                 when (session-too-old-p session)
-                do (funcall *session-removal-hook* session)
+                do (acceptor-remove-session *acceptor* session)
                 else
                 collect id-session-pair)))
   (values))
@@ -267,7 +267,7 @@ case the function will also send a session cookie to the browser."
   "Completely removes the SESSION object SESSION from Hunchentoot's
 internal session database."
   (with-session-lock-held ((session-db-lock *acceptor*))
-    (funcall *session-removal-hook* session)
+    (acceptor-remove-session *acceptor* session)
     (setf (session-db *acceptor*)
           (delete (session-id session) (session-db *acceptor*)
                   :key #'car :test #'=)))
@@ -357,6 +357,6 @@ cease to be valid."
   "Removes ALL stored sessions of ACCEPTOR."
   (with-session-lock-held ((session-db-lock acceptor))
     (loop for (nil . session) in (session-db acceptor)
-          do (funcall *session-removal-hook* session))
+          do (acceptor-remove-session acceptor session))
     (setq *session-db* nil))
   (values))

@@ -169,6 +169,7 @@
            "DELETE-AUX-REQUEST-VALUE"
            "DELETE-SESSION-VALUE"
            "DISPATCH-EASY-HANDLERS"
+           "EASY-ACCEPTOR"
            "ESCAPE-FOR-HTML"
            "EXECUTE-ACCEPTOR"
            "GET-PARAMETER"

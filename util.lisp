@@ -297,18 +297,18 @@ values of the `Connection' header."
 (defun address-string ()
   "Returns a string with information about Hunchentoot suitable for
 inclusion in HTML output."
-  (format nil "<address><a href='http://weitz.de/hunchentoot/'>Hunchentoot ~A</a> <a href='~A'>(~A ~A)</a>~@[ at ~A~:[ (port ~D)~;~]~]</address>"
-          *hunchentoot-version*
-          +implementation-link+
-          (escape-for-html (lisp-implementation-type))
-          (escape-for-html (lisp-implementation-version))
-          (escape-for-html (or (host *request*) (acceptor-address *acceptor*)))
-          (scan ":\\d+$" (or (host *request*) ""))
-          (acceptor-port *acceptor*)))
-
-(defun server-name-header ()
-  "Returns a string which can be used for 'Server' headers."
-  (format nil "Hunchentoot ~A" *hunchentoot-version*))
+  (flet ((escape-for-html (arg)
+           (if arg
+               (escape-for-html arg)
+               arg)))
+    (format nil "<address><a href='http://weitz.de/hunchentoot/'>Hunchentoot ~A</a> <a href='~A'>(~A ~A)</a>~@[ at ~A~:[ (port ~D)~;~]~]</address>"
+            *hunchentoot-version*
+            +implementation-link+
+            (escape-for-html (lisp-implementation-type))
+            (escape-for-html (lisp-implementation-version))
+            (escape-for-html (or (host *request*) (acceptor-address *acceptor*)))
+            (scan ":\\d+$" (or (host *request*) ""))
+            (acceptor-port *acceptor*))))
 
 (defun input-chunking-p ()
   "Whether input chunking is currently switched on for

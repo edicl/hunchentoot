@@ -326,12 +326,12 @@ and see what's happening.")
 (defun send-file ()
   (let* ((path (get-parameter "path"))
          (file-info (and path
-                         (find (pathname path) *tmp-test-files*
-                               :key 'first :test 'equal))))
+                         (find path *tmp-test-files*
+                               :key 'second :test 'equal))))
     (unless file-info
       (setf (return-code*) +http-not-found+)
       (return-from send-file))
-    (handle-static-file path (third file-info))))
+    (handle-static-file (first file-info) (third file-info))))
 
 (defparameter *headline*
   (load-time-value              
@@ -558,5 +558,4 @@ and see what's happening.")
                  ("/hunchentoot/test/utf8-character.txt" stream-direct-utf-8)
                  ("/hunchentoot/test/utf8-string.txt" stream-direct-utf-8-string)
                  ("/hunchentoot/test/files/" send-file)
-                 ("/hunchentoot/test" menu)))
-       (list 'default-dispatcher)))
+                 ("/hunchentoot/test" menu)))))

@@ -104,12 +104,6 @@ sequence.")
 (def-http-return-code +http-gateway-time-out+ 504 "Gateway Time-out")
 (def-http-return-code +http-version-not-supported+ 505 "Version not supported")
 
-(defvar *approved-return-codes* '(#.+http-ok+ #.+http-no-content+
-                                              #.+http-multi-status+
-                                              #.+http-not-modified+)
-  "A list of return codes the server should not treat as an error -
-see *HANDLE-HTTP-ERRORS-P*.")
-
 (defconstant +day-names+
   #("Mon" "Tue" "Wed" "Thu" "Fri" "Sat" "Sun")
   "The three-character names of the seven days of the week - needed
@@ -248,34 +242,6 @@ the debugger).")
   #+:lispworks "http://www.lispworks.com/"
   #+:openmcl "http://openmcl.clozure.com/"
   "A link to the website of the underlying Lisp implementation.")
-
-(defvar *dispatch-table* (list 'dispatch-easy-handlers 'default-dispatcher)
-  "A global list of dispatch functions.")
-
-(defvar *default-handler* 'default-handler
-  "The name of the function which is always returned by
-DEFAULT-DISPATCHER.")
-
-(defvar *easy-handler-alist* nil
-  "An alist of \(URI acceptor-names function) lists defined by
-DEFINE-EASY-HANDLER.")
-
-(defvar *http-error-handler* nil
-  "Contains NIL \(the default) or a function of one argument which is
-called if the content handler has set a return code which is not in
-*APPROVED-RETURN-CODES* and *HANDLE-HTTP-ERRORS* is true.")
-
-(defvar *handle-http-errors-p* t
-  "A generalized boolean that determines whether return codes which
-are not in *APPROVED-RETURN-CODES* are treated specially.  When its
-value is true \(the default), either a default body for the return
-code or the result of calling *HTTP-ERROR-HANDLER* is used.  When the
-value is NIL, no special action is taken and you are expected to
-supply your own response body to describe the error.")
-
-(defvar *session-removal-hook* (constantly nil)
-  "A function of one argument \(a session object) which is called
-whenever a session is garbage-collected.")
 
 (defvar *tmp-directory*
   #+(or :win32 :mswindows) "c:\\hunchentoot-temp\\"

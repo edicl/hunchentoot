@@ -212,39 +212,48 @@ slot values are computed in this :AFTER method."
   "Standard implementation for processing a request.  You should not
 change or replace this functionality unless you know what you're
 doing."
-  (let (*tmp-files*
-        *headers-sent*
-        (*request* request))
-    (unwind-protect
-         (with-mapped-conditions ()
-           (labels
-               ((report-error-to-client (error &optional backtrace)
-                  (setf (return-code *reply*) +http-internal-server-error+)
-                  (when *log-lisp-errors-p*
-                    (log-message* *lisp-errors-log-level* "~A~@[~%~A~]" error backtrace))
-                  (start-output (if *show-lisp-errors-p*
-                                    (format nil "<pre>~A</pre>" (escape-for-html (format nil "~A" error)))
-                                    "An error has occured") )))
-             (multiple-value-bind (body error backtrace)
-                 ;; skip dispatch if bad request
-                 (when (eql (return-code *reply*) +http-ok+)
-                   (catch 'handler-done
-                     (handle-request *acceptor* *request*)))
-               (when error
-                 ;; error occured in request handler
-                 (report-error-to-client error backtrace))
-               (handler-case
-                   (with-debugger
-                     (start-output body))
-                 (error (e)
-                   ;; error occured while writing to the client.  attempt to report.
-                   (report-error-to-client e))))))
-      (dolist (path *tmp-files*)
-        (when (and (pathnamep path) (probe-file path))
-          ;; the handler may have chosen to (re)move the uploaded
-          ;; file, so ignore errors that happen during deletion
-          (ignore-errors*
-            (delete-file path)))))))
+  (catch 'request-processed ; used by HTTP HEAD handling to end request processing in a HEAD request (see START-OUTPUT)
+    (let (*tmp-files*
+          *headers-sent*
+          (*request* request))
+      (unwind-protect
+           (with-mapped-conditions ()
+             (labels
+                 ((report-error-to-client (error &optional backtrace)
+                    (when *log-lisp-errors-p*
+                      (log-message* *lisp-errors-log-level* "~A~@[~%~A~]" error (when *log-lisp-backtraces-p*
+                                                                                  backtrace)))
+                    (start-output +http-internal-server-error+
+                                  (if *show-lisp-errors-p*
+                                      (format nil "<pre>~A~@[~%~%Backtrace:~%~%~A~]</pre>"
+                                              (escape-for-html (princ-to-string error))
+                                              (when *show-lisp-backtraces-p*
+                                                (escape-for-html (princ-to-string backtrace))))
+                                      "An error has occured"))))
+               (multiple-value-bind (body error backtrace)
+                   ;; skip dispatch if bad request
+                   (when (eql (return-code *reply*) +http-ok+)
+                     (catch 'handler-done
+                       (handle-request *acceptor* *request*)))
+                 (when error
+                   ;; error occured in request handler
+                   (report-error-to-client error backtrace))
+                 (unless *headers-sent*
+                   (handler-case
+                       (with-debugger
+                         (start-output (return-code *reply*)
+                                       (acceptor-handle-return-code *acceptor*
+                                                                    (return-code *reply*)
+                                                                    body)))
+                     (error (e)
+                       ;; error occured while writing to the client.  attempt to report.
+                       (report-error-to-client e)))))))
+        (dolist (path *tmp-files*)
+          (when (and (pathnamep path) (probe-file path))
+            ;; the handler may have chosen to (re)move the uploaded
+            ;; file, so ignore errors that happen during deletion
+            (ignore-errors*
+              (delete-file path))))))))
 
 (defun within-request-p ()
   "True if we're in the context of a request, otherwise nil."

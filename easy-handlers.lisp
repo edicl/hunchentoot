@@ -29,6 +29,13 @@
 
 (in-package :hunchentoot)
 
+(defvar *dispatch-table* (list 'dispatch-easy-handlers 'default-dispatcher)
+  "A global list of dispatch functions.")
+
+(defvar *easy-handler-alist* nil
+  "An alist of \(URI acceptor-names function) lists defined by
+DEFINE-EASY-HANDLER.")
+
 (defun compute-real-name (symbol)
   "Computes the `real' paramater name \(a string) from the Lisp
 symbol SYMBOL.  Used in cases where no parameter name is
@@ -320,3 +327,16 @@ defined with DEFINE-EASY-HANDLER, if there is one."
                          (string= (script-name request) uri))
                         (t (funcall uri request))))
         do (return easy-handler)))
+
+(defclass easy-acceptor (acceptor)
+  ()
+  (:documentation "This is the acceptor of the ``easy'' Hunchentoot framework."))
+
+(defmethod acceptor-dispatch-request ((acceptor easy-acceptor) request)
+  "The easy request dispatcher which selects a request handler
+based on a list of individual request dispatchers all of which can
+either return a handler or neglect by returning NIL."
+  (loop for dispatcher in *dispatch-table*
+     for action = (funcall dispatcher request)
+     when action return (funcall action)
+     finally (setf (return-code *reply*) +http-not-found+)))

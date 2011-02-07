@@ -2677,9 +2677,17 @@ Should be one of <code>:ERROR</code>, <code>:WARNING</code>
     </clix:subchapter>
 
     <clix:subchapter name="conditions" title="Conditions and error handling">
-
-This section describes how Hunchentoot deals with exceptional
-situations.  See also the secion about <a href="#logging">logging</a>.
+      <p>
+        This section describes how Hunchentoot deals with exceptional
+        situations.  See also the secion about <a href="#logging">logging</a>.
+      </p>
+      <p>
+        When an error occurs while processing a request, Hunchentoot's
+        default behavior is to catch catch the error, log it and
+        optionally display it to the client in the HTML response.
+        This behavior can be customized through the values of a number
+        of special variables, which are documented below.
+      </p>
 
   <clix:special-variable name='*catch-errors-p*'>
     <clix:description>
@@ -2695,6 +2703,17 @@ This variable should obviously always be set to a <em>true</em> value
 in a production environment.
 See <clix:ref>MAYBE-INVOKE-DEBUGGER</clix:ref>
 if you want to fine-tune this behaviour.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*show-lisp-errors-p*'>
+    <clix:description>Whether Lisp errors should be shown in HTML output.
+    </clix:description>
+  </clix:special-variable>
+
+  <clix:special-variable name='*show-lisp-backtraces-p*'>
+    <clix:description>Whether Lisp backtraces should be shown in HTML output if
+    <clix:ref>*SHOW-LISP-ERRORS-P*</clix:ref> is true and an error occurs.
     </clix:description>
   </clix:special-variable>
 
@@ -2715,41 +2734,6 @@ the debugger</a> with <clix:arg>condition</clix:arg> if
 <clix:ref>*CATCH-ERRORS-P*</clix:ref> is <code>NIL</code>.
     </clix:description>
   </clix:function>
-
-  <clix:special-variable name='*show-lisp-errors-p*'>
-    <clix:description>Whether Lisp errors should be shown in HTML output.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*show-lisp-backtraces-p*'>
-    <clix:description>Whether Lisp backtraces should be shown in HTML output if
-    <clix:ref>*SHOW-LISP-ERRORS-P*</clix:ref> is true and an error occurs.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*approved-return-codes*'>
-    <clix:description>A list of return codes the server should <em>not</em> treat as an error -
-see <clix:ref>*HANDLE-HTTP-ERRORS-P*</clix:ref>.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*handle-http-errors-p*'>
-    <clix:description>A generalized boolean that determines whether return codes which
-are not in <clix:ref>*APPROVED-RETURN-CODES*</clix:ref> are treated specially.  When its value
-is true (the default), either a default body for the return code or
-the result of calling <clix:ref>*HTTP-ERROR-HANDLER*</clix:ref> is used.  When the value is
-<code>NIL</code>, no special action is taken and you are expected to supply your
-own response body to describe the error.
-    </clix:description>
-  </clix:special-variable>
-
-  <clix:special-variable name='*http-error-handler*'>
-    <clix:description>Contains <code>NIL</code> (the default) or a function of one argument which is
-called if the content handler has set a return code which is not in
-<clix:ref>*APPROVED-RETURN-CODES*</clix:ref>
-and <clix:ref>*HANDLE-HTTP-ERRORS*</clix:ref> is true.
-    </clix:description>
-  </clix:special-variable>
 
   <clix:condition name='hunchentoot-condition'>
     <clix:description>Superclass for all conditions related to Hunchentoot.
