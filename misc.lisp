@@ -145,28 +145,29 @@ had returned RESULT.  See the source code of REDIRECT for an example."
             bytes-to-send (1+ (- end start))))
     bytes-to-send))
 
-(defun handle-static-file (path &optional content-type)
+(defun handle-static-file (pathname &optional content-type)
   "A function which acts like a Hunchentoot handler for the file
-denoted by PATH.  Sends a content type header corresponding to
+denoted by PATHNAME.  Sends a content type header corresponding to
 CONTENT-TYPE or \(if that is NIL) tries to determine the content type
 via the file's suffix."
-  (when (or (wild-pathname-p path)
-            (not (fad:file-exists-p path))
-            (fad:directory-exists-p path))
+  (when (or (wild-pathname-p pathname)
+            (not (fad:file-exists-p pathname))
+            (fad:directory-exists-p pathname))
     ;; file does not exist
     (setf (return-code*) +http-not-found+)
     (abort-request-handler))
-  (let ((time (or (file-write-date path) (get-universal-time)))
+  (let ((time (or (file-write-date pathname)
+                  (get-universal-time)))
         bytes-to-send)
-    (setf (content-type*) (or content-type
-                              (mime-type path)
-                              "application/octet-stream"))
     (handle-if-modified-since time)
-    (with-open-file (file path
-                     :direction :input
-                     :element-type 'octet
-                     :if-does-not-exist nil)
-      (setf (header-out :content-range) (format nil "bytes 0-~D/*" (file-length file))
+    (with-open-file (file pathname
+                          :direction :input
+                          :element-type 'octet
+                          :if-does-not-exist nil)
+      (setf (content-type*) (or content-type
+                                (mime-type pathname)
+                                "application/octet-stream")
+            (header-out :content-range) (format nil "bytes 0-~D/*" (file-length file))
             (header-out :last-modified) (rfc-1123-date time)
             bytes-to-send (maybe-handle-range-header file)
             (content-length*) bytes-to-send)

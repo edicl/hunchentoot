@@ -29,7 +29,7 @@
 
 (in-package :hunchentoot)
 
-(defvar *dispatch-table* (list 'dispatch-easy-handlers 'default-dispatcher)
+(defvar *dispatch-table* (list 'dispatch-easy-handlers)
   "A global list of dispatch functions.")
 
 (defvar *easy-handler-alist* nil
@@ -339,4 +339,4 @@ either return a handler or neglect by returning NIL."
   (loop for dispatcher in *dispatch-table*
      for action = (funcall dispatcher request)
      when action return (funcall action)
-     finally (setf (return-code *reply*) +http-not-found+)))
+     finally (call-next-method)))

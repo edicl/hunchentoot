@@ -29,6 +29,10 @@
 
 (in-package :hunchentoot)
 
+(eval-when (:load-toplevel)
+  (defun default-document-directory (&optional sub-directory)
+    (asdf:system-relative-pathname :hunchentoot (format nil "www/~@[~A~]" sub-directory))))
+
 (defclass acceptor ()
   ((port :initarg :port
          :reader acceptor-port
@@ -124,7 +128,20 @@ file which contains one log entry per request handled in a format
                          :documentation "Pathname of the server error
 log file which is used to log informational,
 warning and error messages in a free-text
-format intended for human inspection"))
+format intended for human inspection")
+   (error-template-directory :initarg :error-template-directory
+                             :accessor acceptor-error-template-directory
+                             :documentation "Directory pathname that
+ contains error message template files for server-generated error
+ messages.  Files must be named <return-code>.html with <return-code>
+ representing the HTTP return code that the file applies to,
+ i.e. 404.html would be used as the content for a HTTP 404 Not found
+ response.")
+   (document-root :initarg :document-root
+                  :accessor acceptor-document-root
+                  :documentation "Directory pathname that points to
+files that are served by the acceptor if no more specific
+acceptor-dispatch-request method handles the request."))
   (:default-initargs
    :address nil
    :port 80
@@ -139,7 +156,9 @@ format intended for human inspection"))
    :read-timeout *default-connection-timeout*
    :write-timeout *default-connection-timeout*
    :access-log-pathname nil
-   :message-log-pathname nil)
+   :message-log-pathname nil
+   :document-root (load-time-value (default-document-directory))
+   :error-template-directory (load-time-value (default-document-directory "errors/")))
   (:documentation "To create a Hunchentoot webserver, you make an
 instance of this class and use the generic function START to start it
 \(and STOP to stop it).  Use the :PORT initarg if you don't want to
@@ -457,7 +476,12 @@ catches during request processing."
 (defmethod acceptor-dispatch-request ((acceptor acceptor) request)
   "Detault implementation of the request dispatch method, generates a +http-not-found+ error+."
   (declare (ignore request))
-  (setf (return-code *reply*) +http-not-found+))
+  (if (acceptor-document-root acceptor)
+      (handle-static-file (merge-pathnames (if (equal (script-name*) "/")
+                                               "index.html"
+                                               (subseq (script-name*) 1))
+                                           (acceptor-document-root acceptor)))
+      (setf (return-code *reply*) +http-not-found+)))
 
 (defmethod handle-request ((*acceptor* acceptor) (*request* request))
   "Standard method for request handling.  Calls the request dispatcher
@@ -493,41 +517,72 @@ handler."
    client.  For other return codes, the content can be ignored and/or
    processed, depending on the requirements of the acceptor class.
    Note that the CONTENT argument can be NIL if the handler wants to
-   send the data to the client stream itself."))
+   send the data to the client stream itself.
+
+   If an ERROR-TEMPLATE-DIRECTORY is set in the current acceptor and
+   the directory contains a file corresponding to HTTP-RETURN-CODE,
+   that file is sent to the client after variable substitution.
+   Variables are referenced by ${<variable-name>}.  Currently, only
+   the ${script-name} variable is supported which contains the current
+   URL relative to the server's base URL."))
 
 (defmethod acceptor-handle-return-code ((acceptor acceptor) http-return-code content)
   "Default function to generate error message sent to the client."
-  (flet ((cooked-message (format &rest arguments)
-           (setf (content-type*) "text/html; charset=iso-8859-1")
-           (format nil "<html><head><title>~D ~A</title></head><body><h1>~:*~A</h1>~?<p><hr>~A</p></body></html>"
-                   http-return-code (reason-phrase http-return-code)
-                   format (mapcar (lambda (arg)
-                                    (if (stringp arg)
-                                        (escape-for-html arg)
-                                        arg))
-                                  arguments)
-                   (address-string))))
-    (case http-return-code
-      ((#.+http-internal-server-error+
-        #.+http-ok+)
-       content)
-      ((#.+http-moved-temporarily+
-        #.+http-moved-permanently+)
-       (cooked-message "The document has moved <a href='~A'>here</a>" (header-out :location)))
-      ((#.+http-authorization-required+)
-       (cooked-message "The server could not verify that you are authorized to access the document requested.  ~
+  (labels
+      ((cooked-message (format &rest arguments)
+         (setf (content-type*) "text/html; charset=iso-8859-1")
+         (format nil "<html><head><title>~D ~A</title></head><body><h1>~:*~A</h1>~?<p><hr>~A</p></body></html>"
+                 http-return-code (reason-phrase http-return-code)
+                 format (mapcar (lambda (arg)
+                                  (if (stringp arg)
+                                      (escape-for-html arg)
+                                      arg))
+                                arguments)
+                 (address-string)))
+       (substitute-request-context-variables (string)
+         (cl-ppcre:regex-replace-all "(?i)\\$\\{([a-z0-9-_]+)\\}"
+                                     string
+                                     (lambda (target-string start end match-start match-end reg-starts reg-ends)
+                                       (declare (ignore start end match-start match-end))
+                                       (let ((variable (intern (string-upcase (subseq target-string
+                                                                                      (aref reg-starts 0)
+                                                                                      (aref reg-ends 0)))
+                                                              :keyword)))
+                                         (case variable
+                                           (:script-name (script-name*))
+                                           (otherwise (string variable)))))))
+       (file-contents (file)
+         (let ((buf (make-string (file-length file))))
+           (read-sequence buf file)
+           buf))
+       (error-contents-from-template ()
+         (let ((error-file-template-pathname (and (acceptor-error-template-directory acceptor)
+                                                  (probe-file (make-pathname :name (princ-to-string http-return-code)
+                                                                             :type "html"
+                                                                             :defaults (acceptor-error-template-directory acceptor))))))
+           (when error-file-template-pathname
+             (with-open-file (file error-file-template-pathname :if-does-not-exist nil :element-type 'character)
+               (when file
+                 (substitute-request-context-variables (file-contents file))))))))
+      (or (error-contents-from-template)
+          (case http-return-code
+            ((#.+http-moved-temporarily+
+              #.+http-moved-permanently+)
+             (cooked-message "The document has moved <a href='~A'>here</a>" (header-out :location)))
+            ((#.+http-authorization-required+)
+             (cooked-message "The server could not verify that you are authorized to access the document requested.  ~
                         Either you supplied the wrong credentials \(e.g., bad password), or your browser doesn't ~
                         understand how to supply the credentials required."))
-      ((#.+http-forbidden+)
-       (cooked-message "You don't have permission to access ~A on this server."
-                       (script-name *request*)))
-      ((#.+http-not-found+)
-       (cooked-message "The requested URL ~A was not found on this server."
-                       (script-name *request*)))
-      ((#.+http-bad-request+)
-       (cooked-message "Your browser sent a request that this server could not understand."))
-      (otherwise
-       content))))
+            ((#.+http-forbidden+)
+             (cooked-message "You don't have permission to access ~A on this server."
+                             (script-name *request*)))
+            ((#.+http-not-found+)
+             (cooked-message "The requested URL ~A was not found on this server."
+                             (script-name *request*)))
+            ((#.+http-bad-request+)
+             (cooked-message "Your browser sent a request that this server could not understand."))
+            (otherwise
+             content)))))
 
 (defgeneric acceptor-remove-session (acceptor session)
   (:documentation
