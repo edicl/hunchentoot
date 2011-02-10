@@ -29,7 +29,7 @@
 
 (in-package :hunchentoot)
 
-(eval-when (:load-toplevel)
+(eval-when (:load-toplevel :compile-toplevel :execute)
   (defun default-document-directory (&optional sub-directory)
     (asdf:system-relative-pathname :hunchentoot (format nil "www/~@[~A~]" sub-directory))))
 

@@ -122,3 +122,12 @@ used to set the timeouts."
 
 (editor:setup-indent "handler-case*" 1 2 4)
 
+(defun make-condition-variable (&key name)
+  (declare (ignore name))
+  (mp:make-condition-variable))
+
+(defun condition-variable-signal (condition-variable)
+  (mp:condition-variable-signal condition-variable))
+
+(defun condition-variable-wait (condition-variable lock)
+  (mp:condition-variable-wait condition-variable lock))
