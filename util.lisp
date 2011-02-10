@@ -59,7 +59,8 @@ digits."
   "Returns a reason phrase for the HTTP return code RETURN-CODE
 \(which should be an integer) or NIL for return codes Hunchentoot
 doesn't know."
-  (gethash return-code *http-reason-phrase-map*))
+  (gethash return-code *http-reason-phrase-map* 
+           "No reason phrase known"))
 
 (defgeneric assoc* (thing alist)
   (:documentation "Similar to CL:ASSOC, but 'does the right thing' if

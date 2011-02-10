@@ -118,6 +118,19 @@ connections.")
                         :accessor acceptor-shutdown-p
                         :documentation "A flag that makes the acceptor
 shutdown itself when set to something other than NIL.")
+   (requests-in-progress :initform 0
+                         :accessor accessor-requests-in-progress
+                         :documentation "The number of
+requests currently in progress.")
+   (shutdown-queue :initform (make-condition-variable)
+                   :accessor acceptor-shutdown-queue
+                   :documentation "A condition variable
+used with soft shutdown, signaled when all requests
+have been processed.")
+   (shutdown-lock :initform (make-lock "hunchentoot-acceptor-shutdown")
+                  :accessor acceptor-shutdown-lock
+                  :documentation "The lock protecting the shutdown-queue
+condition variable and the requests-in-progress counter.")
    (access-log-pathname :initarg :access-log-pathname
                         :accessor acceptor-access-log-pathname
                         :documentation "Pathname of the access log
@@ -179,9 +192,11 @@ same time."))
   (:documentation "Starts the ACCEPTOR so that it begins accepting
 connections.  Returns the acceptor."))
 
-(defgeneric stop (acceptor)
+(defgeneric stop (acceptor &key soft)
   (:documentation "Stops the ACCEPTOR so that it no longer accepts
-requests."))
+requests.  If SOFT is true, and there are any requests in progress,
+wait until all requests are fully processed, but meanwhile do
+not accept new requests."))
 
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
@@ -247,12 +262,17 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
     (execute-acceptor taskmaster))
   acceptor)
 
-(defmethod stop ((acceptor acceptor))
+(defmethod stop ((acceptor acceptor) &key soft)
   (setf (acceptor-shutdown-p acceptor) t)
   (shutdown (acceptor-taskmaster acceptor))
-  #-:lispworks
-  (usocket:socket-close (acceptor-listen-socket acceptor))
-  #-:lispworks
+  (when soft
+    (with-lock-held ((acceptor-shutdown-lock acceptor))
+      (when (plusp (accessor-requests-in-progress acceptor))
+        (condition-variable-wait (acceptor-shutdown-queue acceptor) 
+                                 (acceptor-shutdown-lock acceptor)))))
+  (#+:lispworks close
+   #-:lispworks usocket:socket-close
+   (acceptor-listen-socket acceptor))
   (setf (acceptor-listen-socket acceptor) nil)
   acceptor)
 
@@ -291,6 +311,24 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
     (with-mapped-conditions ()
       (call-next-method))))
 
+(defun do-with-acceptor-request-count-incremented (*acceptor* function)
+  (with-lock-held ((acceptor-shutdown-lock *acceptor*))
+    (incf (accessor-requests-in-progress *acceptor*)))
+  (unwind-protect
+       (funcall function)
+    (with-lock-held ((acceptor-shutdown-lock *acceptor*))
+      (decf (accessor-requests-in-progress *acceptor*))
+      (when (acceptor-shutdown-p *acceptor*)
+        (condition-variable-signal (acceptor-shutdown-queue *acceptor*))))))
+
+(defmacro with-acceptor-request-count-incremented ((acceptor) &body body)
+  "Execute BODY with ACCEPTOR-REQUESTS-IN-PROGRESS of ACCEPTOR
+  incremented by one.  If the ACCEPTOR-SHUTDOWN-P returns true after
+  the BODY has been executed, the ACCEPTOR-SHUTDOWN-QUEUE condition
+  variable of the ACCEPTOR is signalled in order to finish shutdown
+  processing."
+  `(do-with-acceptor-request-count-incremented ,acceptor (lambda () ,@body)))
+
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let ((*hunchentoot-stream*
          (initialize-connection-stream *acceptor* (make-socket-stream socket *acceptor*))))
@@ -324,15 +362,16 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 chunked encoding, but acceptor is configured to not use it.")))))
                 (multiple-value-bind (remote-addr remote-port)
                     (get-peer-address-and-port socket)
-                  (process-request (make-instance (acceptor-request-class *acceptor*)
-                                      :acceptor *acceptor*
-                                      :remote-addr remote-addr
-                                      :remote-port remote-port
-                                      :headers-in headers-in
-                                      :content-stream *hunchentoot-stream*
-                                      :method method
-                                      :uri url-string
-                                      :server-protocol protocol))))
+                  (with-acceptor-request-count-incremented (*acceptor*)
+                    (process-request (make-instance (acceptor-request-class *acceptor*)
+                                                    :acceptor *acceptor*
+                                                    :remote-addr remote-addr
+                                                    :remote-port remote-port
+                                                    :headers-in headers-in
+                                                    :content-stream *hunchentoot-stream*
+                                                    :method method
+                                                    :uri url-string
+                                                    :server-protocol protocol)))))
               (finish-output *hunchentoot-stream*)
               (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
               (when *close-hunchentoot-stream*
@@ -350,7 +389,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
   ;; the default is to always answer "no"
   nil)
 
-(defgeneric acceptor-log-access (acceptor &key return-code content content-length)
+(defgeneric acceptor-log-access (acceptor &key return-code)
   (:documentation
    "Function to call to log access to the acceptor.  The RETURN-CODE,
 CONTENT and CONTENT-LENGTH keyword arguments contain additional
@@ -358,7 +397,7 @@ information about the request to log.  In addition, it can use the
 standard request accessor functions that are available to handler
 functions to find out more information about the request."))
 
-(defmethod acceptor-log-access ((acceptor acceptor) &key return-code content content-length)
+(defmethod acceptor-log-access ((acceptor acceptor) &key return-code)
   "Default method for access logging.  It logs the information to the
 file determined by (ACCEPTOR-ACCESS-LOG-PATHNAME ACCEPTOR) \(unless
 that value is NIL) in a format that can be parsed by most Apache log
@@ -366,7 +405,7 @@ analysis tools.)"
 
   (with-open-file-or-console (stream (acceptor-access-log-pathname acceptor) *access-log-lock*)
     (format stream "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] [~A] \"~A ~A~@[?~A~] ~
-                    ~A\" ~A ~:[~*-~;~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
+                    ~A\" ~D ~:[-~;~:*~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
             (remote-addr*)
             (header-in* :x-forwarded-for)
             (authorization)
@@ -376,8 +415,7 @@ analysis tools.)"
             (query-string*)
             (server-protocol*)
             return-code
-            content
-            content-length
+            (content-length*)
             (referer)
             (user-agent))))
 

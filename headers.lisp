@@ -29,46 +29,29 @@
 
 (in-package :hunchentoot)
 
-(defun maybe-write-to-header-stream (key &optional value)
-  "Accepts a string KEY and an optional Lisp object VALUE and writes
-them directly to the character stream *HEADER-STREAM* as an HTTP
-header line \(or as a simple line if VALUE is NIL)."
-  (when *header-stream*
-    (format *header-stream* "~A~@[: ~A~]~%" key
-            (and value (regex-replace-all "[\\r\\n]" value " ")))
-    (force-output *header-stream*)))
-
-(defgeneric write-header-line (key value)
+(defgeneric write-header-line (key value stream)
   (:documentation "Accepts a string KEY and a Lisp object VALUE and
 writes them directly to the client as an HTTP header line.")
-  (:method (key (string string))
-    (let ((stream *hunchentoot-stream*))
-      (labels ((write-header-char (char)
-                 (when *header-stream*
-                   (write-char char *header-stream*))
-                 (write-byte (char-code char) stream))
-               (write-header-string (string &key (start 0) (end (length string)))
-                 (loop for i from start below end
-                       do (write-header-char (aref string i)))))
-        (write-header-string key)
-        (write-header-char #\:)
-        (write-header-char #\Space)
-        (let ((start 0))
-          (loop
-            (let ((end (or (position #\Newline string :start start)
-                           (length string))))
-              ;; skip empty lines, as they confuse certain HTTP clients
-              (unless (eql start end)
-                (unless (zerop start)
-                  (write-header-char #\Tab))
-                (write-header-string string :start start :end end)
-                (write-header-char #\Return)
-                (write-header-char #\Linefeed))
-              (setf start (1+ end))
-              (when (<= (length string) start)
-                (return))))))))
-  (:method (key value)
-    (write-header-line key (princ-to-string value))))
+  (:method (key (string string) stream)
+    (write-string key stream)
+    (write-char #\: stream)
+    (write-char #\Space stream)
+    (let ((start 0))
+      (loop
+         (let ((end (or (position #\Newline string :start start)
+                        (length string))))
+           ;; skip empty lines, as they confuse certain HTTP clients
+           (unless (eql start end)
+             (unless (zerop start)
+               (write-char #\Tab stream))
+             (write-string string stream :start start :end end)
+             (write-char #\Return stream)
+             (write-char #\Linefeed stream))
+           (setf start (1+ end))
+           (when (<= (length string) start)
+             (return))))))
+  (:method (key value stream)
+    (write-header-line key (princ-to-string value) stream)))
 
 (defun start-output (return-code &optional (content nil content-provided-p))
   "Sends all headers and maybe the content body to
@@ -87,8 +70,6 @@ Returns the stream that is connected to the client."
                         ;; only turn chunking on if the content
                         ;; length is unknown at this point...
                         (null (or (content-length*) content-provided-p))))
-         (reason-phrase (or (reason-phrase return-code)
-                            "No reason phrase known"))
          (request-method (request-method *request*))
          (head-request-p (eq request-method :head))
          content-modified-p)
@@ -144,41 +125,63 @@ Returns the stream that is connected to the client."
     (when *headers-sent*
       (return-from start-output))
     (setq *headers-sent* t)
-    ;; access log message
-    (acceptor-log-access *acceptor*
-                         :return-code return-code
-                         :content content
-                         :content-length (content-length*))
-    ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
-    (raw-post-data :force-binary t)
-    ;; start with status line      
-    (let ((first-line
-           (format nil "HTTP/1.1 ~D ~A" return-code reason-phrase)))
-      (write-sequence (map 'list #'char-code first-line) *hunchentoot-stream*)
-      (write-sequence +crlf+ *hunchentoot-stream*)
-      (maybe-write-to-header-stream first-line))
-    ;; write all headers from the REPLY object
-    (loop for (key . value) in (headers-out*)
-       when value
-       do (write-header-line (as-capitalized-string key) value))
-    ;; now the cookies
-    (loop for (nil . cookie) in (cookies-out*)
-       do (write-header-line "Set-Cookie" (stringify-cookie cookie)))
-    ;; all headers sent
-    (write-sequence +crlf+ *hunchentoot-stream*)
-    (maybe-write-to-header-stream "")
+    (send-response *acceptor*
+                   *hunchentoot-stream*
+                   return-code
+                   :headers (headers-out*)
+                   :cookies (cookies-out*)
+                   :content (unless head-request-p
+                              content))
     ;; when processing a HEAD request, exit to return from PROCESS-REQUEST
     (when head-request-p
       (throw 'request-processed nil))
-    ;; now optional content
-    (when content
-      (write-sequence content *hunchentoot-stream*))
     (when chunkedp
       ;; turn chunking on after the headers have been sent
       (unless (typep *hunchentoot-stream* 'chunked-stream)
         (setq *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)))
       (setf (chunked-stream-output-chunking-p *hunchentoot-stream*) t))
     *hunchentoot-stream*))
+
+(defun send-response (acceptor stream status-code
+                      &key headers cookies content)
+  "Send a HTTP response to the STREAM and log the event in ACCEPTOR.
+  STATUS-CODE is the HTTP status code used in the response.  If
+  CONTENT-LENGTH, HEADERS and COOKIES are used to create the response
+  header.  If CONTENT is provided, it is sent as the response body.
+
+  If *HEADER-STREAM* is not NIL, the response headers are written to
+  that stream when they are written to the client.
+
+  STREAM is returned."
+  (when content
+    (setf (content-length*) (length content)))
+  (when (content-length*)
+    (if (assoc :content-length headers)
+        (setf (cdr (assoc :content-length headers)) (content-length*))
+        (push (cons :content-length (content-length*)) headers)))
+  ;; access log message
+  (acceptor-log-access acceptor
+                       :return-code status-code)
+  ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
+  (raw-post-data :force-binary t)
+  (let* ((client-header-stream (flex:make-flexi-stream stream :external-format :iso-8859-1))
+         (header-stream (if *header-stream*
+                            (make-broadcast-stream *header-stream* client-header-stream)
+                            client-header-stream)))
+    ;; start with status line
+    (format header-stream "HTTP/1.1 ~D ~A~C~C" status-code (reason-phrase status-code) #\Return #\Linefeed)
+    ;; write all headers from the REPLY object
+    (loop for (key . value) in headers
+       when value
+       do (write-header-line (as-capitalized-string key) value header-stream))
+    ;; now the cookies
+    (loop for (nil . cookie) in cookies
+       do (write-header-line "Set-Cookie" (stringify-cookie cookie) header-stream))
+    (format header-stream "~C~C" #\Return #\Linefeed))
+  ;; now optional content
+  (when content
+    (write-sequence content stream))
+  stream)
 
 (defun send-headers ()
   "Sends the initial status line and all headers as determined by the
@@ -229,7 +232,8 @@ protocol of the request."
          (unless url-string
            (send-bad-request-response stream)
            (return-from get-request-data nil))
-         (maybe-write-to-header-stream first-line)
+         (when *header-stream*
+           (format *header-stream* "~A~%" first-line))
          (let ((headers (and protocol (read-http-headers stream *header-stream*))))
            (unless protocol (setq protocol "HTTP/0.9"))
            ;; maybe handle 'Expect: 100-continue' header
@@ -245,8 +249,8 @@ protocol of the request."
                  (write-sequence +crlf+ stream)
                  (write-sequence +crlf+ stream)
                  (force-output stream)
-                 (maybe-write-to-header-stream continue-line)
-                 (maybe-write-to-header-stream ""))))
+                 (when *header-stream*
+                   (format *header-stream* "~A~%" continue-line)))))
            (values headers
                    (as-keyword method)
                    url-string
