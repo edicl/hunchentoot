@@ -145,9 +145,9 @@ Returns the stream that is connected to the client."
 (defun send-response (acceptor stream status-code
                       &key headers cookies content)
   "Send a HTTP response to the STREAM and log the event in ACCEPTOR.
-  STATUS-CODE is the HTTP status code used in the response.  If
-  CONTENT-LENGTH, HEADERS and COOKIES are used to create the response
-  header.  If CONTENT is provided, it is sent as the response body.
+  STATUS-CODE is the HTTP status code used in the response.  HEADERS
+  and COOKIES are used to create the response header.  If CONTENT is
+  provided, it is sent as the response body.
 
   If *HEADER-STREAM* is not NIL, the response headers are written to
   that stream when they are written to the client.
@@ -160,8 +160,7 @@ Returns the stream that is connected to the client."
         (setf (cdr (assoc :content-length headers)) (content-length*))
         (push (cons :content-length (content-length*)) headers)))
   ;; access log message
-  (acceptor-log-access acceptor
-                       :return-code status-code)
+  (acceptor-log-access acceptor :return-code status-code)
   ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
   (raw-post-data :force-binary t)
   (let* ((client-header-stream (flex:make-flexi-stream stream :external-format :iso-8859-1))
@@ -180,7 +179,8 @@ Returns the stream that is connected to the client."
     (format header-stream "~C~C" #\Return #\Linefeed))
   ;; now optional content
   (when content
-    (write-sequence content stream))
+    (write-sequence content stream)
+    (finish-output stream))
   stream)
 
 (defun send-headers ()

@@ -135,9 +135,9 @@
 
 (defun oops ()
   (with-html
-    (log-message :error "Oops \(error log level).")
-    (log-message :warning "Oops \(warning log level).")
-    (log-message :info "Oops \(info log level).")
+    (log-message* :error "Oops \(error log level).")
+    (log-message* :warning "Oops \(warning log level).")
+    (log-message* :info "Oops \(info log level).")
     (error "Errors were triggered on purpose.  Check your error log.")
     (:html
      (:body "You should never see this sentence..."))))

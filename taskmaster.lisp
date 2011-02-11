@@ -322,8 +322,7 @@ is set up via PROCESS-REQUEST."
     (send-response acceptor
                    (initialize-connection-stream acceptor (make-socket-stream socket acceptor))
                    +http-service-unavailable+
-                   :content "<html><head><title>Service unavailable</title></head><body><h1>Service unavailable</h1>Please try later.</body></html>"
-                   :headers '(("Content-Type" . "text/html")))))
+                   :content (acceptor-status-message acceptor +http-service-unavailable+))))
 
 #-:lispworks
 (defun client-as-string (socket)

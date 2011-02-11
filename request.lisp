@@ -224,12 +224,10 @@ doing."
                       (log-message* *lisp-errors-log-level* "~A~@[~%~A~]" error (when *log-lisp-backtraces-p*
                                                                                   backtrace)))
                     (start-output +http-internal-server-error+
-                                  (if *show-lisp-errors-p*
-                                      (format nil "<pre>~A~@[~%~%Backtrace:~%~%~A~]</pre>"
-                                              (escape-for-html (princ-to-string error))
-                                              (when *show-lisp-backtraces-p*
-                                                (escape-for-html (princ-to-string backtrace))))
-                                      "An error has occured"))))
+                                  (acceptor-status-message *acceptor*
+                                                           +http-internal-server-error+
+                                                           :error (princ-to-string error)
+                                                           :backtrace (princ-to-string backtrace)))))
                (multiple-value-bind (body error backtrace)
                    ;; skip dispatch if bad request
                    (when (eql (return-code *reply*) +http-ok+)
@@ -242,9 +240,9 @@ doing."
                    (handler-case
                        (with-debugger
                          (start-output (return-code *reply*)
-                                       (acceptor-handle-return-code *acceptor*
-                                                                    (return-code *reply*)
-                                                                    body)))
+                                       (or (acceptor-status-message *acceptor*
+                                                                    (return-code *reply*))
+                                           body)))
                      (error (e)
                        ;; error occured while writing to the client.  attempt to report.
                        (report-error-to-client e)))))))
