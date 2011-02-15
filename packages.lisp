@@ -139,6 +139,7 @@
            #-:hunchentoot-no-ssl #:ACCEPTOR-SSL-CERTIFICATE-FILE               
            #-:hunchentoot-no-ssl #:ACCEPTOR-SSL-PRIVATEKEY-FILE
            #-:hunchentoot-no-ssl #:ACCEPTOR-SSL-PRIVATEKEY-PASSWORD
+           #:ACCEPTOR-STATUS-MESSAGE
            #:ACCEPTOR-WRITE-TIMEOUT
            #:AUTHORIZATION
            #:AUX-REQUEST-VALUE
