@@ -339,6 +339,10 @@
         <a href="http://weitz.de/cl-webdav/">CL-WEBDAV</a> is a <a href="http://webdav.org/">WebDAV</a>
         server based on Hunchentoot.
       </li>
+      <li>
+        <a href="http://restas.lisper.ru/">RESTAS</a> is a web
+        framework based on Hunchentoot.
+      </li>
     </ul>
   </clix:chapter>
 
