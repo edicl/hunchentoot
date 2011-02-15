@@ -58,7 +58,6 @@
            #:*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*
            #:*LISP-ERRORS-LOG-LEVEL*
            #:*LISP-WARNINGS-LOG-LEVEL*
-           #:*LISTENER*
            #:*LOG-LISP-BACKTRACES-P*
            #:*LOG-LISP-ERRORS-P*
            #:*LOG-LISP-WARNINGS-P*
