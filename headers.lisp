@@ -53,6 +53,16 @@ writes them directly to the client as an HTTP header line.")
   (:method (key value stream)
     (write-header-line key (princ-to-string value) stream)))
 
+(defun maybe-add-charset-to-content-type-header (content-type external-format)
+  "Given the contents of a CONTENT-TYPE header, add a charset=
+  attribute describing the given EXTERNAL-FORMAT if no charset=
+  attribute is already present and the content type is a text content
+  type.  Returns the augmented content type."
+  (if (and (cl-ppcre:scan "(?i)^text" content-type)
+           (not (cl-ppcre:scan "(?i);\\s*charset=" content-type)))
+      (format nil "~A; charset=~(~A~)" content-type (flex:external-format-name external-format))
+      content-type))
+
 (defun start-output (return-code &optional (content nil content-provided-p))
   "Sends all headers and maybe the content body to
 *HUNCHENTOOT-STREAM*.  Returns immediately and does nothing if called
@@ -115,7 +125,9 @@ Returns the stream that is connected to the client."
       (setq content (maybe-rewrite-urls-for-session content)))
     (when (stringp content)
       ;; if the content is a string, convert it to the proper external format
-      (setf content (string-to-octets content :external-format (reply-external-format*))))
+      (setf content (string-to-octets content :external-format (reply-external-format*))
+            (content-type*) (maybe-add-charset-to-content-type-header (content-type*)
+                                                                      (reply-external-format*))))
     (when content
       ;; whenever we know what we're going to send out as content, set
       ;; the Content-Length header properly; maybe the user specified

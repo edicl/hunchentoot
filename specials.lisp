@@ -114,11 +114,11 @@ for cookie date format.")
   "The three-character names of the twelve months - needed for cookie
 date format.")
 
-(defvar *rewrite-for-session-urls* t
+(defparameter *rewrite-for-session-urls* t
   "Whether HTML pages should possibly be rewritten for cookie-less
 session-management.")
 
-(defvar *content-types-for-url-rewrite*
+(defparameter *content-types-for-url-rewrite*
   '("text/html" "application/xhtml+xml")
   "The content types for which url-rewriting is OK. See
 *REWRITE-FOR-SESSION-URLS*.")
@@ -154,20 +154,20 @@ the file is created.")
 (defvar *session-db* nil
   "The default \(global) session database.")
 
-(defvar *session-max-time* #.(* 30 60)
+(defparameter *session-max-time* #.(* 30 60)
   "The default time \(in seconds) after which a session times out.")
 
-(defvar *session-gc-frequency* 50
+(defparameter *session-gc-frequency* 50
   "A session GC \(see function SESSION-GC) will happen every
 *SESSION-GC-FREQUENCY* requests \(counting only requests which create
 a new session) if this variable is not NIL.  See SESSION-CREATED.")
 
-(defvar *use-user-agent-for-sessions* t
+(defparameter *use-user-agent-for-sessions* t
   "Whether the 'User-Agent' header should be encoded into the session
 string.  If this value is true, a session will cease to be accessible
 if the client sends a different 'User-Agent' header.")
 
-(defvar *use-remote-addr-for-sessions* nil
+(defparameter *use-remote-addr-for-sessions* nil
   "Whether the client's remote IP \(as returned by REAL-REMOTE-ADDR)
 should be encoded into the session string.  If this value is true, a
 session will cease to be accessible if the client's remote IP changes.
@@ -175,39 +175,42 @@ session will cease to be accessible if the client's remote IP changes.
 This might for example be an issue if the client uses a proxy server
 which doesn't send correct 'X_FORWARDED_FOR' headers.")
 
-(defvar *default-content-type* "text/html; charset=iso-8859-1"
-  "The default content-type header which is returned to the client.")
+(defparameter *default-content-type* "text/html"
+  "The default content-type header which is returned to the client.
+If this is text content type, the character set used for encoding the
+response will automatically be added to the content type in a
+``charset'' attribute.")
 
-(defvar *methods-for-post-parameters* '(:post)
+(defparameter *methods-for-post-parameters* '(:post)
   "A list of the request method types \(as keywords) for which
 Hunchentoot will try to compute POST-PARAMETERS.")
 
-(defvar *header-stream* nil
+(defparameter *header-stream* nil
   "If this variable is not NIL, it should be bound to a stream to
 which incoming and outgoing headers will be written for debugging
 purposes.")
 
-(defvar *show-lisp-errors-p* nil
+(defparameter *show-lisp-errors-p* nil
   "Whether Lisp errors in request handlers should be shown in HTML output.")
 
-(defvar *show-lisp-backtraces-p* t
+(defparameter *show-lisp-backtraces-p* t
   "Whether Lisp errors shown in HTML output should contain backtrace information.")
 
-(defvar *log-lisp-errors-p* t
+(defparameter *log-lisp-errors-p* t
   "Whether Lisp errors in request handlers should be logged.")
 
-(defvar *log-lisp-backtraces-p* t
+(defparameter *log-lisp-backtraces-p* t
   "Whether Lisp backtraces should be logged.  Only has an effect if
 *LOG-LISP-ERRORS-P* is true as well.")
 
-(defvar *log-lisp-warnings-p* t
+(defparameter *log-lisp-warnings-p* t
   "Whether Lisp warnings in request handlers should be logged.")
 
-(defvar *lisp-errors-log-level* :error
+(defparameter *lisp-errors-log-level* :error
   "Log level for Lisp errors.  Should be one of :ERROR \(the default),
 :WARNING, or :INFO.")
 
-(defvar *lisp-warnings-log-level* :warning
+(defparameter *lisp-warnings-log-level* :warning
   "Log level for Lisp warnings.  Should be one of :ERROR, :WARNING
 \(the default), or :INFO.")
 
@@ -219,7 +222,7 @@ the ACCEPTOR-LOG-MESSAGE function.")
   "A global lock to prevent concurrent access to the log file used by
 the ACCEPTOR-LOG-ACCESS function.")
 
-(defvar *catch-errors-p* t
+(defparameter *catch-errors-p* t
   "Whether Hunchentoot should catch and log errors \(or rather invoke
 the debugger).")
 
@@ -243,7 +246,7 @@ the debugger).")
   #+:openmcl "http://openmcl.clozure.com/"
   "A link to the website of the underlying Lisp implementation.")
 
-(defvar *tmp-directory*
+(defparameter *tmp-directory*
   #+(or :win32 :mswindows) "c:\\hunchentoot-temp\\"
   #-(or :win32 :mswindows) "/tmp/hunchentoot/"
   "Directory for temporary files created by MAKE-TMP-FILE-NAME.")
@@ -261,13 +264,13 @@ output of binary data.")
   "A FLEXI-STREAMS external format used internally for logging and to
 encode cookie values.")
 
-(defvar *hunchentoot-default-external-format* +latin-1+
+(defparameter *hunchentoot-default-external-format* +utf-8+
   "The external format used to compute the REQUEST object.")
 
 (defconstant +buffer-length+ 8192
   "Length of buffers used for internal purposes.")
 
-(defvar *default-connection-timeout* 20
+(defparameter *default-connection-timeout* 20
   "The default connection timeout used when an acceptor is reading
 from and writing to a socket stream.")
 
@@ -292,7 +295,7 @@ performing a cleanup run.")
 ;; see <http://common-lisp.net/project/hyperdoc/>
 ;; and <http://www.cliki.net/hyperdoc>
 
-(defvar *hyperdoc-base-uri* "http://weitz.de/hunchentoot/")
+(defparameter *hyperdoc-base-uri* "http://weitz.de/hunchentoot/")
 
 (let ((exported-symbols-alist
        (loop for symbol being the external-symbols of :hunchentoot
