@@ -642,6 +642,7 @@ handler."
            (when error-file-template-pathname
              (with-open-file (file error-file-template-pathname :if-does-not-exist nil :element-type 'character)
                (when file
+                 (setf (content-type*) "text/html")
                  (substitute-request-context-variables (file-contents file))))))))
     (or (unless (< 300 http-status-code)
           (call-next-method))           ; don't ever try template for positive return codes
