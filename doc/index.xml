@@ -459,6 +459,19 @@
           </clix:returns>
         </clix:listed-reader>
 
+        <clix:listed-reader generic='true' name='acceptor-ssl-certificate-file'>
+          <clix:lambda-list>listen-backlog
+          </clix:lambda-list>
+          <clix:returns>number-of-pending-connections
+          </clix:returns>
+        </clix:listed-reader>
+
+        <clix:description>
+          Number of pending connections allowed in the listen socket
+          before the kernel rejects further incoming connections.
+          Non-LispWorks only.
+        </clix:description>
+
         <clix:listed-reader generic='true' name='acceptor-write-timeout'>
           <clix:lambda-list>acceptor
           </clix:lambda-list>

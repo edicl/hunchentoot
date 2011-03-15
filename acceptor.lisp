@@ -114,6 +114,12 @@ process different from the one where START was called.")
                   :accessor acceptor-listen-socket
                   :documentation "The socket listening for incoming
 connections.")
+   #-:lispworks
+   (listen-backlog :initarg :listen-backlog
+		   :reader acceptor-listen-backlog
+		   :documentation "Number of pending connections
+          allowed in the listen socket before the kernel rejects
+          further incoming connections.")
    (acceptor-shutdown-p :initform nil
                         :accessor acceptor-shutdown-p
                         :documentation "A flag that makes the acceptor
@@ -164,6 +170,7 @@ acceptor-dispatch-request method handles the request."))
    :name (gensym)
    :request-class 'request
    :reply-class 'reply
+   :listen-backlog 50
    :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-taskmaster)
                                     (t 'single-threaded-taskmaster)))
    :output-chunking-p t
@@ -458,6 +465,7 @@ catches during request processing."
                                    usocket:*wildcard-host*)
                                (acceptor-port acceptor)
                                :reuseaddress t
+			       :backlog (acceptor-listen-backlog acceptor)
                                :element-type '(unsigned-byte 8)))
   (values))
 
