@@ -476,7 +476,7 @@
       </clix:readers>
 
       <clix:accessors generic='true'>
-        <clix:listed-accessor generic='true' name='acceptor-access-log-pathname'>
+        <clix:listed-accessor generic='true' name='acceptor-access-log-destination'>
           <clix:lambda-list>acceptor
           </clix:lambda-list>
           <clix:returns>(or pathname null)
@@ -497,7 +497,7 @@
           </clix:returns>
         </clix:listed-accessor>
 
-        <clix:listed-accessor generic='true' name='acceptor-message-log-pathname'>
+        <clix:listed-accessor generic='true' name='acceptor-message-log-destination'>
           <clix:lambda-list>acceptor
           </clix:lambda-list>
           <clix:returns>(or pathname null)
@@ -2767,19 +2767,22 @@
     </clix:subchapter>
 
     <clix:subchapter name="logging" title="Logging">
-      Hunchentoot can log accesses and diagnostic messages to two separate
-      files in the file system.  Logging to files is enabled and disabled by
-      setting the <clix:code>ACCESS-LOG-PATHNAME</clix:code> and
-      <clix:code>MESSAGE-LOG-PATHNAME</clix:code> slots in the
-      <clix:ref>ACCEPTOR</clix:ref> instance of the running server, either
-      by providing the :ACCESS-LOG-PATHNAME and :MESSAGE-LOG-PATHNAME
-      initialization arguments when creating the acceptor or by setting the
-      slots through its <clix:ref>ACCEPTOR-MESSAGE-LOG-PATHNAME</clix:ref>
-      and <clix:ref>ACCEPTOR-ACCESS-LOG-PATHNAME</clix:ref> accessors.
+      Hunchentoot can log accesses and diagnostic messages to two
+      separate destinations, which can be either files in the file
+      system or streams.  Logging can also be disabled by setting the
+      <clix:code>ACCESS-LOG-DESTINATION</clix:code> and
+      <clix:code>MESSAGE-LOG-DESTINATION</clix:code> slots in the
+      <clix:ref>ACCEPTOR</clix:ref> instance of the running server,
+      either by providing the :ACCESS-LOG-DESTINATION and
+      :MESSAGE-LOG-DESTINATION initialization arguments when creating the
+      acceptor or by setting the slots through its
+      <clix:ref>ACCEPTOR-MESSAGE-LOG-DESTINATION</clix:ref> and
+      <clix:ref>ACCEPTOR-ACCESS-LOG-DESTINATION</clix:ref> accessors.
       <p>
-        When the path for the message or accept log is set to NIL,
-        hunchentoots writes corresponding log entries to the *ERROR-OUTPUT* of
-        the running Lisp.  This is the default.
+        When the path for the message or accept log is set to a
+        variable holding an output stream, hunchentoots writes
+        corresponding log entries to that stream.  By default,
+        Hunchentoot logs to *STANDARD-ERROR*.
       </p>
       <p>
         Access logging is done in a format similar to what
@@ -2798,9 +2801,10 @@
         file format.
       </p>
       <p>
-        Errors happening within a <a href="#handlers">handler</a> which are
-        not caught by the handler itself are handled by Hunchentoot by logging
-        them to the log file.
+        Errors happening within a <a href="#handlers">handler</a>
+        which are not caught by the handler itself are handled by
+        Hunchentoot by logging them to the established
+        <clix:ref>ACCEPTOR-MESSAGE-LOG-DESTINATION</clix:ref>.
       </p>
 
       <clix:function name='log-message*'>

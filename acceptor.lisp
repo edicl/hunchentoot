@@ -131,17 +131,20 @@ have been processed.")
                   :accessor acceptor-shutdown-lock
                   :documentation "The lock protecting the shutdown-queue
 condition variable and the requests-in-progress counter.")
-   (access-log-pathname :initarg :access-log-pathname
-                        :accessor acceptor-access-log-pathname
-                        :documentation "Pathname of the access log
-file which contains one log entry per request handled in a format
-   similar to Apache's access.log.")
-   (message-log-pathname :initarg :message-log-pathname
-                         :accessor acceptor-message-log-pathname
-                         :documentation "Pathname of the server error
-log file which is used to log informational,
-warning and error messages in a free-text
-format intended for human inspection")
+   (access-log-destination :initarg :access-log-destination
+                        :accessor acceptor-access-log-destination
+                        :documentation "Destination of the access log
+which contains one log entry per request handled in a format similar
+to Apache's access.log.  Can be set to a pathname or string
+designating the log file, to a open output stream or to NIL to
+suppress logging.")
+   (message-log-destination :initarg :message-log-destination
+                         :accessor acceptor-message-log-destination
+                         :documentation "Destination of the server
+error log which is used to log informational, warning and error
+messages in a free-text format intended for human inspection. Can be
+set to a pathname or string designating the log file, to a open output
+stream or to NIL to suppress logging.")
    (error-template-directory :initarg :error-template-directory
                              :accessor acceptor-error-template-directory
                              :documentation "Directory pathname that
@@ -168,8 +171,8 @@ acceptor-dispatch-request method handles the request."))
    :persistent-connections-p t
    :read-timeout *default-connection-timeout*
    :write-timeout *default-connection-timeout*
-   :access-log-pathname nil
-   :message-log-pathname nil
+   :access-log-destination *error-output*
+   :message-log-destination *error-output*
    :document-root (load-time-value (default-document-directory))
    :error-template-directory (load-time-value (default-document-directory "errors/")))
   (:documentation "To create a Hunchentoot webserver, you make an
@@ -399,11 +402,11 @@ functions to find out more information about the request."))
 
 (defmethod acceptor-log-access ((acceptor acceptor) &key return-code)
   "Default method for access logging.  It logs the information to the
-file determined by (ACCEPTOR-ACCESS-LOG-PATHNAME ACCEPTOR) \(unless
-that value is NIL) in a format that can be parsed by most Apache log
-analysis tools.)"
+destination determined by (ACCEPTOR-ACCESS-LOG-DESTINATION ACCEPTOR)
+\(unless that value is NIL) in a format that can be parsed by most
+Apache log analysis tools.)"
 
-  (with-open-file-or-console (stream (acceptor-access-log-pathname acceptor) *access-log-lock*)
+  (with-log-stream (stream (acceptor-access-log-destination acceptor) *access-log-lock*)
     (format stream "~:[-~@[ (~A)~]~;~:*~A~@[ (~A)~]~] ~:[-~;~:*~A~] [~A] \"~A ~A~@[?~A~] ~
                     ~A\" ~D ~:[-~;~:*~D~] \"~:[-~;~:*~A~]\" \"~:[-~;~:*~A~]\"~%"
             (remote-addr*)
@@ -428,10 +431,10 @@ arguments."))
 
 (defmethod acceptor-log-message ((acceptor acceptor) log-level format-string &rest format-arguments)
   "Default function to log server messages.  Sends a formatted message
-  to the file denoted by (ACCEPTOR-MESSAGE-LOG-PATHNAME ACCEPTOR).  FORMAT and
-  ARGS are as in FORMAT.  LOG-LEVEL is a keyword denoting the log
-  level or NIL in which case it is ignored."
-  (with-open-file-or-console (stream (acceptor-message-log-pathname acceptor) *message-log-lock*)
+  to the destination denoted by (ACCEPTOR-MESSAGE-LOG-DESTINATION
+  ACCEPTOR).  FORMAT and ARGS are as in FORMAT.  LOG-LEVEL is a
+  keyword denoting the log level or NIL in which case it is ignored."
+  (with-log-stream (stream (acceptor-message-log-destination acceptor) *message-log-lock*)
     (format stream "[~A~@[ [~A]~]] ~?~%"
             (iso-time) log-level
             format-string format-arguments)))

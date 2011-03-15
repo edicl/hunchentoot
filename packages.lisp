@@ -39,7 +39,6 @@
   #+:lispworks
   (:import-from :lw #:WITH-UNIQUE-NAMES #:WHEN-LET)
   (:export #:*ACCEPTOR*
-           #:*ACCESS-LOG-PATHNAME*
            #:*APPROVED-RETURN-CODES*
            #:*CATCH-ERRORS-P*
            #+:lispworks
@@ -61,7 +60,6 @@
            #:*LOG-LISP-BACKTRACES-P*
            #:*LOG-LISP-ERRORS-P*
            #:*LOG-LISP-WARNINGS-P*
-           #:*MESSAGE-LOG-PATHNAME*
            #:*METHODS-FOR-POST-PARAMETERS*
            #:*REPLY*
            #:*REQUEST*
@@ -121,14 +119,14 @@
            #:ABORT-REQUEST-HANDLER
            #:ACCEPT-CONNECTIONS
            #:ACCEPTOR
-           #:ACCEPTOR-ACCESS-LOG-PATHNAME
+           #:ACCEPTOR-ACCESS-LOG-DESTINATION
            #:ACCEPTOR-ADDRESS
            #:ACCEPTOR-DISPATCH-REQUEST
            #:ACCEPTOR-ERROR-TEMPLATE-DIRECTORY
            #:ACCEPTOR-INPUT-CHUNKING-P
            #:ACCEPTOR-LOG-ACCESS
            #:ACCEPTOR-LOG-MESSAGE
-           #:ACCEPTOR-MESSAGE-LOG-PATHNAME
+           #:ACCEPTOR-MESSAGE-LOG-DESTINATION
            #:ACCEPTOR-NAME
            #:ACCEPTOR-OUTPUT-CHUNKING-P
            #:ACCEPTOR-PERSISTENT-CONNECTIONS-P

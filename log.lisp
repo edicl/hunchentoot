@@ -29,30 +29,40 @@
 
 (in-package :hunchentoot)
 
-(defmacro with-open-file-or-console ((stream-var pathname lock) &body body)
+(defmacro with-log-stream ((stream-var destination lock) &body body)
   "Helper macro to write log entries.  STREAM-VAR is a symbol that
 will be bound to the logging stream during the execution of BODY.
-PATHNAME is the pathname designator of the log file or NIL if logging
-should be done to *ERROR-OUTPUT*.  LOCK refers to the lock that should
-be held during the logging operation.  If PATHNAME is not NIL, a flexi
-stream with UTF-8 encoding will be created and bound to STREAM-VAR.
-If an error occurs while writing to the log file, that error will be
-logged to *ERROR-OUTPUT*."
+DESTINATION is the logging destination, which can be either a pathname
+designator of the log file, a symbol designating an open stream or NIL
+if logging should be done to *ERROR-OUTPUT*.  LOCK refers to the lock
+that should be held during the logging operation.  If DESTINATION is a
+pathname, a flexi stream with UTF-8 encoding will be created and
+bound to STREAM-VAR.  If an error occurs while writing to the log
+file, that error will be logged to *ERROR-OUTPUT*.
+
+Note that logging to a file involves opening and closing the log file
+for every logging operation, which is overall costly.  Web servers
+with high throughput demands should make use of a specialized logging
+function rather than relying on Hunchentoot's default logging
+facility."
   (with-unique-names (binary-stream)
-    (with-rebinding (pathname)
+    (with-rebinding (destination)
       (let ((body body))
-        `(if ,pathname
-             (with-lock-held (,lock)
-               (with-open-file (,binary-stream ,pathname
-                                               :direction :output
-                                               :element-type 'octet
-                                               :if-does-not-exist :create
-                                               :if-exists :append
-                                               #+:openmcl #+:openmcl
-                                               :sharing :lock)
-                 (let ((,stream-var (make-flexi-stream ,binary-stream :external-format +utf-8+)))
-                   ,@body)))
-             (let ((,stream-var *error-output*))
-               (prog1 (progn ,@body)
-                 (finish-output *error-output*))))))))
+        `(when ,destination
+           (with-lock-held (,lock)
+             (etypecase ,destination
+               ((or string pathname)
+                (with-open-file (,binary-stream ,destination
+                                                :direction :output
+                                                :element-type 'octet
+                                                :if-does-not-exist :create
+                                                :if-exists :append
+                                                #+:openmcl #+:openmcl
+                                                :sharing :lock)
+                  (let ((,stream-var (make-flexi-stream ,binary-stream :external-format +utf-8+)))
+                    ,@body)))
+               (stream
+                (let ((,stream-var ,destination))
+                  (prog1 (progn ,@body)
+                    (finish-output *error-output*)))))))))))
   
