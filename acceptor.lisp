@@ -120,7 +120,7 @@ connections.")
 		   :documentation "Number of pending connections
           allowed in the listen socket before the kernel rejects
           further incoming connections.")
-   (acceptor-shutdown-p :initform nil
+   (acceptor-shutdown-p :initform t
                         :accessor acceptor-shutdown-p
                         :documentation "A flag that makes the acceptor
 shutdown itself when set to something other than NIL.")
@@ -266,6 +266,7 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 ;; general implementation
 
 (defmethod start ((acceptor acceptor))
+  (setf (acceptor-shutdown-p acceptor) nil)
   (start-listening acceptor)
   (let ((taskmaster (acceptor-taskmaster acceptor)))
     (setf (taskmaster-acceptor taskmaster) acceptor)
