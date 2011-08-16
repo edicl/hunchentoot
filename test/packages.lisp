@@ -29,10 +29,10 @@
 
 (in-package :cl-user)
 
-(defpackage "HUNCHENTOOT-TEST"
-  (:nicknames "TBNL-TEST")
+(defpackage #:hunchentoot-test
+  (:nicknames #:tbnl-test)
   (:use :cl :cl-who :hunchentoot)
-  (:export "TEST-HUNCHENTOOT"))
+  (:export #:test-hunchentoot))
   
-(defpackage "HUNCHENTOOT-TEST-USER"
+(defpackage #:hunchentoot-test-user
   (:use :cl :hunchentoot))
