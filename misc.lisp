@@ -159,16 +159,16 @@ via the file's suffix."
   (let ((time (or (file-write-date pathname)
                   (get-universal-time)))
         bytes-to-send)
+    (setf (content-type*) (or content-type
+                              (mime-type pathname)
+                              "application/octet-stream")
+          (header-out :last-modified) (rfc-1123-date time))
     (handle-if-modified-since time)
     (with-open-file (file pathname
                           :direction :input
                           :element-type 'octet
                           :if-does-not-exist nil)
-      (setf (content-type*) (or content-type
-                                (mime-type pathname)
-                                "application/octet-stream")
-            (header-out :content-range) (format nil "bytes 0-~D/*" (file-length file))
-            (header-out :last-modified) (rfc-1123-date time)
+      (setf (header-out :content-range) (format nil "bytes 0-~D/*" (1- (file-length file)))
             bytes-to-send (maybe-handle-range-header file)
             (content-length*) bytes-to-send)
       (let ((out (send-headers))
