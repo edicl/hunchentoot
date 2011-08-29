@@ -136,7 +136,7 @@ expecting certain responses."
     (let* ((range-test-file-size (* 256 1024))  ; large enough to have hunchentoot use multiple buffers when reading back data, should be aligned to 1024
            (range-test-buffer (make-array range-test-file-size :element-type '(unsigned-byte 8)))
            (uploaded-file-url "files/?path=user-stream") ; The uploaded file will appear under the name "user-stream" in hunchentoot
-           (expected-content-range (format nil "bytes 0-~D/*" range-test-file-size)))
+           (expected-content-range (format nil "bytes 0-~D/*" (1- range-test-file-size))))
 
       (dotimes (i range-test-file-size)
          (setf (aref range-test-buffer i) (random 256)))
@@ -156,7 +156,7 @@ expecting certain responses."
       (http-request uploaded-file-url :range '(0 0))
       (http-assert 'status-code 206)
       (http-assert 'body 'equalp (subseq range-test-buffer 0 1))
-      (http-assert-header :content-range expected-content-range)
+      (http-assert-header :content-range (format nil "bytes 0-0"))
 
       (say " End out of range")
       (http-request uploaded-file-url :range (list 0 range-test-file-size))
@@ -175,7 +175,7 @@ expecting certain responses."
         (http-request uploaded-file-url :range (list start-offset (1- length)))
         (http-assert 'status-code 206)
         (http-assert 'body 'equalp (subseq range-test-buffer start-offset length))
-        (http-assert-header :content-range expected-content-range)))
+        (http-assert-header :content-range (format nil "bytes ~D-~D" start-offset (1- length)))))
 
 
     (values)))
