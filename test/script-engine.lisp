@@ -168,9 +168,10 @@ from the expansion environment."
                           cookie-jar
                           basic-authorization
                           parameters
-                          external-format-out)
+                          external-format-out
+                          additional-headers)
   (declare (ignore protocol method content content-type content-length cookie-jar basic-authorization
-                   range parameters external-format-out))
+                   range parameters external-format-out additional-headers))
   (setf *last-reply* (make-instance 'http-reply))
   (with-slots (body status-code headers uri stream close) *last-reply*
     (setf (values body status-code headers uri stream close)

@@ -72,20 +72,26 @@ expecting certain responses."
       (http-assert-body "\(HUNCHENTOOT-TEST::BAR . &quot;DEF&quot;\)"))
 
     (say "Test GET parameters with foreign characters (Latin-1)")
-    (http-request "parameter_latin1_get.html?foo=H%FChner")
+    (http-request "parameter_latin1_get.html"
+                  :external-format-out :iso-8859-1
+                  :parameters (list (cons "foo" (format nil "H~Chner" #.(code-char 252))))
+                  :additional-headers '(("Content-Type" . "text/plain; charset=iso-8859-1")))
     (http-assert-header :content-type "text/html; charset=ISO-8859-1")
     (http-assert-body "(72 252 104 110 101 114)")
     (http-assert-body "&quot;H&#xFC;hner&quot;")
 
     (say "Test POST parameters with foreign characters (Latin-1)")
     (http-request "parameter_latin1_post.html"
+                  :external-format-out :iso-8859-1
                   :method :post :parameters (list (cons "foo" (format nil "H~Chner" #.(code-char 252)))))
     (http-assert-header :content-type "text/html; charset=ISO-8859-1")
     (http-assert-body "(72 252 104 110 101 114)")
     (http-assert-body "&quot;H&#xFC;hner&quot;")
 
     (say "Test GET parameters with foreign characters (UTF-8)")
-    (http-request "parameter_utf8_get.html?foo=H%C3%BChner")
+    (http-request "parameter_utf8_get.html"
+                  :external-format-out :utf-8
+                  :parameters (list (cons "foo" (format nil "H~Chner" #.(code-char 252)))))
     (http-assert-header :content-type "text/html; charset=UTF-8")
     (http-assert-body "(72 252 104 110 101 114)")
     (http-assert-body "&quot;H&#xFC;hner&quot;")

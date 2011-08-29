@@ -196,7 +196,8 @@ slot values are computed in this :AFTER method."
           ;; compute GET parameters from query string and cookies from
           ;; the incoming 'Cookie' header
           (setq get-parameters
-                (form-url-encoded-list-to-alist (split "&" query-string))
+                (let ((*substitution-char* #\?))
+                  (form-url-encoded-list-to-alist (split "&" query-string)))
                 cookies-in
                 (form-url-encoded-list-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
                                                                                   :test #'eq)))
