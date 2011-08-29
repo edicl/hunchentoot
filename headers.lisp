@@ -224,13 +224,16 @@ not want to wait for another request any longer."
           (read-line* stream)))
     ((or end-of-file #-:lispworks usocket:timeout-error) ())))
 
-(defun send-bad-request-response (stream)
+(defun send-bad-request-response (stream &optional additional-info)
   "Send a ``Bad Request'' response to the client."
   (write-sequence (flex:string-to-octets
-                   (format nil "HTTP/1.0 ~D ~A~C~CConnection: close~C~C~C~CYour request could not be interpreted by this HTTP server~C~C"
+                   (format nil "HTTP/1.0 ~D ~A~C~CConnection: close~C~C~C~CYour request could not be interpreted by this HTTP server~C~C~@[~A~]~C~C"
                            +http-bad-request+ (reason-phrase +http-bad-request+) #\Return #\Linefeed
-                           #\Return #\Linefeed #\Return #\Linefeed #\Return #\Linefeed))
+                           #\Return #\Linefeed #\Return #\Linefeed #\Return #\Linefeed additional-info #\Return #\Linefeed))
                   stream))
+
+(defun printable-ascii-char-p (char)
+  (<= 32 (char-code char) 126))
   
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
@@ -239,6 +242,9 @@ protocol of the request."
   (with-character-stream-semantics
    (let ((first-line (read-initial-request-line stream)))
      (when first-line
+       (unless (every #'printable-ascii-char-p first-line)
+         (send-bad-request-response stream "Non-ASCII character in request line")
+         (return-from get-request-data nil))
        (destructuring-bind (&optional method url-string protocol)
            (split "\\s+" first-line :limit 3)
          (unless url-string
