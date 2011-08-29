@@ -136,7 +136,8 @@ had returned RESULT.  See the source code of REDIRECT for an example."
             end (parse-integer end))
       (when (or (< start 0)
                 (>= end (file-length file)))
-        (setf (return-code*) +http-requested-range-not-satisfiable+)
+        (setf (return-code*) +http-requested-range-not-satisfiable+
+              (header-out :content-range) (format nil "bytes 0-~D/*" (1- (file-length file))))
         (throw 'handler-done
           (format nil "invalid request range (requested ~D-~D, accepted 0-~D)"
                   start end (1- (file-length file)))))
