@@ -546,8 +546,7 @@ handler."
                     (when *headers-sent*
                       (setq *close-hunchentoot-stream* t))
                     (throw 'handler-done
-                      (values nil cond (when (or *log-lisp-backtraces-p* *show-lisp-backtraces-p*)
-                                         (get-backtrace))))))
+                      (values nil cond (get-backtrace)))))
                  (warning
                   (lambda (cond)
                     (when *log-lisp-warnings-p*
