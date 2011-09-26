@@ -29,11 +29,11 @@
 
 (in-package :cl-user)
 
-(defpackage "URL-REWRITE"
+(defpackage #:url-rewrite
   (:use :cl)
-  (:export "*URL-REWRITE-TAGS*"
-           "*URL-REWRITE-FILL-TAGS*"
-           "STARTS-WITH-SCHEME-P"
-           "ADD-GET-PARAM-TO-URL"
-           "REWRITE-URLS"
-           "URL-ENCODE"))
+  (:export #:*url-rewrite-tags*
+           #:*url-rewrite-fill-tags*
+           #:starts-with-scheme-p
+           #:add-get-param-to-url
+           #:rewrite-urls
+           #:url-encode))
