@@ -623,6 +623,11 @@ handler."
       (log-message* :error "error ~A during error processing, sending cooked message to client" e)
       (apply 'make-cooked-message http-status-code args))))
 
+(defun string-as-keyword (string)
+  "Intern STRING as keyword using the reader so that case conversion is done with the reader defaults."
+  (let ((*package* (find-package :keyword)))
+    (read-from-string string)))
+
 (defmethod acceptor-status-message ((acceptor acceptor) http-status-code &rest properties &key &allow-other-keys)
   "Default function to generate error message sent to the client."
   (labels
@@ -636,10 +641,9 @@ handler."
                                        string
                                        (lambda (target-string start end match-start match-end reg-starts reg-ends)
                                          (declare (ignore start end match-start match-end))
-                                         (let ((variable-name (intern (string-upcase (subseq target-string
-                                                                                             (aref reg-starts 0)
-                                                                                             (aref reg-ends 0)))
-                                                                      :keyword)))
+                                         (let ((variable-name (string-as-keyword (subseq target-string
+                                                                                         (aref reg-starts 0)
+                                                                                         (aref reg-ends 0)))))
                                            (escape-for-html (princ-to-string (getf properties variable-name variable-name))))))))
        (file-contents (file)
          (let ((buf (make-string (file-length file))))
