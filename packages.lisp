@@ -140,6 +140,8 @@
            #-:hunchentoot-no-ssl #:acceptor-ssl-privatekey-password
            #:acceptor-status-message
            #:acceptor-write-timeout
+           #:acceptor-document-root
+           #:acceptor-error-template-directory
            #:authorization
            #:aux-request-value
            #:content-length
