@@ -39,7 +39,6 @@
   #+:lispworks
   (:import-from :lw #:with-unique-names #:when-let)
   (:export #:*acceptor*
-           #:*approved-return-codes*
            #:*catch-errors-p*
            #+:lispworks
            #:*cleanup-function*
@@ -142,6 +141,7 @@
            #:acceptor-write-timeout
            #:authorization
            #:aux-request-value
+           #:client-as-string
            #:content-length
            #:content-length*
            #:content-type
@@ -162,7 +162,9 @@
            #:create-folder-dispatcher-and-handler
            #:create-prefix-dispatcher
            #:create-regex-dispatcher
+           #:create-request-handler-thread
            #:create-static-file-dispatcher-and-handler
+           #:decrement-taskmaster-request-count
            #:default-document-directory
            #:define-easy-handler
            #:delete-aux-request-value
@@ -190,6 +192,7 @@
            #:hunchentoot-condition
            #:hunchentoot-error
            #:hunchentoot-warning
+           #:increment-taskmaster-request-count
            #:initialize-connection-stream
            #:log-message*
            #:maybe-invoke-debugger
@@ -265,12 +268,11 @@
            #:stop
            #:taskmaster
            #:taskmaster-acceptor
+           #:taskmaster-max-accept-count
+           #:taskmaster-max-thread-count
+           #:taskmaster-request-count
+           #:too-many-taskmaster-requests
            #:url-decode
            #:url-encode
            #:user-agent
            #:within-request-p))
-
-(defpackage :simple-hunchentoot
-  (:use #:cl)
-  (:export #:start-server
-           #:stop-server))
