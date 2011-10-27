@@ -257,7 +257,7 @@ Might be a good place for around methods specialized for your subclass
 of ACCEPTOR which bind or rebind special variables which can then be
 accessed by your handlers."))
 
-(defgeneric acceptor-ssl-p (acceptor) 
+(defgeneric acceptor-ssl-p (acceptor)
   (:documentation "Returns a true value if ACCEPTOR uses SSL
 connections.  The default is to unconditionally return NIL and
 subclasses of ACCEPTOR must specialize this method to signal that
@@ -279,7 +279,7 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   (when soft
     (with-lock-held ((acceptor-shutdown-lock acceptor))
       (when (plusp (accessor-requests-in-progress acceptor))
-        (condition-variable-wait (acceptor-shutdown-queue acceptor) 
+        (condition-variable-wait (acceptor-shutdown-queue acceptor)
                                  (acceptor-shutdown-lock acceptor)))))
   (#+:lispworks close
    #-:lispworks usocket:socket-close
@@ -395,7 +395,7 @@ chunked encoding, but acceptor is configured to not use it.")))))
           (force-output *hunchentoot-stream*))
         (ignore-errors*
           (close *hunchentoot-stream* :abort t))))))
-  
+
 (defmethod acceptor-ssl-p ((acceptor t))
   ;; the default is to always answer "no"
   nil)
@@ -478,7 +478,7 @@ catches during request processing."
        (return))
      (when (usocket:wait-for-input listener :ready-only t :timeout +new-connection-wait-time+)
        (when-let (client-connection
-                  (handler-case (usocket:socket-accept listener)                               
+                  (handler-case (usocket:socket-accept listener)
                     ;; ignore condition
                     (usocket:connection-aborted-error ())))
          (set-timeouts client-connection
@@ -611,7 +611,10 @@ handler."
                            (escape-for-html (princ-to-string error))
                            (when *show-lisp-backtraces-p*
                              (escape-for-html (princ-to-string backtrace))))
-           (cooked-message "An error has occured"))))))
+           (cooked-message "An error has occurred")))
+      (t
+         (when (<= 400 http-status-code)
+           (cooked-message "An error has occurred"))))))
 
 (defmethod acceptor-status-message ((acceptor t) http-status-code &rest args &key &allow-other-keys)
   (apply 'make-cooked-message http-status-code args))
