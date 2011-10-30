@@ -33,7 +33,7 @@
 (asdf:oos 'asdf:load-op :hunchentoot-test)
 
 (defun run-tests ()
-  (format t "~&;; Starting web server on localhost:4242.")
+  (format t "~&;; Starting web server on localhost:~A." *test-port*)
   (force-output)
   (let ((server (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port *test-port*))))
     (unwind-protect
