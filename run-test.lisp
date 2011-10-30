@@ -31,19 +31,57 @@
 (defparameter *test-port* 4241)
 
 (asdf:oos 'asdf:load-op :hunchentoot-test)
-(format t "~&;; Starting web server on localhost:4242.")
-(force-output)
-(let ((server (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port *test-port*))))
-  (unwind-protect
-       (progn
-         (format t "~&;; Sleeping 2 seconds to give the server some time to start...")
-         (force-output)
-         (sleep 2)
-         (format t "~&;; Now running confidence tests.")
-         (force-output)
-         (hunchentoot-test:test-hunchentoot (format nil "http://localhost:~A" *test-port*)))
-    (format t "~&;; Stopping server.")
-    (force-output)
-    (hunchentoot:stop server)
-    (format t "~&;; Cleaning temporary files.")
-    (hunchentoot-test::clean-tmp-dir)))
+
+(defun run-tests ()
+  (format t "~&;; Starting web server on localhost:4242.")
+  (force-output)
+  (let ((server (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port *test-port*))))
+    (unwind-protect
+         (progn
+           (format t "~&;; Sleeping 2 seconds to give the server some time to start...")
+           (force-output)
+           (sleep 2)
+           (format t "~&;; Now running confidence tests.")
+           (force-output)
+           (hunchentoot-test:test-hunchentoot (format nil "http://localhost:~A" *test-port*)))
+      (format t "~&;; Stopping server.")
+      (force-output)
+      (hunchentoot:stop server)
+      (format t "~&;; Cleaning temporary files.")
+      (hunchentoot-test::clean-tmp-dir))))
+
+#-sbcl
+(run-tests)
+
+;;; KLUDGE
+;;;
+;;; SBCL grabs a massive lock in WITH-COMPILATION-UNIT, which ASDF
+;;; uses in PERFORM-PLAN ... which makes spawning threads during testing
+;;; problematic to say the least.
+;;;
+;;; So, release the world lock for the duration. Nikodemus says that in this
+;;; specific usage this should be safe --- and promises that people who copy
+;;; this code and use it elsewhere will burn in hell for their sins.
+;;;
+;;; More promisingly, he swears up and down that that massive lock from
+;;; W-C-U will be gone by early 2012 at the latest, so this will not be
+;;; an eternal kludge, we hope.
+(defun %call-without-world-lock-kludge (thunk)
+  #+(and sbcl sb-thread)
+  (let ((s (find-symbol "**WORLD-LOCK**" :sb-c)))
+    (if (and s (boundp s))
+        (let ((lock (symbol-value s)))
+          (unwind-protect
+               (progn
+                 (if (sb-thread:holding-mutex-p lock)
+                     (sb-thread:release-mutex lock)
+                     (setf lock nil))
+                 (funcall thunk))
+            (when lock
+              (sb-thread:grab-mutex lock))))
+        (funcall thunk)))
+  #-(and sbcl sb-thread)
+  (funcall thunk))
+
+#+sbcl
+(%call-without-world-lock-kludge 'run-tests)
