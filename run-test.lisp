@@ -33,7 +33,7 @@
 (asdf:oos 'asdf:load-op :hunchentoot-test)
 (format t "~&;; Starting web server on localhost:4242.")
 (force-output)
-(let ((*server* (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port *test-port*))))
+(let ((server (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port *test-port*))))
   (unwind-protect
        (progn
          (format t "~&;; Sleeping 2 seconds to give the server some time to start...")
@@ -44,6 +44,6 @@
          (hunchentoot-test:test-hunchentoot (format nil "http://localhost:~A" *test-port*)))
     (format t "~&;; Stopping server.")
     (force-output)
-    (hunchentoot:stop *server*)
+    (hunchentoot:stop server)
     (format t "~&;; Cleaning temporary files.")
     (hunchentoot-test::clean-tmp-dir)))
