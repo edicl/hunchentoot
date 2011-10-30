@@ -1,5 +1,4 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/url-rewrite/url-rewrite.lisp,v 1.16 2007/01/01 23:55:43 edi Exp $
 
 ;;; Copyright (c) 2004-2010, Dr. Edmund Weitz. All rights reserved.
 
