@@ -169,7 +169,7 @@ acceptor-dispatch-request method handles the request."))
    :name (gensym)
    :request-class 'request
    :reply-class 'reply
-   :listen-backlog 50
+   #-lispworks :listen-backlog #-lispworks 50
    :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-taskmaster)
                                     (t 'single-threaded-taskmaster)))
    :output-chunking-p t
@@ -280,10 +280,12 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
       (when (plusp (accessor-requests-in-progress acceptor))
         (condition-variable-wait (acceptor-shutdown-queue acceptor) 
                                  (acceptor-shutdown-lock acceptor)))))
-  (#+:lispworks close
-   #-:lispworks usocket:socket-close
-   (acceptor-listen-socket acceptor))
+  #-lispworks
+  (usocket:socket-close (acceptor-listen-socket acceptor))
+  #-lispworks
   (setf (acceptor-listen-socket acceptor) nil)
+  #+lispworks
+  (mp:process-kill (acceptor-process acceptor))
   acceptor)
 
 (defmethod initialize-connection-stream ((acceptor acceptor) stream)
