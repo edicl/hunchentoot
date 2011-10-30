@@ -61,8 +61,6 @@
         <a href="http://postabon.com/">Postabon</a>,
         <a href="http://www.city-farming.de/">City Farming</a>,
         <a href="http://www.thoughtcrime.us/tp/">Trip Planner</a>, 
-        <a href="http://clutu.com/">clutu</a>, 
-        <a href="http://twitterbuzz.com/">TwitterBuzz</a>, 
         <a href="http://www.jalat.com/">Jalat</a>, 
         <a href="http://heikestephan.de/">Heike Stephan</a>, 
         <a href="http://www.memetrics.com/">xOs</a>, and 
@@ -126,7 +124,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.1.1.
+      The current version is 1.2.0.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via
@@ -137,7 +135,7 @@
       <a href="http://common-lisp.net/project/clbuild/">clbuild</a>,
       or my own <a href="http://weitz.de/starter-pack/">Starter
         Pack</a>.  There's also a port for
-      <a href="http://www.gentoo.org/proj/en/common-lisp/index.xml">Gentoo
+      <a href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
         Linux</a> thanks to Matthew Kennedy.
     </p>
     <p>
@@ -158,12 +156,6 @@
       unofficial <a href="http://darcs.net/">darcs</a> repository of
       Hunchentoot at
       <a href="http://common-lisp.net/~loliveira/ediware/">http://common-lisp.net/~loliveira/ediware/</a>.
-    </p>
-    <p>
-      Andrey Moskvitin maintains an
-      unofficial <a href="http://git-scm.com/">git</a> repository of
-      Hunchentoot at
-      <a href="http://github.com/archimag/hunchentoot">http://github.com/archimag/hunchentoot</a>.
     </p>
 
     <clix:subchapter name="proxy" title="Hunchentoot behind a proxy">
@@ -255,9 +247,9 @@
         articles by Robert Synnott.
       </li>
       <li>
-        <a href="http://www.newartisans.com/blog_files/common.lisp.with.apache.php">Running Common Lisp
+        <a href="http://newartisans.com/2007/11/running-common-lisp-behind-apache/">Running Common Lisp
           behind Apache</a> by John Wiegley.  (And there's a
-        <a href="http://www.newartisans.com/blog_files/hunchentoot.primer.php">second part</a>.)
+        <a href="http://newartisans.com/2007/11/a-quick-hunchentoot-primer/">second part</a>.)
       </li>
       <li>
         A <a href="http://www.lispcast.com/index.php/2007/10/lispcast-writing-a-simple-reddit-clone-in-common-lisp/">"LispCast"</a>
@@ -309,9 +301,14 @@
         based on Hunchentoot.
       </li>
       <li>
-        <a href="http://pen.two-bytes.com/misc/ht-ajax.html">HT-AJAX</a> is
+        <a href="http://common-lisp.net/project/ht-ajax/ht-ajax.html">HT-AJAX</a> is
         an <a href="http://en.wikipedia.org/wiki/Ajax_%28programming%29">Ajax</a>
         framework for Hunchentoot by Ury Marshak.
+      </li>
+      <li>
+        <a
+        href="http://martin-loetzsch.de/ht-simple-ajax/">HT-SIMPLE-AJAX</a>
+        is a simplified version of HT-AJAX.
       </li>
       <li>
         Mac Chan
