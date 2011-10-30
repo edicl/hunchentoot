@@ -1,5 +1,4 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: HUNCHENTOOT; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/odd-streams/conditions.lisp,v 1.5 2007/12/31 01:08:45 edi Exp $
 
 ;;; Copyright (c) 2008-2009, Dr. Edmund Weitz.  All rights reserved.
 
