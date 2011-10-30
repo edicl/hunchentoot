@@ -206,6 +206,19 @@
     for now.
 
     <p>
+      By default, Hunchentoot serves the files from the www/ directory
+      in its source tree.  In the distribution, that directory
+      contains a HTML version of the documentation as well as the
+      error templates.  The location of the document root directory
+      can be specified when creating a new
+      <clix:ref>ACCEPTOR</clix:ref> instance by the way of the
+      <clix:ref>:DOCUMENT-ROOT</clix:ref> initialization argument.
+      Likewise, the location of the error template directory can be
+      specified by the <clix:ref>:ERROR-TEMPLATE-DIRECTORY</clix:ref>
+      initarg.
+    </p>
+
+    <p>
       Now be a bit more adventurous, try this
 <pre>(hunchentoot:<a class="noborder" href="#define-easy-handler">define-easy-handler</a> (say-yo :uri "/yo") (name)
   (setf (hunchentoot:<a class="noborder" href="#content-type*">content-type*</a>) "text/plain")
@@ -480,6 +493,13 @@
 
       <clix:accessors generic='true'>
         <clix:listed-accessor generic='true' name='acceptor-access-log-destination'>
+          <clix:lambda-list>acceptor
+          </clix:lambda-list>
+          <clix:returns>(or pathname null)
+          </clix:returns>
+        </clix:listed-accessor>
+
+        <clix:listed-accessor generic='true' name='acceptor-document-root'>
           <clix:lambda-list>acceptor
           </clix:lambda-list>
           <clix:returns>(or pathname null)
