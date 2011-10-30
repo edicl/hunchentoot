@@ -1,5 +1,4 @@
 ;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
-;;; $Header: /usr/local/cvsrep/hunchentoot/hunchentoot.asd,v 1.61 2008/04/09 08:17:48 edi Exp $
 
 ;;; Copyright (c) 2004-2010, Dr. Edmund Weitz.  All rights reserved.
 
@@ -34,7 +33,7 @@
 
 (in-package :hunchentoot-asd)
 
-(defvar *hunchentoot-version* "1.1.1"
+(defvar *hunchentoot-version* "1.2.0"
   "A string denoting the current version of Hunchentoot.  Used
 for diagnostic output.")
 
@@ -91,15 +90,4 @@ for diagnostic output.")
   :depends-on (:hunchentoot :cl-who :cl-ppcre :drakma))
 
 (defmethod perform ((o test-op) (c (eql (find-system 'hunchentoot))))
-  (operate 'load-op 'hunchentoot-test)
-  (format t "~&;; Starting web server on localhost:4242.")
-  (force-output)
-  (funcall (intern (symbol-name :start) (find-package :hunchentoot))
-           (make-instance (intern (symbol-name :acceptor) (find-package :hunchentoot)) :port 4242))
-  (format t "~&;; Sleeping 2 seconds...")
-  (force-output)
-  (sleep 2)
-  (format t "~&;; Now running confidence tests.")
-  (force-output)
-  (funcall (intern (symbol-name :test-hunchentoot) (find-package :hunchentoot-test))
-           "http://localhost:4242"))
+  (load (merge-pathnames "run-test.lisp" (system-source-directory c))))
