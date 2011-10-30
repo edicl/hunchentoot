@@ -1,12 +1,14 @@
 Version 1.2.0
 2011-10-30
+Fix to allow send-service-unavailable-reply to work (Faré Rideau)
+Make sure we always have a cooked message to send in case of error (Faré Rideau)
 Add www/ directory with default file tree that is being served
 Add error template mechanism and improve error reporting in general.
 Improve automatic testing, SBCL kludge to support asdf:test-op
 Allegro CL modern mode fixes
 Fix bugs in serving partial responses
 Limit maximum number of threads that Hunchentoot creates (Dan Weinreb, Scott McKay)
-Export fixes (Gordon Sims, Andrey Moskvitin)
+Export fixes (Gordon Sims, Andrey Moskvitin, Faré Rideau)
 Factor out easy-handler logic into separate acceptor subclass
 Export two session functions (Nico de Jager)
 Allow no Content-Type header (Chaitanya Gupta)
