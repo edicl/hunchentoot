@@ -53,7 +53,7 @@
 #-sbcl
 (run-tests)
 
-;;; KLUDGE
+;;; KLUDGE (by Nikodemus Siivola)
 ;;;
 ;;; SBCL grabs a massive lock in WITH-COMPILATION-UNIT, which ASDF
 ;;; uses in PERFORM-PLAN ... which makes spawning threads during testing
