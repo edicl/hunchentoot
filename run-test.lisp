@@ -1,0 +1,12 @@
+(in-package :cl-user)
+
+(asdf:oos 'asdf:load-op :hunchentoot-test)
+(format t "~&;; Starting web server on localhost:4242.")
+(force-output)
+(hunchentoot:start (make-instance 'hunchentoot:easy-acceptor) :port *test-port*)
+(format t "~&;; Sleeping 2 seconds to give the server some time to start...")
+(force-output)
+(sleep 2)
+(format t "~&;; Now running confidence tests.")
+(force-output)
+(hunchentoot-test:test-hunchentoot "http://localhost:4242")
