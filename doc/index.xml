@@ -145,13 +145,6 @@
       Use at your own risk.
     </p>
     <p>
-      An
-      unofficial <a href="http://www.selenic.com/mercurial/wiki/">Mercurial</a>
-      repository of older versions is available at
-      <a href="http://arcanes.fr.eu.org/~pierre/2007/02/weitz/">http://arcanes.fr.eu.org/~pierre/2007/02/weitz/</a>
-      thanks to Pierre Thierry.
-    </p>
-    <p>
       Luís Oliveira maintains an
       unofficial <a href="http://darcs.net/">darcs</a> repository of
       Hunchentoot at
