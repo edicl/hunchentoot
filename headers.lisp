@@ -174,8 +174,7 @@ Returns the stream that is connected to the client."
   (acceptor-log-access acceptor :return-code status-code)
   ;; Read post data to clear stream - Force binary mode to avoid OCTETS-TO-STRING overhead.
   (raw-post-data :force-binary t)
-  (let* ((client-header-stream (flex:make-flexi-stream stream :external-format
-                                                       '(:iso-8859-1 :eol-style :lf)))
+  (let* ((client-header-stream (flex:make-flexi-stream stream :external-format +latin-1+))
          (header-stream (if *header-stream*
                             (make-broadcast-stream *header-stream* client-header-stream)
                             client-header-stream)))
