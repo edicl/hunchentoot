@@ -206,16 +206,35 @@
     for now.
 
     <p>
-      By default, Hunchentoot serves the files from the www/ directory
-      in its source tree.  In the distribution, that directory
-      contains a HTML version of the documentation as well as the
-      error templates.  The location of the document root directory
-      can be specified when creating a new
+      By default, Hunchentoot serves the files from the
+      <code><i>www/</i></code> directory in its source tree.  In the
+      distribution, that directory contains a HTML version of the
+      documentation as well as the error templates.  The location of
+      the document root directory can be specified when creating a new
       <clix:ref>ACCEPTOR</clix:ref> instance by the way of the
-      <clix:ref>:DOCUMENT-ROOT</clix:ref> initialization argument.
-      Likewise, the location of the error template directory can be
-      specified by the <clix:ref>:ERROR-TEMPLATE-DIRECTORY</clix:ref>
-      initarg.
+      <clix:ref>ACCEPTOR-DOCUMENT-ROOT</clix:ref>.  Likewise, the
+      location of the error template directory can be specified by the
+      <clix:ref>ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</clix:ref>.
+    </p>
+
+    <p>
+      The <clix:ref>EASY-ACCEPTOR</clix:ref> class implements a
+      framework for developing web applications.  Handlers are defined
+      using the <clix:ref>DEFINE-EASY-HANDLER</clix:ref> macro.
+      Request dispatching is performed according to the list of
+      dispatch functions in <clix:ref>*DISPATCH-TABLE*</clix:ref>.
+      Each of the functions on that list is called to determine
+      whether it wants to handle the request, provided as single
+      argument.  If a dispatcher function wants to handle the request,
+      it returns another function to actually create the desired page.
+    </p>
+
+    <p>
+      <clix:ref>DEFINE-EASY-HANDLER</clix:ref> is accompanied by a set
+      of dispatcher creation functions that can be used to create
+      dispatchers for standard tasks.  These are documented in the <a
+      class="noborder" href="#easy-handlers">subchapter on easy
+      handlers</a>
     </p>
 
     <p>
@@ -361,8 +380,8 @@
       <clix:class name='acceptor'>
         <clix:description>
           To create a Hunchentoot webserver, you make an instance of
-          this class and use the generic function
-          <clix:ref>START</clix:ref> to start it (and
+          this class or one of its subclasses and use the generic
+          function <clix:ref>START</clix:ref> to start it (and
           <clix:ref>STOP</clix:ref> to stop it).  Use the
           <code>:port</code> initarg if you don&#039;t want to listen
           on the default http port 80.  There are other initargs most
@@ -559,13 +578,6 @@
           <clix:lambda-list>acceptor
           </clix:lambda-list>
           <clix:returns>request-class
-          </clix:returns>
-        </clix:listed-accessor>
-
-        <clix:listed-accessor generic='true' name='acceptor-request-dispatcher'>
-          <clix:lambda-list>acceptor
-          </clix:lambda-list>
-          <clix:returns>request-dispatcher
           </clix:returns>
         </clix:listed-accessor>
 
@@ -956,39 +968,29 @@
       at the data the client has sent and prepares an appropriate
       reply to send back.  This is by default implemented as follows:
       <p>
-        Each acceptor has a <a href="#acceptor-request-dispatcher"><em>request
-        dispatcher</em></a> which is a unary function that accepts
-        a <clix:ref>REQUEST</clix:ref> object.  This function is called by the
-        default method of <clix:ref>HANDLE-REQUEST</clix:ref>.  The idea is
-        that this function looks at the request object and depending on its
-        contents decides to call another function which "does the work".  This
-        "other" function is by convention called a <a class="none"
-        name="handlers"><em>request handler</em></a>.  (Obviously, this is
-        really only a convention as <clix:ref>HANDLE-REQUEST</clix:ref>
-        doesn't "know" what the request dispatcher does.  You could as well
-        say that the request dispatcher and the request handler have the same
-        job.)
+        The ACCEPTOR class defines a
+        <clix:ref>ACCEPTOR-DISPATCH-REQUEST</clix:ref> generic
+        function which is used to actually dispatch the request.  This
+        function is called by the default method of
+        <clix:ref>HANDLE-REQUEST</clix:ref>.  Each
+        <clix:ref>ACCEPTOR-DISPATCH-REQUEST</clix:ref> method looks at
+        the request object and depending on its contents decides to
+        either handle the request or call the next method.
       </p>
       <p>
-        The default behaviour, unless your acceptor has its own request
-        dispatcher, is that Hunchentoot walks through the list
-        <clix:ref>*DISPATCH-TABLE*</clix:ref> which consists of <em>dispatch
-        functions</em>.  Each of these functions accepts the request object as
-        its only argument and either returns a request handler to handle the
-        request or <code>NIL</code> which means that the next dispatcher in
-        the list will be tried.  If all dispatch functions
-        return <code>NIL</code>, the return code
-        <clix:ref>+HTTP-NOT-FOUND+</clix:ref> will be sent to the client.
+        In order to dispatch a request, Hunchentoot calls the
+        <clix:ref>ACCEPTOR-DISPATCH-REQUEST</clix:ref> generic
+        functions.  The method for <clix:ref>ACCEPTOR</clix:ref> tries
+        to serve a static file relative to it's
+        <clix:ref>ACCEPTOR-DOCUMENT-ROOT</clix:ref>.  Application
+        specific acceptor subclasses will typically perform URL
+        parsing and dispatching according to the policy that is
+        required.
       </p>
       <p>
-        The default method of <clix:ref>HANDLE-REQUEST</clix:ref> also sets up
-        <a href="#logging">standard error handling</a> before it calls the acceptor's request
-        dispatcher.
-      </p>
-      <p>
-        All functions and variables in this section are related to the
-        standard request dispatch mechanism described above and are
-        meaningless if you're using your own request dispatcher.
+        The default method of <clix:ref>HANDLE-REQUEST</clix:ref> sets
+        up <a href="#logging">standard logging and error handling</a>
+        before it calls the acceptor's request dispatcher.
       </p>
       <p>
         Request handlers do their work by modifying
@@ -997,7 +999,38 @@
         sequence.  As an alternative, they can also
         call <clix:ref>SEND-HEADERS</clix:ref> and write directly to a stream.
       </p>
+    </clix:subchapter>
 
+    <clix:subchapter name="easy-handlers" title="Using the easy-handler framework">
+      <p>
+        The <clix:ref>EASY-ACCEPTOR</clix:ref> class defines a method
+        for <clix:ref>ACCEPTOR-DISPATCH-REQUEST</clix:ref> that walks
+        through the list <clix:ref>*DISPATCH-TABLE*</clix:ref> which
+        consists of <em>dispatch functions</em>.  Each of these
+        functions accepts the request object as its only argument and
+        either returns a request handler to handle the request or
+        <code>NIL</code> which means that the next dispatcher in the
+        list will be tried.  If all dispatch functions return
+        <code>NIL</code>, the next
+        <clix:ref>ACCEPTOR-DISPATCH-REQUEST</clix:ref> will be called.
+      </p>
+      <p>
+        All functions and variables in this section are related to the
+        easy request dispatch mechanism and are meaningless if you're
+        using your own request dispatcher.
+      </p>
+
+      <clix:class name='easy-acceptor'>
+        <clix:description>
+          This class defines no additional slots with respect to
+          <clix:ref>ACCEPTOR</clix:ref>.  It only serves as an
+          additional type for dispatching calls to
+          <clix:ref>ACCEPTOR-DISPATCH-REQUEST</clix:ref>.  In order to
+          use the easy handler framework, acceptors of this class or
+          one of its subclasses must be used.
+        </clix:description>
+      </clix:class>
+  
       <clix:special-variable name='*dispatch-table*'>
         <clix:description>
           A global list of dispatch functions.  The initial value is a
@@ -1832,6 +1865,23 @@
         </clix:description>
       </clix:function>
 
+      <clix:function generic='true' name='acceptor-dispatch-request'>
+        <clix:lambda-list>acceptor request
+        </clix:lambda-list>
+        <clix:returns>content
+        </clix:returns>
+        <clix:description>
+          This function is called to actually dispatch the request
+          once the standard logging and error handling has been set
+          up.  <clix:ref>ACCEPTOR</clix:ref> subclasses implement
+          methods for this function in order to perform their own
+          request routing.  If a method does not want to handle the
+          request, it is supposed to invoke <a
+          href="http://www.lispworks.com/documentation/HyperSpec/Body/f_call_n.htm">CALL-NEXT-METHOD</a>
+          so that the next <clix:ref>ACCEPTOR</clix:ref> in the
+          inheritance chain gets a chance to handle the request.
+        </clix:description>
+      </clix:function>
 
       <clix:readers generic='true'>
         <clix:listed-reader generic='true' name='cookies-in'>

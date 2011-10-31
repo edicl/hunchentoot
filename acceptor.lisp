@@ -249,12 +249,21 @@ really, really know what you're doing."))
 
 (defgeneric handle-request (acceptor request)
   (:documentation "This function is called once the request has been
-read and a REQUEST object has been created.  Its job is to actually
-handle the request, i.e. to return something to the client.
+read and a REQUEST object has been created.  Its job is to set up
+standard error handling and request logging.
 
 Might be a good place for around methods specialized for your subclass
 of ACCEPTOR which bind or rebind special variables which can then be
 accessed by your handlers."))
+
+(defgeneric acceptor-dispatch-request (acceptor request)
+  (:documentation "This function is called to actually dispatch the
+request once the standard logging and error handling has been set up.
+ACCEPTOR subclasses implement methods for this function in order to
+perform their own request routing.  If a method does not want to
+handle the request, it is supposed to invoke CALL-NEXT-METHOD so that
+the next ACCEPTOR in the inheritance chain gets a chance to handle the
+request."))
 
 (defgeneric acceptor-ssl-p (acceptor)
   (:documentation "Returns a true value if ACCEPTOR uses SSL

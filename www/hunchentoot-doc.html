@@ -104,6 +104,7 @@
 <li><a href="#acceptor-behaviour">Customizing acceptor behaviour</a></li>
 <li><a href="#taskmasters">Taskmasters</a></li>
 <li><a href="#request-dispatch">Request dispatch and handling</a></li>
+<li><a href="#easy-handlers">Using the easy-handler framework</a></li>
 <li><a href="#requests">Request objects</a></li>
 <li><a href="#replies">Reply objects</a></li>
 <li><a href="#sessions">Sessions</a></li>
@@ -250,16 +251,34 @@
     for now.
 
     <p>
-      By default, Hunchentoot serves the files from the www/ directory
-      in its source tree.  In the distribution, that directory
-      contains a HTML version of the documentation as well as the
-      error templates.  The location of the document root directory
-      can be specified when creating a new
+      By default, Hunchentoot serves the files from the
+      <code><i>www/</i></code> directory in its source tree.  In the
+      distribution, that directory contains a HTML version of the
+      documentation as well as the error templates.  The location of
+      the document root directory can be specified when creating a new
       <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> instance by the way of the
-      <code xmlns=""><a href="#:document-root">:DOCUMENT-ROOT</a></code> initialization argument.
-      Likewise, the location of the error template directory can be
-      specified by the <code xmlns=""><a href="#:error-template-directory">:ERROR-TEMPLATE-DIRECTORY</a></code>
-      initarg.
+      <code xmlns=""><a href="#acceptor-document-root">ACCEPTOR-DOCUMENT-ROOT</a></code>.  Likewise, the
+      location of the error template directory can be specified by the
+      <code xmlns=""><a href="#acceptor-error-template-directory">ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</a></code>.
+    </p>
+
+    <p>
+      The <code xmlns=""><a href="#easy-acceptor">EASY-ACCEPTOR</a></code> class implements a
+      framework for developing web applications.  Handlers are defined
+      using the <code xmlns=""><a href="#define-easy-handler">DEFINE-EASY-HANDLER</a></code> macro.
+      Request dispatching is performed according to the list of
+      dispatch functions in <code xmlns=""><a href="#*dispatch-table*">*DISPATCH-TABLE*</a></code>.
+      Each of the functions on that list is called to determine
+      whether it wants to handle the request, provided as single
+      argument.  If a dispatcher function wants to handle the request,
+      it returns another function to actually create the desired page.
+    </p>
+
+    <p>
+      <code xmlns=""><a href="#define-easy-handler">DEFINE-EASY-HANDLER</a></code> is accompanied by a set
+      of dispatcher creation functions that can be used to create
+      dispatchers for standard tasks.  These are documented in the <a class="noborder" href="#easy-handlers">subchapter on easy
+      handlers</a>
     </p>
 
     <p>
@@ -405,8 +424,8 @@
       [Standard class]
       <br><b>acceptor</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           To create a Hunchentoot webserver, you make an instance of
-          this class and use the generic function
-          <code><a href="#start">START</a></code> to start it (and
+          this class or one of its subclasses and use the generic
+          function <code><a href="#start">START</a></code> to start it (and
           <code><a href="#stop">STOP</a></code> to stop it).  Use the
           <code xmlns="http://www.w3.org/1999/xhtml">:port</code> initarg if you don't want to listen
           on the default http port 80.  There are other initargs most
@@ -560,11 +579,6 @@
       =&gt;
       <i>request-class
           </i><br><tt>(setf (</tt><b>acceptor-request-class</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
-          </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-request-dispatcher"></a><b>acceptor-request-dispatcher</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
-          </clix:lambda-list></i>
-      =&gt;
-      <i>request-dispatcher
-          </i><br><tt>(setf (</tt><b>acceptor-request-dispatcher</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are accessors for various slots of <code><a href="#acceptor">ACCEPTOR</a></code>
           objects.  See the docstrings of these slots for more information and
@@ -945,38 +959,29 @@
       at the data the client has sent and prepares an appropriate
       reply to send back.  This is by default implemented as follows:
       <p>
-        Each acceptor has a <a href="#acceptor-request-dispatcher"><em>request
-        dispatcher</em></a> which is a unary function that accepts
-        a <code xmlns=""><a href="#request">REQUEST</a></code> object.  This function is called by the
-        default method of <code xmlns=""><a href="#handle-request">HANDLE-REQUEST</a></code>.  The idea is
-        that this function looks at the request object and depending on its
-        contents decides to call another function which "does the work".  This
-        "other" function is by convention called a <a class="none" name="handlers"><em>request handler</em></a>.  (Obviously, this is
-        really only a convention as <code xmlns=""><a href="#handle-request">HANDLE-REQUEST</a></code>
-        doesn't "know" what the request dispatcher does.  You could as well
-        say that the request dispatcher and the request handler have the same
-        job.)
+        The ACCEPTOR class defines a
+        <code xmlns=""><a href="#acceptor-dispatch-request">ACCEPTOR-DISPATCH-REQUEST</a></code> generic
+        function which is used to actually dispatch the request.  This
+        function is called by the default method of
+        <code xmlns=""><a href="#handle-request">HANDLE-REQUEST</a></code>.  Each
+        <code xmlns=""><a href="#acceptor-dispatch-request">ACCEPTOR-DISPATCH-REQUEST</a></code> method looks at
+        the request object and depending on its contents decides to
+        either handle the request or call the next method.
       </p>
       <p>
-        The default behaviour, unless your acceptor has its own request
-        dispatcher, is that Hunchentoot walks through the list
-        <code xmlns=""><a href="#*dispatch-table*">*DISPATCH-TABLE*</a></code> which consists of <em>dispatch
-        functions</em>.  Each of these functions accepts the request object as
-        its only argument and either returns a request handler to handle the
-        request or <code>NIL</code> which means that the next dispatcher in
-        the list will be tried.  If all dispatch functions
-        return <code>NIL</code>, the return code
-        <code xmlns=""><a href="#+http-not-found+">+HTTP-NOT-FOUND+</a></code> will be sent to the client.
+        In order to dispatch a request, Hunchentoot calls the
+        <code xmlns=""><a href="#acceptor-dispatch-request">ACCEPTOR-DISPATCH-REQUEST</a></code> generic
+        functions.  The method for <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> tries
+        to serve a static file relative to it's
+        <code xmlns=""><a href="#acceptor-document-root">ACCEPTOR-DOCUMENT-ROOT</a></code>.  Application
+        specific acceptor subclasses will typically perform URL
+        parsing and dispatching according to the policy that is
+        required.
       </p>
       <p>
-        The default method of <code xmlns=""><a href="#handle-request">HANDLE-REQUEST</a></code> also sets up
-        <a href="#logging">standard error handling</a> before it calls the acceptor's request
-        dispatcher.
-      </p>
-      <p>
-        All functions and variables in this section are related to the
-        standard request dispatch mechanism described above and are
-        meaningless if you're using your own request dispatcher.
+        The default method of <code xmlns=""><a href="#handle-request">HANDLE-REQUEST</a></code> sets
+        up <a href="#logging">standard logging and error handling</a>
+        before it calls the acceptor's request dispatcher.
       </p>
       <p>
         Request handlers do their work by modifying
@@ -985,7 +990,38 @@
         sequence.  As an alternative, they can also
         call <code xmlns=""><a href="#send-headers">SEND-HEADERS</a></code> and write directly to a stream.
       </p>
+    
 
+    <h4 xmlns=""><a name="easy-handlers">Using the easy-handler framework</a></h4>
+      <p>
+        The <code xmlns=""><a href="#easy-acceptor">EASY-ACCEPTOR</a></code> class defines a method
+        for <code xmlns=""><a href="#acceptor-dispatch-request">ACCEPTOR-DISPATCH-REQUEST</a></code> that walks
+        through the list <code xmlns=""><a href="#*dispatch-table*">*DISPATCH-TABLE*</a></code> which
+        consists of <em>dispatch functions</em>.  Each of these
+        functions accepts the request object as its only argument and
+        either returns a request handler to handle the request or
+        <code>NIL</code> which means that the next dispatcher in the
+        list will be tried.  If all dispatch functions return
+        <code>NIL</code>, the next
+        <code xmlns=""><a href="#acceptor-dispatch-request">ACCEPTOR-DISPATCH-REQUEST</a></code> will be called.
+      </p>
+      <p>
+        All functions and variables in this section are related to the
+        easy request dispatch mechanism and are meaningless if you're
+        using your own request dispatcher.
+      </p>
+
+      <p xmlns=""><a class="none" name="easy-acceptor"></a>
+      [Standard class]
+      <br><b>easy-acceptor</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          This class defines no additional slots with respect to
+          <code><a href="#acceptor">ACCEPTOR</a></code>.  It only serves as an
+          additional type for dispatching calls to
+          <code><a href="#acceptor-dispatch-request">ACCEPTOR-DISPATCH-REQUEST</a></code>.  In order to
+          use the easy handler framework, acceptors of this class or
+          one of its subclasses must be used.
+        </clix:description></blockquote></p>
+  
       <p xmlns=""><a class="none" name="*dispatch-table*"></a>
       [Special variable]
       <br><b>*dispatch-table*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -1821,6 +1857,22 @@
           </p>
         </clix:description></blockquote></p>
 
+      <p xmlns=""><a class="none" name="acceptor-dispatch-request"></a>
+      [Generic function]
+      <br><b>acceptor-dispatch-request</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor request
+        </clix:lambda-list></i>
+        =&gt;
+        <i>content
+        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          This function is called to actually dispatch the request
+          once the standard logging and error handling has been set
+          up.  <code><a href="#acceptor">ACCEPTOR</a></code> subclasses implement
+          methods for this function in order to perform their own
+          request routing.  If a method does not want to handle the
+          request, it is supposed to invoke <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.lispworks.com/documentation/HyperSpec/Body/f_call_n.htm">CALL-NEXT-METHOD</a>
+          so that the next <code><a href="#acceptor">ACCEPTOR</a></code> in the
+          inheritance chain gets a chance to handle the request.
+        </clix:description></blockquote></p>
 
       <p xmlns="">
       [Generic readers]<br><a class="none" name="cookies-in"></a><b>cookies-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
@@ -3524,6 +3576,9 @@ start and test an https server instead.)
 <code><a href="#acceptor-address">acceptor-address</a></code><span class="entry-type">Generic reader</span>
 </li>
 <li>
+<code><a href="#acceptor-dispatch-request">acceptor-dispatch-request</a></code><span class="entry-type">Generic function</span>
+</li>
+<li>
 <code><a href="#acceptor-document-root">acceptor-document-root</a></code><span class="entry-type">Generic accessor</span>
 </li>
 <li>
@@ -3561,9 +3616,6 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#acceptor-request-class">acceptor-request-class</a></code><span class="entry-type">Generic accessor</span>
-</li>
-<li>
-<code><a href="#acceptor-request-dispatcher">acceptor-request-dispatcher</a></code><span class="entry-type">Generic accessor</span>
 </li>
 <li>
 <a name="acceptor-ssl-certificate-file"></a>acceptor-ssl-certificate-file<ul>
@@ -3655,6 +3707,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#dispatch-easy-handlers">dispatch-easy-handlers</a></code><span class="entry-type">Function</span>
+</li>
+<li>
+<code><a href="#easy-acceptor">easy-acceptor</a></code><span class="entry-type">Standard class</span>
 </li>
 <li>
 <code><a href="#escape-for-html">escape-for-html</a></code><span class="entry-type">Function</span>
