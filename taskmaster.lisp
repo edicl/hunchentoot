@@ -415,7 +415,7 @@ is set up via PROCESS-REQUEST."
 
 #+:lispworks
 (defmethod create-request-handler-thread ((taskmaster one-thread-per-connection-taskmaster) socket)
-  (flet ((process (taskmaster sock)
+  (flet ((process (taskmaster socket)
            (unwind-protect
                 (process-connection (taskmaster-acceptor taskmaster) socket)
              (decrement-taskmaster-request-count taskmaster))))
