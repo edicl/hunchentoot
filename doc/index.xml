@@ -124,25 +124,28 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.0.
+      The current version is 1.2.2.
     </p>
     <p>
-      The preferred method to compile and load Hunchentoot is via
-      <a href="http://www.cliki.net/asdf">ASDF</a>.  If you think that
-      it's too much work to find and download all the libraries
-      mentioned above, try something like
-      <a href="http://common-lisp.net/project/asdf-install/">ASDF-INSTALL</a>,
+      The preferred method to compile and load Hunchentoot is via <a
+      href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
+      downloading and installing all the dependencies manually, give
+      Zach Beane's excellent <a
+      href="http://www.quicklisp.org/">Quicklisp</a> system a try.
+    </p>
+    <p>
+      Hunchentoot and its dependencies can also be installed with <a
+      href="http://common-lisp.net/project/asdf-install/">ASDF-INSTALL</a>,
       <a href="http://common-lisp.net/project/clbuild/">clbuild</a>,
       or my own <a href="http://weitz.de/starter-pack/">Starter
-        Pack</a>.  There's also a port for
-      <a href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
-        Linux</a> thanks to Matthew Kennedy.
+      Pack</a>.  There's also a port for <a
+      href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
+      Linux</a> thanks to Matthew Kennedy.
     </p>
     <p>
       The current development version of Hunchentoot can be found
-      at <a href="http://bknr.net/trac/browser/trunk/thirdparty">http://bknr.net/trac/browser/trunk/thirdparty</a>.
-      This is the one to send <a href="#mail">patches</a> against.
-      Use at your own risk.
+      at <a href="https://github.com/edicl/hunchentoot">https://github.com/edicl/hunchentoot</a>.
+      If you want to send patches, please fork the github repository and send pull requests.
     </p>
     <p>
       Luís Oliveira maintains an
