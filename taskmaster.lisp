@@ -415,11 +415,10 @@ is set up via PROCESS-REQUEST."
 
 #+:lispworks
 (defmethod create-request-handler-thread ((taskmaster one-thread-per-connection-taskmaster) socket)
-  (flet ((process (taskmaster sock)
-           (unwind-protect
-                (process-connection (taskmaster-acceptor taskmaster) socket)
-             (decrement-taskmaster-request-count taskmaster))))
-    (mp:process-run-function (format nil "hunchentoot-worker~{-~A:~A~})"
-                                     (multiple-value-list
-                                      (get-peer-address-and-port socket)))
-                             nil #'process taskmaster socket)))
+  (mp:process-run-function (format nil "hunchentoot-worker~{-~A:~A~})"
+                                   (multiple-value-list (get-peer-address-and-port socket)))
+                           nil
+                           (lambda ()
+                             (unwind-protect
+                                 (process-connection (taskmaster-acceptor taskmaster) socket)
+                               (decrement-taskmaster-request-count taskmaster)))))
