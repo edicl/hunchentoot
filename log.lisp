@@ -33,11 +33,11 @@
 will be bound to the logging stream during the execution of BODY.
 DESTINATION is the logging destination, which can be either a pathname
 designator of the log file, a symbol designating an open stream or NIL
-if logging should be done to *ERROR-OUTPUT*.  LOCK refers to the lock
-that should be held during the logging operation.  If DESTINATION is a
-pathname, a flexi stream with UTF-8 encoding will be created and
-bound to STREAM-VAR.  If an error occurs while writing to the log
-file, that error will be logged to *ERROR-OUTPUT*.
+if no logging should be done.  LOCK refers to the lock that should be
+held during the logging operation.  If DESTINATION is a pathname, a
+flexi stream with UTF-8 encoding will be created and bound to
+STREAM-VAR.  If an error occurs while writing to the log file, that
+error will be logged to *ERROR-OUTPUT*.
 
 Note that logging to a file involves opening and closing the log file
 for every logging operation, which is overall costly.  Web servers

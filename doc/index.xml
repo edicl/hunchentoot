@@ -2848,10 +2848,11 @@
       system or streams.  Logging can also be disabled by setting the
       <clix:code>ACCESS-LOG-DESTINATION</clix:code> and
       <clix:code>MESSAGE-LOG-DESTINATION</clix:code> slots in the
-      <clix:ref>ACCEPTOR</clix:ref> instance of the running server,
-      either by providing the :ACCESS-LOG-DESTINATION and
-      :MESSAGE-LOG-DESTINATION initialization arguments when creating the
-      acceptor or by setting the slots through its
+      <clix:ref>ACCEPTOR</clix:ref> to <code>NIL</code>.  The two
+      slots can be initialized by providing the
+      :ACCESS-LOG-DESTINATION and :MESSAGE-LOG-DESTINATION
+      initialization arguments when creating the acceptor or set by
+      setting the slots through its
       <clix:ref>ACCEPTOR-MESSAGE-LOG-DESTINATION</clix:ref> and
       <clix:ref>ACCEPTOR-ACCESS-LOG-DESTINATION</clix:ref> accessors.
       <p>
