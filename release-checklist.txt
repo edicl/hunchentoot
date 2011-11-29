@@ -1,0 +1,5 @@
+What do do for a release:
+
+Update version number in hunchentoot.asd and doc/index.xml
+Update CHANGELOG (keep format)
+Create html documentation (cd doc; make)
