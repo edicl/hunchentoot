@@ -626,6 +626,19 @@
         </clix:description>
       </clix:special-variable>
 
+      <clix:function generic='true' name='acceptor-remove-session'>
+        <clix:lambda-list>acceptor session
+        </clix:lambda-list>
+        <clix:returns>generalized-boolean
+        </clix:returns>
+        <clix:description>
+          This function is called whenever a session in
+          <clix:ref>ACCEPTOR</clix:ref> is being destroyed because of
+          a session timout or an explicit
+          <clix:ref>REMOVE-SESSION</clix:ref> call.
+        </clix:description>
+      </clix:function>
+
     </clix:subchapter>
 
     <clix:subchapter name="acceptor-behaviour" title="Customizing acceptor behaviour">
@@ -2540,14 +2553,6 @@
           the last <code>(session-max-time session)</code> seconds.
         </clix:description>
       </clix:function>
-
-      <clix:special-variable name='*session-removal-hook*'>
-        <clix:description>
-          A function of one argument
-          (a <clix:ref>SESSION</clix:ref> object) which is called whenever a
-          session is <a href="#session-gc">garbage-collected</a>.
-        </clix:description>
-      </clix:special-variable>
 
       <clix:function generic='true' name='session-id'>
         <clix:lambda-list>session

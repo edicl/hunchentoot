@@ -2,8 +2,11 @@ Version 1.2.2
 2011-11-30
 Fix warning on LispWorks (Nico de Jager)
 Documentation updates
-Remove obsolete symbols from export list (Daniel Brunner)
+Remove obsolete symbols from export list
 Add easy-ssl-acceptor
+Document acceptor-remove-session, remove obsolete *session-removal-hook* export (Issue #15)
+Added :description to asdf system definition
+Add documentation section describing how to bind to privileged ports
 
 Version 1.2.1
 2011-11-04
