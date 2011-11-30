@@ -42,6 +42,10 @@ for diagnostic output.")
 (defsystem :hunchentoot
   :serial t
   :version #.*hunchentoot-version*
+  :description "Hunchentoot is a HTTP server based on USOCKET and
+  BORDEAUX-THREADS.  It supports HTTP 1.1, serves static files, has a
+  simple framework for user-defined handlers and can be extended
+  through subclassing."
   :depends-on (:chunga
                :cl-base64
                :cl-fad
@@ -81,6 +85,7 @@ for diagnostic output.")
                #-:hunchentoot-no-ssl (:file "ssl")))
 
 (defsystem :hunchentoot-test
+  :description "Self test functionality for the Hunchentoot HTTP server."
   :components ((:module "test"
                         :serial t
                         :components ((:file "packages")

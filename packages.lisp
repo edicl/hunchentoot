@@ -64,7 +64,6 @@
            #:*session*
            #:*session-gc-frequency*
            #:*session-max-time*
-           #:*session-removal-hook*
            #:*session-secret*
            #:*show-lisp-backtraces-p*
            #:*show-lisp-errors-p*
