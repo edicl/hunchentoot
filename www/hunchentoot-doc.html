@@ -72,7 +72,8 @@
         license</a> so you can basically do with it whatever you want.
       </p>
       <p>
-        Hunchentoot is (or was) for example used by 
+        Hunchentoot is (or was) for example used by
+        <a href="http://quickhoney.com/">QuickHoney</a>,
         <a href="http://postabon.com/">Postabon</a>,
         <a href="http://www.city-farming.de/">City Farming</a>,
         <a href="http://www.thoughtcrime.us/tp/">Trip Planner</a>, 
@@ -170,25 +171,24 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.0.
+      The current version is 1.2.2.
     </p>
     <p>
-      The preferred method to compile and load Hunchentoot is via
-      <a href="http://www.cliki.net/asdf">ASDF</a>.  If you think that
-      it's too much work to find and download all the libraries
-      mentioned above, try something like
-      <a href="http://common-lisp.net/project/asdf-install/">ASDF-INSTALL</a>,
+      The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
+      downloading and installing all the dependencies manually, give
+      Zach Beane's excellent <a href="http://www.quicklisp.org/">Quicklisp</a> system a try.
+    </p>
+    <p>
+      Hunchentoot and its dependencies can also be installed with <a href="http://common-lisp.net/project/asdf-install/">ASDF-INSTALL</a>,
       <a href="http://common-lisp.net/project/clbuild/">clbuild</a>,
       or my own <a href="http://weitz.de/starter-pack/">Starter
-        Pack</a>.  There's also a port for
-      <a href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
-        Linux</a> thanks to Matthew Kennedy.
+      Pack</a>.  There's also a port for <a href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
+      Linux</a> thanks to Matthew Kennedy.
     </p>
     <p>
       The current development version of Hunchentoot can be found
-      at <a href="http://bknr.net/trac/browser/trunk/thirdparty">http://bknr.net/trac/browser/trunk/thirdparty</a>.
-      This is the one to send <a href="#mail">patches</a> against.
-      Use at your own risk.
+      at <a href="https://github.com/edicl/hunchentoot">https://github.com/edicl/hunchentoot</a>.
+      If you want to send patches, please fork the github repository and send pull requests.
     </p>
     <p>
       Luís Oliveira maintains an
@@ -1023,31 +1023,20 @@
           one of its subclasses must be used.
         </clix:description></blockquote></p>
   
+      <p xmlns=""><a class="none" name="easy-ssl-acceptor"></a>
+      [Standard class]
+      <br><b>easy-ssl-acceptor</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          This class mixes the <code><a href="#ssl-acceptor">SSL-ACCEPTOR</a></code> and
+          the <code><a href="#easy-acceptor">EASY-ACCEPTOR</a></code> classes.  It is used
+          when both ssl and the easy handler framework are required.
+        </clix:description></blockquote></p>
+  
       <p xmlns=""><a class="none" name="*dispatch-table*"></a>
       [Special variable]
       <br><b>*dispatch-table*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           A global list of dispatch functions.  The initial value is a
-          list consisting of the two symbols
-          <code><a href="#dispatch-easy-handlers">DISPATCH-EASY-HANDLERS</a></code> and
-          <code><a href="#default-dispatcher">DEFAULT-DISPATCHER</a></code>.
-        </clix:description></blockquote></p>
-
-      <p xmlns=""><a class="none" name="default-dispatcher"></a>
-      [Function]
-      <br><b>default-dispatcher</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
-        </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-          Default dispatch function which handles every request with
-          the function stored in
-          <code><a href="#*default-handler*">*DEFAULT-HANDLER*</a></code>.
-        </clix:description></blockquote></p>
-
-      <p xmlns=""><a class="none" name="*default-handler*"></a>
-      [Special variable]
-      <br><b>*default-handler*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">The name of the function which is always returned by
-        <code><a href="#default-dispatcher">DEFAULT-DISPATCHER</a></code>.
+          list consisting of the symbol
+          <code><a href="#dispatch-easy-handlers">DISPATCH-EASY-HANDLERS</a></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="create-prefix-dispatcher"></a>
@@ -2756,10 +2745,11 @@
       system or streams.  Logging can also be disabled by setting the
       <clix:code xmlns:clix="http://bknr.net/clixdoc">ACCESS-LOG-DESTINATION</clix:code> and
       <clix:code xmlns:clix="http://bknr.net/clixdoc">MESSAGE-LOG-DESTINATION</clix:code> slots in the
-      <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> instance of the running server,
-      either by providing the :ACCESS-LOG-DESTINATION and
-      :MESSAGE-LOG-DESTINATION initialization arguments when creating the
-      acceptor or by setting the slots through its
+      <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> to <code>NIL</code>.  The two
+      slots can be initialized by providing the
+      :ACCESS-LOG-DESTINATION and :MESSAGE-LOG-DESTINATION
+      initialization arguments when creating the acceptor or set by
+      setting the slots through its
       <code xmlns=""><a href="#acceptor-message-log-destination">ACCEPTOR-MESSAGE-LOG-DESTINATION</a></code> and
       <code xmlns=""><a href="#acceptor-access-log-destination">ACCEPTOR-ACCESS-LOG-DESTINATION</a></code> accessors.
       <p>
@@ -3364,9 +3354,6 @@ start and test an https server instead.)
 <code><a href="#*default-content-type*">*default-content-type*</a></code><span class="entry-type">Special variable</span>
 </li>
 <li>
-<code><a href="#*default-handler*">*default-handler*</a></code><span class="entry-type">Special variable</span>
-</li>
-<li>
 <code><a href="#*dispatch-table*">*dispatch-table*</a></code><span class="entry-type">Special variable</span>
 </li>
 <li>
@@ -3695,9 +3682,6 @@ start and test an https server instead.)
 <code><a href="#create-taskmaster-thread">create-taskmaster-thread</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
-<code><a href="#default-dispatcher">default-dispatcher</a></code><span class="entry-type">Function</span>
-</li>
-<li>
 <code><a href="#define-easy-handler">define-easy-handler</a></code><span class="entry-type">Macro</span>
 </li>
 <li>
@@ -3711,6 +3695,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#easy-acceptor">easy-acceptor</a></code><span class="entry-type">Standard class</span>
+</li>
+<li>
+<code><a href="#easy-ssl-acceptor">easy-ssl-acceptor</a></code><span class="entry-type">Standard class</span>
 </li>
 <li>
 <code><a href="#escape-for-html">escape-for-html</a></code><span class="entry-type">Function</span>
