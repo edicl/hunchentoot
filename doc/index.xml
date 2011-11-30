@@ -1037,27 +1037,8 @@
       <clix:special-variable name='*dispatch-table*'>
         <clix:description>
           A global list of dispatch functions.  The initial value is a
-          list consisting of the two symbols
-          <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref> and
-          <clix:ref>DEFAULT-DISPATCHER</clix:ref>.
-        </clix:description>
-      </clix:special-variable>
-
-      <clix:function name='default-dispatcher'>
-        <clix:lambda-list>request
-        </clix:lambda-list>
-        <clix:returns>result
-        </clix:returns>
-        <clix:description>
-          Default dispatch function which handles every request with
-          the function stored in
-          <clix:ref>*DEFAULT-HANDLER*</clix:ref>.
-        </clix:description>
-      </clix:function>
-
-      <clix:special-variable name='*default-handler*'>
-        <clix:description>The name of the function which is always returned by
-        <clix:ref>DEFAULT-DISPATCHER</clix:ref>.
+          list consisting of the symbol
+          <clix:ref>DISPATCH-EASY-HANDLERS</clix:ref>.
         </clix:description>
       </clix:special-variable>
 
