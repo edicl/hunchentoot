@@ -95,7 +95,10 @@
 <li><a href="#abstract">Abstract</a></li>
 <li><a href="#contents">Contents</a></li>
 <li>
-<a href="#install">Download and installation</a><ol><li><a href="#proxy">Hunchentoot behind a proxy</a></li></ol>
+<a href="#install">Download and installation</a><ol>
+<li><a href="#port80">Running Hunchentoot on port 80</a></li>
+<li><a href="#proxy">Hunchentoot behind a proxy</a></li>
+</ol>
 </li>
 <li><a href="#mail">Support and mailing lists</a></li>
 <li><a href="#start">Your own webserver (the easy teen-age New York version)</a></li>
@@ -196,6 +199,18 @@
       Hunchentoot at
       <a href="http://common-lisp.net/~loliveira/ediware/">http://common-lisp.net/~loliveira/ediware/</a>.
     </p>
+
+    <h4 xmlns=""><a name="port80">Running Hunchentoot on port 80</a></h4>
+
+      Hunchentoot does not come with code to help with running it on a
+      privileged port (i.e. port 80 or 443) on Unix-like operating
+      systems.  Modern Unix-like systems have specific, non-portable
+      ways to allow non-root users to listen to privileged ports, so
+      including such functionality in Hunchentoot was considered
+      unnecessary.  Please refer to online resources for help.  At the
+      time of this writing, the YAWS documentation has a <a href="http://yaws.hyber.org/privbind.yaws">comprehensive
+      writeup</a> on the topic.
+    
 
     <h4 xmlns=""><a name="proxy">Hunchentoot behind a proxy</a></h4>
 
@@ -605,6 +620,19 @@
         some Lisps allow you to set different timeouts for reading and writing
         and you can specify both values via initargs when you create
         an <a xmlns="http://www.w3.org/1999/xhtml" href="#acceptors">acceptor</a>.
+        </clix:description></blockquote></p>
+
+      <p xmlns=""><a class="none" name="acceptor-remove-session"></a>
+      [Generic function]
+      <br><b>acceptor-remove-session</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor session
+        </clix:lambda-list></i>
+        =&gt;
+        <i>generalized-boolean
+        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          This function is called whenever a session in
+          <code><a href="#acceptor">ACCEPTOR</a></code> is being destroyed because of
+          a session timout or an explicit
+          <code><a href="#remove-session">REMOVE-SESSION</a></code> call.
         </clix:description></blockquote></p>
 
     
@@ -2434,14 +2462,6 @@
           the last <code xmlns="http://www.w3.org/1999/xhtml">(session-max-time session)</code> seconds.
         </clix:description></blockquote></p>
 
-      <p xmlns=""><a class="none" name="*session-removal-hook*"></a>
-      [Special variable]
-      <br><b>*session-removal-hook*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-          A function of one argument
-          (a <code><a href="#session">SESSION</a></code> object) which is called whenever a
-          session is <a xmlns="http://www.w3.org/1999/xhtml" href="#session-gc">garbage-collected</a>.
-        </clix:description></blockquote></p>
-
       <p xmlns=""><a class="none" name="session-id"></a>
       [Generic function]
       <br><b>session-id</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
@@ -3402,9 +3422,6 @@ start and test an https server instead.)
 <code><a href="#*session-max-time*">*session-max-time*</a></code><span class="entry-type">Special variable</span>
 </li>
 <li>
-<code><a href="#*session-removal-hook*">*session-removal-hook*</a></code><span class="entry-type">Special variable</span>
-</li>
-<li>
 <code><a href="#*session-secret*">*session-secret*</a></code><span class="entry-type">Special variable</span>
 </li>
 <li>
@@ -3598,6 +3615,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#acceptor-read-timeout">acceptor-read-timeout</a></code><span class="entry-type">Generic reader</span>
+</li>
+<li>
+<code><a href="#acceptor-remove-session">acceptor-remove-session</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#acceptor-reply-class">acceptor-reply-class</a></code><span class="entry-type">Generic accessor</span>
