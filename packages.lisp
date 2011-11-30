@@ -46,7 +46,6 @@
            #:*content-types-for-url-rewrite*
            #:*default-connection-timeout*
            #:*default-content-type*
-           #:*default-handler*
            #:*dispatch-table*
            #:*file-upload-hook*
            #:*handle-http-errors-p*
