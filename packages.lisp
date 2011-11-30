@@ -46,7 +46,6 @@
            #:*content-types-for-url-rewrite*
            #:*default-connection-timeout*
            #:*default-content-type*
-           #:*default-handler*
            #:*dispatch-table*
            #:*file-upload-hook*
            #:*handle-http-errors-p*
@@ -172,6 +171,7 @@
            #:delete-session-value
            #:dispatch-easy-handlers
            #:easy-acceptor
+           #:easy-ssl-acceptor
            #:escape-for-html
            #:execute-acceptor
            #:get-parameter
