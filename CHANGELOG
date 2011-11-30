@@ -1,3 +1,10 @@
+Version 1.2.2
+2011-11-30
+Fix warning on LispWorks (Nico de Jager)
+Documentation updates
+Remove obsolete symbols from export list (Daniel Brunner)
+Add easy-ssl-acceptor
+
 Version 1.2.1
 2011-11-04
 Use FINISH-OUTPUT instead of FORCE-OUTPUT at connection end (I. Perminov)
