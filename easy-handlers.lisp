@@ -339,3 +339,8 @@ either return a handler or neglect by returning NIL."
      for action = (funcall dispatcher request)
      when action return (funcall action)
      finally (call-next-method)))
+
+(defclass easy-ssl-acceptor (easy-acceptor ssl-acceptor)
+  ()
+  (:documentation "This is an acceptor that mixes the ``easy''
+  Hunchentoot with SSL connections."))

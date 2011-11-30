@@ -171,6 +171,7 @@
            #:delete-session-value
            #:dispatch-easy-handlers
            #:easy-acceptor
+           #:easy-ssl-acceptor
            #:escape-for-html
            #:execute-acceptor
            #:get-parameter

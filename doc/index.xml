@@ -1034,6 +1034,14 @@
         </clix:description>
       </clix:class>
   
+      <clix:class name='easy-ssl-acceptor'>
+        <clix:description>
+          This class mixes the <clix:ref>SSL-ACCEPTOR</clix:ref> and
+          the <clix:ref>EASY-ACCEPTOR</clix:ref> classes.  It is used
+          when both ssl and the easy handler framework are required.
+        </clix:description>
+      </clix:class>
+  
       <clix:special-variable name='*dispatch-table*'>
         <clix:description>
           A global list of dispatch functions.  The initial value is a
