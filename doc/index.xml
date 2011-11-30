@@ -155,6 +155,19 @@
       <a href="http://common-lisp.net/~loliveira/ediware/">http://common-lisp.net/~loliveira/ediware/</a>.
     </p>
 
+    <clix:subchapter name="port80" title="Running Hunchentoot on port 80">
+
+      Hunchentoot does not come with code to help with running it on a
+      privileged port (i.e. port 80 or 443) on Unix-like operating
+      systems.  Modern Unix-like systems have specific, non-portable
+      ways to allow non-root users to listen to privileged ports, so
+      including such functionality in Hunchentoot was considered
+      unnecessary.  Please refer to online resources for help.  At the
+      time of this writing, the YAWS documentation has a <a
+      href="http://yaws.hyber.org/privbind.yaws">comprehensive
+      writeup</a> on the topic.
+    </clix:subchapter>
+
     <clix:subchapter name="proxy" title="Hunchentoot behind a proxy">
 
       If you're feeling unsecure about exposing Hunchentoot to the wild,
