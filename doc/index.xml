@@ -1349,7 +1349,7 @@
       For each incoming request, the <a href="#acceptors">acceptor</a> (in
       <clix:ref>PROCESS-CONNECTION</clix:ref>) creates a
       <clix:ref>REQUEST</clix:ref> object and makes it available to <a
-      href="#handlers">handlers</a> via the special variable
+      href="#request-dispatch">handlers</a> via the special variable
       <clix:ref>*REQUEST*</clix:ref>.  This object contains all relevant
       information about the request and this section collects the functions
       which can be used to query such an object.  In all function where
@@ -1370,7 +1370,7 @@
           Objects of this class hold all the information
           about an incoming request.  They are created automatically by
           acceptors and can be accessed by the
-          corresponding <a href="#handlers">handler</a>.
+          corresponding <a href="#request-dispatch">handler</a>.
 
           You should not mess with the slots of these objects directly, but you
           can subclass <clix:ref>REQUEST</clix:ref> in order to implement your
@@ -1844,7 +1844,7 @@
           after the incoming headers have been read.  It
           calls <clix:ref>HANDLE-REQUEST</clix:ref> (and is more or less just a
           thin wrapper around it) to select and call a
-          <a href="#handlers">handler</a> and send the output of this handler to
+          <a href="#request-dispatch">handler</a> and send the output of this handler to
           the client.  Note that <clix:ref>PROCESS-CONNECTION</clix:ref> is
           called once per connection and loops in case of a persistent
           connection while <clix:ref>PROCESS-REQUEST</clix:ref> is called anew
@@ -1875,11 +1875,11 @@
             acceptor's <a href="#request-dispatch">request dispatcher</a>, but you
             can of course implement a different behaviour.  The default method
             also sets up <a href="#logging">standard error handling</a> for
-            the <a href="#handlers">handler</a>.
+            the <a href="#request-dispatch">handler</a>.
           </p>
           <p>
             Might be a good place to bind or rebind special variables which can
-            then be accessed by your <a href="#handlers">handlers</a>.
+            then be accessed by your <a href="#request-dispatch">handlers</a>.
           </p>
         </clix:description>
       </clix:function>
@@ -1999,7 +1999,7 @@
         <clix:description>
           These are various generic readers which are used
           to read information about a <clix:ref>REQUEST</clix:ref> object.  If you are writing a
-          <a href="#handlers">handler</a>, you should <em>not</em> use these readers but instead utilize the
+          <a href="#request-dispatch">handler</a>, you should <em>not</em> use these readers but instead utilize the
           corresponding functions with an asterisk at the end of their name,
           also listed in this section.  These generic readers are only
           exported for users who want to create their own subclasses of
@@ -2015,7 +2015,7 @@
       For each incoming request, the <a href="#acceptors">acceptor</a>
       (in <clix:ref>PROCESS-CONNECTION</clix:ref>) creates
       a <clix:ref>REPLY</clix:ref> object and makes it available
-      to <a href="#handlers">handlers</a> via the special variable
+      to <a href="#request-dispatch">handlers</a> via the special variable
       <clix:ref>*REPLY*</clix:ref>.  This object contains all relevant
       information (except for the content body) about the reply that will be
       sent to the client and this section collects the functions which can
@@ -2037,7 +2037,7 @@
           Objects of this class hold all the information about an
           outgoing reply.  They are created automatically by
           Hunchentoot and can be accessed and modified by the
-          corresponding <a href="#handlers">handler</a>.
+          corresponding <a href="#request-dispatch">handler</a>.
         <p>
           You should not mess with the slots of these objects directly, but you
           can subclass <clix:ref>REPLY</clix:ref> in order to implement your own behaviour.  See the
@@ -2269,7 +2269,7 @@
         <clix:description>
           These are various generic readers which are used
           to read information about a <clix:ref>REPLY</clix:ref> object.  If you are writing a
-          <a href="#handlers">handler</a>, you should <em>not</em> use these readers but instead utilize the
+          <a href="#request-dispatch">handler</a>, you should <em>not</em> use these readers but instead utilize the
           corresponding functions with an asterisk at the end of their name,
           also listed in this section.  These generic readers are only
           exported for users who want to create their own subclasses of
@@ -2303,7 +2303,7 @@
           These are various generic accessors which are
           used to query and modify a <clix:ref>REPLY</clix:ref> objects.  If
           you are writing a
-          <a href="#handlers">handler</a>, you should <em>not</em> use these
+          <a href="#request-dispatch">handler</a>, you should <em>not</em> use these
           accessors but instead utilize the corresponding functions with an
           asterisk at the end of their name, also listed in this section.
           These generic accessors are only exported for users who want to
@@ -2316,7 +2316,7 @@
     </clix:subchapter>
 
     <clix:subchapter name="sessions" title="Sessions">
-      Hunchentoot supports <em>sessions</em>: Once a <a href="#handlers">request
+      Hunchentoot supports <em>sessions</em>: Once a <a href="#request-dispatch">request
       handler</a> has called <clix:ref>START-SESSION</clix:ref>, Hunchentoot
       uses either cookies or (if the client doesn't send the cookies
       back) <a href="#*rewrite-for-session-urls*">rewrites URLs</a> to keep
@@ -2886,7 +2886,7 @@
         file format.
       </p>
       <p>
-        Errors happening within a <a href="#handlers">handler</a>
+        Errors happening within a <a href="#request-dispatch">handler</a>
         which are not caught by the handler itself are handled by
         Hunchentoot by logging them to the established
         <clix:ref>ACCEPTOR-MESSAGE-LOG-DESTINATION</clix:ref>.
@@ -3064,7 +3064,7 @@
         <clix:returns>|</clix:returns>
         <clix:description>
           This function is designed to be used inside
-          a <a href="#handlers">handler</a>. If the client has sent an
+          a <a href="#request-dispatch">handler</a>. If the client has sent an
           'If-Modified-Since' header
           (see <a href="http://www.faqs.org/rfcs/rfc2616.html">RFC 2616</a>,
           section 14.25) and the time specified matches the universal
