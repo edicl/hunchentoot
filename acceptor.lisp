@@ -534,7 +534,8 @@ catches during request processing."
   nil)
 
 (defmethod acceptor-dispatch-request ((acceptor acceptor) request)
-  "Detault implementation of the request dispatch method, generates a +http-not-found+ error+."
+  "Detault implementation of the request dispatch method, generates an
++http-not-found+ error."
   (declare (ignore request))
   (if (acceptor-document-root acceptor)
       (handle-static-file (merge-pathnames (if (equal (script-name*) "/")
@@ -692,4 +693,3 @@ function is called whenever a session is destroyed."
   (:documentation "Returns a string which can be used for 'Server' headers.")
   (:method ((acceptor acceptor))
     (format nil "Hunchentoot ~A" *hunchentoot-version*)))
-
