@@ -234,6 +234,15 @@ alist.  Both names and values are url-decoded while doing this."
                       (url-decode (or value "") external-format))))
           form-url-encoded-list))
 
+(defun cookies-to-alist (cookies)
+  "Converts a list of cookies of the form \"key=value\" to an alist.  No
+  character set processing is done."
+  (mapcar #'(lambda (entry)
+              (destructuring-bind (name &optional value)
+                  (split "=" entry :limit 2)
+                (cons (string-trim " " name) (or value ""))))
+          cookies))
+
 (defun url-encode (string &optional (external-format *hunchentoot-default-external-format*))
   "URL-encodes a string using the external format EXTERNAL-FORMAT."
   (with-output-to-string (s)

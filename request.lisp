@@ -198,9 +198,8 @@ slot values are computed in this :AFTER method."
                 (let ((*substitution-char* #\?))
                   (form-url-encoded-list-to-alist (split "&" query-string)))
                 cookies-in
-                (form-url-encoded-list-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
-                                                                                  :test #'eq)))
-                                                +utf-8+)
+                (cookies-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
+                                                                    :test #'eq))))
                 session (session-verify request)
                 *session* session))
       (error (condition)

@@ -1,3 +1,5 @@
+Don't urldecode cookies
+
 Version 1.2.2
 2011-11-30
 Fix warning on LispWorks (Nico de Jager)
