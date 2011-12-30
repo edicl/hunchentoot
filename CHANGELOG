@@ -1,3 +1,4 @@
+ECL timeout support (Juan Jose Giarcia-Ripoll)
 Don't urldecode cookies
 
 Version 1.2.2
@@ -18,15 +19,15 @@ External format EOL style fixes for Windows (Anton Kovalenko)
 
 Version 1.2.0
 2011-10-30
-Fix to allow send-service-unavailable-reply to work (Faré Rideau)
-Make sure we always have a cooked message to send in case of error (Faré Rideau)
+Fix to allow send-service-unavailable-reply to work (Farï¿½ Rideau)
+Make sure we always have a cooked message to send in case of error (Farï¿½ Rideau)
 Add www/ directory with default file tree that is being served
 Add error template mechanism and improve error reporting in general.
 Improve automatic testing, SBCL kludge to support asdf:test-op
 Allegro CL modern mode fixes
 Fix bugs in serving partial responses
 Limit maximum number of threads that Hunchentoot creates (Dan Weinreb, Scott McKay)
-Export fixes (Gordon Sims, Andrey Moskvitin, Faré Rideau)
+Export fixes (Gordon Sims, Andrey Moskvitin, Farï¿½ Rideau)
 Factor out easy-handler logic into separate acceptor subclass
 Export two session functions (Nico de Jager)
 Allow no Content-Type header (Chaitanya Gupta)
@@ -38,10 +39,10 @@ Fixed typo in code which interprets transfer encodings
 
 Version 1.1.1
 2010-08-24
-Exported WITHIN-REQUEST-P (Faré Rideau)
+Exported WITHIN-REQUEST-P (Farï¿½ Rideau)
 Safeguard measures against XSS attacks (J.P. Larocque)
 Prevent potential leak when closing stream (Matt Lamari, Martin Simmons)
-Change some occurrences of HANDLER-CASE* to HANDLER-CASE (Hans Hübner, Allan Dee)
+Change some occurrences of HANDLER-CASE* to HANDLER-CASE (Hans Hï¿½bner, Allan Dee)
 
 Version 1.1.0
 2010-01-08
@@ -57,17 +58,17 @@ Enabled SSL key passwords for Lisps other than LW (Vsevolod)
 
 Version 1.0.0
 2009-02-19
-Complete architectural redesign (together with Hans Hübner)
+Complete architectural redesign (together with Hans Hï¿½bner)
 Lots of small fixes and improvements, too many to enumerate here
 
 Version 0.15.6
 2008-04-09
-Fixed embarrassingly mis-placed parentheses (thanks to Hans Hübner)
+Fixed embarrassingly mis-placed parentheses (thanks to Hans Hï¿½bner)
 
 Version 0.15.5
 2008-04-08
-Removed FORCE-OUTPUT* and thus the ACL-COMPAT dependency (thanks to Hans Hübner)
-Support for MP-less CMUCL (thanks to Hans Hübner)
+Removed FORCE-OUTPUT* and thus the ACL-COMPAT dependency (thanks to Hans Hï¿½bner)
+Support for MP-less CMUCL (thanks to Hans Hï¿½bner)
 
 Version 0.15.4
 2008-03-27
@@ -87,7 +88,7 @@ Version 0.15.1
 2008-02-13
 Uses CL-FAD for HANDLE-STATIC-FILE now
 Better error reporting for CREATE-FOLDER-DISPATCHER-AND-HANDLER (suggested by Cyrus Harmon)
-Faster version of WRITE-HEADER-LINE (thanks to V. Seguí)
+Faster version of WRITE-HEADER-LINE (thanks to V. Seguï¿½)
 
 Version 0.15.0
 2007-12-29
@@ -95,7 +96,7 @@ Added support for CLISP (thanks to Anton Vodonosov)
 
 Version 0.14.7
 2007-11-15
-Replace ENOUGH-NAMESTRING with ENOUGH-URL (patch by Kilian Sprotte and Hans Hübner)
+Replace ENOUGH-NAMESTRING with ENOUGH-URL (patch by Kilian Sprotte and Hans Hï¿½bner)
 
 Version 0.14.6
 2007-11-08
