@@ -49,6 +49,16 @@ set."
   #+:clisp
   (when write-timeout
     (socket:socket-options (usocket:socket usocket) :SO-SNDTIMEO write-timeout))
+  #+:ecl
+  (when read-timeout
+    (print (list (usocket:socket usocket) read-timeout))
+    (setf (sb-bsd-sockets:sockopt-receive-timeout (usocket:socket usocket))
+	  read-timeout))
+  #+:ecl
+  (when write-timeout
+    (print (list (usocket:socket usocket) write-timeout))
+    (setf (sb-bsd-sockets:sockopt-send-timeout (usocket:socket usocket))
+	  write-timeout))
   #+:openmcl
   (when read-timeout
     (setf (ccl:stream-input-timeout (usocket:socket usocket))
@@ -64,6 +74,6 @@ set."
   #+:cmu
   (setf (lisp::fd-stream-timeout (usocket:socket-stream usocket))
         (coerce read-timeout 'integer))
-  #-(or :clisp :allegro :openmcl :sbcl :lispworks :cmu)
+  #-(or :clisp :allegro :openmcl :sbcl :lispworks :cmu :ecl)
   (not-implemented 'set-timeouts))
 
