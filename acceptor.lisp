@@ -298,12 +298,10 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   acceptor)
 
 (defmethod initialize-connection-stream ((acceptor acceptor) stream)
- (declare (ignore acceptor))
  ;; default method does nothing
  stream)
 
 (defmethod reset-connection-stream ((acceptor acceptor) stream)
-  (declare (ignore acceptor))
   ;; turn chunking off at this point
   (cond ((typep stream 'chunked-stream)
          ;; flush the stream first and check if there's unread input
@@ -316,7 +314,6 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 
 (defmethod process-connection :around ((*acceptor* acceptor) (socket t))
   ;; this around method is used for error handling
-  (declare (ignore socket))
   ;; note that this method also binds *ACCEPTOR*
   (handler-bind ((error
                   ;; abort if there's an error which isn't caught inside
