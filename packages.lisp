@@ -128,6 +128,7 @@
            #:acceptor-persistent-connections-p
            #:acceptor-port
            #:acceptor-read-timeout
+           #:acceptor-remove-session
            #:acceptor-reply-class
            #:acceptor-request-class
            #:acceptor-ssl-p
