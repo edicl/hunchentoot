@@ -112,7 +112,7 @@ replaced."
   (format nil
           "~A=~A~:[~;~:*; expires=~A~]~:[~;~:*; path=~A~]~:[~;~:*; domain=~A~]~:[~;; secure~]~:[~;; HttpOnly~]"
           (cookie-name cookie)
-          (url-encode (format nil "~A" (cookie-value cookie)) +utf-8+)
+          (cookie-value cookie)
           (cookie-date (cookie-expires cookie))
           (cookie-path cookie)
           (cookie-domain cookie)
