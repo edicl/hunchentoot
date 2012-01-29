@@ -1,4 +1,5 @@
 ECL timeout support (Juan Jose Giarcia-Ripoll)
+urldecode session cookie (bug reported by Ralf Stoye)
 Don't urldecode cookies
 
 Version 1.2.2

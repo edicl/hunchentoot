@@ -56,8 +56,7 @@ facility."
                                                 :element-type 'octet
                                                 :if-does-not-exist :create
                                                 :if-exists :append
-                                                #+:openmcl #+:openmcl
-                                                :sharing :lock)
+                                                #+:openmcl :sharing #+:openmcl :lock)
                   (let ((,stream-var (make-flexi-stream ,binary-stream :external-format +utf-8+)))
                     ,@body)))
                (stream

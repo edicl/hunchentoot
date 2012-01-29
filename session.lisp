@@ -304,7 +304,8 @@ A default method is provided and you only need to write your own one
 if you want to maintain your own sessions."))
 
 (defmethod session-verify ((request request))
-  (let ((session-identifier (or (cookie-in (session-cookie-name *acceptor*) request)
+  (let ((session-identifier (or (when-let (session-cookie (cookie-in (session-cookie-name *acceptor*) request))
+                                  (url-decode session-cookie))
                                 (get-parameter (session-cookie-name *acceptor*) request))))
     (unless (and session-identifier
                  (stringp session-identifier)
