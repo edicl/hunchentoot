@@ -1,6 +1,8 @@
 ECL timeout support (Juan Jose Giarcia-Ripoll)
-urldecode session cookie (bug reported by Ralf Stoye)
-Don't urldecode cookies
+Changed cookie handling - Hunchentoot no longer encodes cookies
+automatically.  Applications must make sure that they only set cookies
+to permitted values (refer to RFC6265 for the details, thanks to Ralf
+Stoye for debugging help)
 
 Version 1.2.2
 2011-11-30
