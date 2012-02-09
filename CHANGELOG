@@ -1,3 +1,4 @@
+Export acceptor-remove-session
 ECL timeout support (Juan Jose Giarcia-Ripoll)
 Changed cookie handling - Hunchentoot no longer encodes cookies
 automatically.  Applications must make sure that they only set cookies
