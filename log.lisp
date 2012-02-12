@@ -62,5 +62,5 @@ facility."
                (stream
                 (let ((,stream-var ,destination))
                   (prog1 (progn ,@body)
-                    (finish-output *error-output*)))))))))))
+                    (finish-output ,destination)))))))))))
   
