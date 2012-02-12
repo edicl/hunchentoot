@@ -129,10 +129,12 @@ had returned RESULT.  See the source code of REDIRECT for an example."
   (let ((bytes-to-send (file-length file)))
     (cl-ppcre:register-groups-bind
         (start end)
-        ("^bytes (\\d+)-(\\d+)$" (header-in* :range) :sharedp t)
+        ("^bytes=(\\d+)-(\\d*)$" (header-in* :range) :sharedp t)
       ;; body won't be executed if regular expression does not match
-      (setf start (parse-integer start)
-            end (parse-integer end))
+      (setf start (parse-integer start))
+      (if (> (length end) 0)
+          (setf end (parse-integer end))
+          (setf end (1- (file-length file))))
       (when (or (< start 0)
                 (>= end (file-length file)))
         (setf (return-code*) +http-requested-range-not-satisfiable+
@@ -143,7 +145,7 @@ had returned RESULT.  See the source code of REDIRECT for an example."
       (file-position file start)
       (setf (return-code*) +http-partial-content+
             bytes-to-send (1+ (- end start))
-            (header-out :content-range) (format nil "bytes ~D-~D/*" start end)))
+            (header-out :content-range) (format nil "bytes ~D-~D/~D" start end (file-length file))))
     bytes-to-send))
 
 (defun handle-static-file (pathname &optional content-type)
