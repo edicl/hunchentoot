@@ -160,18 +160,18 @@ expecting certain responses."
       (http-request uploaded-file-url :range '(0 0))
       (http-assert 'status-code 206)
       (http-assert 'body 'equalp (subseq range-test-buffer 0 1))
-      (http-assert-header :content-range (format nil "bytes 0-0"))
+      (http-assert-header :content-range (format nil "bytes 0-0/~D" range-test-file-size))
 
       (say " End out of range")
       (http-request uploaded-file-url :range (list 0 range-test-file-size))
       (http-assert 'status-code 416)
-      (http-assert-header :content-range (format nil "bytes 0-~D/*" (1- range-test-file-size)))
+      (http-assert-header :content-range (format nil "bytes 0-~D/\\*" (1- range-test-file-size)))
 
       (say " Request whole file as partial")
       (http-request uploaded-file-url :range (list 0 (1- range-test-file-size)))
       (http-assert 'status-code 206)
       (http-assert 'body 'equalp range-test-buffer)
-      (http-assert-header :content-range (format nil "bytes 0-~D/*" (1- range-test-file-size)))
+      (http-assert-header :content-range (format nil "bytes 0-~D/~D" (1- range-test-file-size) range-test-file-size))
 
       (say " Request something in the middle")
       (let ((start-offset (/ range-test-file-size 4))
@@ -179,7 +179,7 @@ expecting certain responses."
         (http-request uploaded-file-url :range (list start-offset (1- length)))
         (http-assert 'status-code 206)
         (http-assert 'body 'equalp (subseq range-test-buffer start-offset length))
-        (http-assert-header :content-range (format nil "bytes ~D-~D" start-offset (1- length)))))
+        (http-assert-header :content-range (format nil "bytes ~D-~D/~D" start-offset (1- length) range-test-file-size))))
 
 
     (values)))
