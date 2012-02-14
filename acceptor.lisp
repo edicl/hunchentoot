@@ -533,12 +533,13 @@ catches during request processing."
 (defmethod acceptor-dispatch-request ((acceptor acceptor) request)
   "Detault implementation of the request dispatch method, generates an
 +http-not-found+ error."
-  (declare (ignore request))
   (if (acceptor-document-root acceptor)
-      (handle-static-file (merge-pathnames (if (equal (script-name*) "/")
-                                               "index.html"
-                                               (subseq (script-name*) 1))
-                                           (acceptor-document-root acceptor)))
+      (let ((path (request-pathname request)))
+	(if (not path)
+	    (setf (return-code *reply*) +http-forbidden+)
+	    (handle-static-file
+	     (merge-pathnames (if (equal "/" (script-name request)) #p"index.html" path)
+			      (acceptor-document-root acceptor)))))
       (setf (return-code *reply*) +http-not-found+)))
 
 (defmethod handle-request ((*acceptor* acceptor) (*request* request))
