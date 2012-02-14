@@ -214,11 +214,10 @@ it'll be the content type used for all files in the folder."
     (parameter-error "~S is supposed to denote a directory." base-path))
   (flet ((handler ()
            (let ((request-path (request-pathname *request* uri-prefix)))
-             (if request-path
-                 (handle-static-file (merge-pathnames request-path base-path) content-type)
-                 (progn
-                   (setf (return-code*) +http-forbidden+)
-                   (abort-request-handler))))))
+             (when (null request-path)
+               (setf (return-code*) +http-forbidden+)
+               (abort-request-handler))
+             (handle-static-file (merge-pathnames request-path base-path) content-type))))
     (create-prefix-dispatcher uri-prefix #'handler)))
 
 (defun no-cache ()
