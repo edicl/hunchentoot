@@ -228,6 +228,7 @@
            #:request-acceptor
            #:request-method
            #:request-method*
+           #:request-pathname
            #:request-uri
            #:request-uri*
            #:require-authorization
