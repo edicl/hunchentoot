@@ -199,11 +199,6 @@ determine the content type via the file's suffix."
       (lambda ()
         (handle-static-file path content-type)))))
 
-(defun enough-url (url url-prefix)
-  "Returns the relative portion of URL relative to URL-PREFIX, similar
-to what ENOUGH-NAMESTRING does for pathnames."
-  (subseq url (or (mismatch url url-prefix) (length url-prefix))))
-
 (defun create-folder-dispatcher-and-handler (uri-prefix base-path &optional content-type)
   "Creates and returns a dispatch function which will dispatch to a
 handler function which emits the file relative to BASE-PATH that is
@@ -215,25 +210,15 @@ it'll be the content type used for all files in the folder."
                (plusp (length uri-prefix))
                (char= (char uri-prefix (1- (length uri-prefix))) #\/))
     (parameter-error "~S must be string ending with a slash." uri-prefix))
-  (let ((name (pathname-name base-path))
-        (type (pathname-type base-path)))
-    (when (or (and name (not (eq name :unspecific)))
-              (and type (not (eq type :unspecific))))
-      (parameter-error "~S is supposed to denote a directory." base-path)))
+  (unless (fad:directory-pathname-p base-path)
+    (parameter-error "~S is supposed to denote a directory." base-path))
   (flet ((handler ()
-           (let* ((script-name (url-decode (script-name*)))
-                  (script-path (enough-url (regex-replace-all "\\\\" script-name "/")
-                                           uri-prefix))
-                  (script-path-directory (pathname-directory script-path)))
-             (unless (or (stringp script-path-directory)
-                         (null script-path-directory)
-                         (and (listp script-path-directory)
-                              (eq (first script-path-directory) :relative)
-                              (loop for component in (rest script-path-directory)
-                                    always (stringp component))))
-               (setf (return-code*) +http-forbidden+)
-               (abort-request-handler))
-             (handle-static-file (merge-pathnames script-path base-path) content-type))))
+           (let ((request-path (request-pathname *request* uri-prefix)))
+             (if request-path
+                 (handle-static-file (merge-pathnames request-path base-path) content-type)
+                 (progn
+                   (setf (return-code*) +http-forbidden+)
+                   (abort-request-handler))))))
     (create-prefix-dispatcher uri-prefix #'handler)))
 
 (defun no-cache ()
