@@ -1,6 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Strict//EN">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>HUNCHENTOOT - The Common Lisp web server formerly known as TBNL</title><meta name="description" content="
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta><title>HUNCHENTOOT - The Common Lisp web server formerly known as TBNL</title><meta name="description" content="
     A fully-featured web server written in Common Lisp offering things
     like HTTP/1.1 chunking, persistent connections, and SSL.  Includes
     a framework for building dynamic websites interactively.
@@ -1337,7 +1336,7 @@
 
       For each incoming request, the <a href="#acceptors">acceptor</a> (in
       <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code>) creates a
-      <code xmlns=""><a href="#request">REQUEST</a></code> object and makes it available to <a href="#handlers">handlers</a> via the special variable
+      <code xmlns=""><a href="#request">REQUEST</a></code> object and makes it available to <a href="#request-dispatch">handlers</a> via the special variable
       <code xmlns=""><a href="#*request*">*REQUEST*</a></code>.  This object contains all relevant
       information about the request and this section collects the functions
       which can be used to query such an object.  In all function where
@@ -1359,7 +1358,7 @@
           Objects of this class hold all the information
           about an incoming request.  They are created automatically by
           acceptors and can be accessed by the
-          corresponding <a xmlns="http://www.w3.org/1999/xhtml" href="#handlers">handler</a>.
+          corresponding <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>.
 
           You should not mess with the slots of these objects directly, but you
           can subclass <code><a href="#request">REQUEST</a></code> in order to implement your
@@ -1836,7 +1835,7 @@
           after the incoming headers have been read.  It
           calls <code><a href="#handle-request">HANDLE-REQUEST</a></code> (and is more or less just a
           thin wrapper around it) to select and call a
-          <a xmlns="http://www.w3.org/1999/xhtml" href="#handlers">handler</a> and send the output of this handler to
+          <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a> and send the output of this handler to
           the client.  Note that <code><a href="#process-connection">PROCESS-CONNECTION</a></code> is
           called once per connection and loops in case of a persistent
           connection while <code><a href="#process-request">PROCESS-REQUEST</a></code> is called anew
@@ -1867,11 +1866,11 @@
             acceptor's <a href="#request-dispatch">request dispatcher</a>, but you
             can of course implement a different behaviour.  The default method
             also sets up <a href="#logging">standard error handling</a> for
-            the <a href="#handlers">handler</a>.
+            the <a href="#request-dispatch">handler</a>.
           </p>
           <p xmlns="http://www.w3.org/1999/xhtml">
             Might be a good place to bind or rebind special variables which can
-            then be accessed by your <a href="#handlers">handlers</a>.
+            then be accessed by your <a href="#request-dispatch">handlers</a>.
           </p>
         </clix:description></blockquote></p>
 
@@ -1948,7 +1947,7 @@
           </i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are various generic readers which are used
           to read information about a <code><a href="#request">REQUEST</a></code> object.  If you are writing a
-          <a xmlns="http://www.w3.org/1999/xhtml" href="#handlers">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these readers but instead utilize the
+          <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these readers but instead utilize the
           corresponding functions with an asterisk at the end of their name,
           also listed in this section.  These generic readers are only
           exported for users who want to create their own subclasses of
@@ -1962,7 +1961,7 @@
       For each incoming request, the <a href="#acceptors">acceptor</a>
       (in <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code>) creates
       a <code xmlns=""><a href="#reply">REPLY</a></code> object and makes it available
-      to <a href="#handlers">handlers</a> via the special variable
+      to <a href="#request-dispatch">handlers</a> via the special variable
       <code xmlns=""><a href="#*reply*">*REPLY*</a></code>.  This object contains all relevant
       information (except for the content body) about the reply that will be
       sent to the client and this section collects the functions which can
@@ -1985,7 +1984,7 @@
           Objects of this class hold all the information about an
           outgoing reply.  They are created automatically by
           Hunchentoot and can be accessed and modified by the
-          corresponding <a xmlns="http://www.w3.org/1999/xhtml" href="#handlers">handler</a>.
+          corresponding <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>.
         <p xmlns="http://www.w3.org/1999/xhtml">
           You should not mess with the slots of these objects directly, but you
           can subclass <code xmlns=""><a href="#reply">REPLY</a></code> in order to implement your own behaviour.  See the
@@ -2181,7 +2180,7 @@
           </i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are various generic readers which are used
           to read information about a <code><a href="#reply">REPLY</a></code> object.  If you are writing a
-          <a xmlns="http://www.w3.org/1999/xhtml" href="#handlers">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these readers but instead utilize the
+          <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these readers but instead utilize the
           corresponding functions with an asterisk at the end of their name,
           also listed in this section.  These generic readers are only
           exported for users who want to create their own subclasses of
@@ -2208,7 +2207,7 @@
           These are various generic accessors which are
           used to query and modify a <code><a href="#reply">REPLY</a></code> objects.  If
           you are writing a
-          <a xmlns="http://www.w3.org/1999/xhtml" href="#handlers">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these
+          <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these
           accessors but instead utilize the corresponding functions with an
           asterisk at the end of their name, also listed in this section.
           These generic accessors are only exported for users who want to
@@ -2220,7 +2219,7 @@
     
 
     <h4 xmlns=""><a name="sessions">Sessions</a></h4>
-      Hunchentoot supports <em>sessions</em>: Once a <a href="#handlers">request
+      Hunchentoot supports <em>sessions</em>: Once a <a href="#request-dispatch">request
       handler</a> has called <code xmlns=""><a href="#start-session">START-SESSION</a></code>, Hunchentoot
       uses either cookies or (if the client doesn't send the cookies
       back) <a href="#*rewrite-for-session-urls*">rewrites URLs</a> to keep
@@ -2795,7 +2794,7 @@
         file format.
       </p>
       <p>
-        Errors happening within a <a href="#handlers">handler</a>
+        Errors happening within a <a href="#request-dispatch">handler</a>
         which are not caught by the handler itself are handled by
         Hunchentoot by logging them to the established
         <code xmlns=""><a href="#acceptor-message-log-destination">ACCEPTOR-MESSAGE-LOG-DESTINATION</a></code>.
@@ -2970,7 +2969,7 @@
         =&gt;
         <i>|</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is designed to be used inside
-          a <a xmlns="http://www.w3.org/1999/xhtml" href="#handlers">handler</a>. If the client has sent an
+          a <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>. If the client has sent an
           'If-Modified-Since' header
           (see <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.faqs.org/rfcs/rfc2616.html">RFC 2616</a>,
           section 14.25) and the time specified matches the universal
