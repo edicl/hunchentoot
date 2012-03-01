@@ -450,9 +450,13 @@ arguments."))
   ACCEPTOR).  FORMAT and ARGS are as in FORMAT.  LOG-LEVEL is a
   keyword denoting the log level or NIL in which case it is ignored."
   (with-log-stream (stream (acceptor-message-log-destination acceptor) *message-log-lock*)
-    (format stream "[~A~@[ [~A]~]] ~?~%"
-            (iso-time) log-level
-            format-string format-arguments)))
+    (handler-case
+        (format stream "[~A~@[ [~A]~]] ~?~%"
+                (iso-time) log-level
+                format-string format-arguments)
+      (error (e)
+        (ignore-errors
+         (format *trace-output* "error ~A while writing to error log, error not logged~%" e))))))
 
 (defun log-message* (log-level format-string &rest format-arguments)
   "Convenience function which calls the message logger of the current
