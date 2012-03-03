@@ -1,3 +1,5 @@
+Version 1.2.3
+2012-03-03
 Fix crash when error occurs while logging error (reported by Xu Jingtao)
 Fix compilation with :hunchentoot-no-ssl feature (Mark Evenson)
 Fix Range header handling (Simon Sandlund)
