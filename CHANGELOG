@@ -1,3 +1,4 @@
+Fix compilation with :hunchentoot-no-ssl feature (Mark Evenson)
 Fix Range header handling (Simon Sandlund)
 Export acceptor-remove-session
 ECL timeout support (Juan Jose Giarcia-Ripoll)

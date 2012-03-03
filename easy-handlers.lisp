@@ -340,6 +340,7 @@ either return a handler or neglect by returning NIL."
      when action return (funcall action)
      finally (call-next-method)))
 
+#-:hunchentoot-no-ssl
 (defclass easy-ssl-acceptor (easy-acceptor ssl-acceptor)
   ()
   (:documentation "This is an acceptor that mixes the ``easy''
