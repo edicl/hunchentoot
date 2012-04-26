@@ -2470,7 +2470,7 @@
           session will cease to be accessible if the client&#039;s remote IP changes.
           <p>
             This might for example be an issue if the client uses a proxy server
-            which doesn&#039;t send correct &#039;X_FORWARDED_FOR&#039; headers.
+            which doesn&#039;t send correct &#039;X-Forwarded-For&#039; headers.
           </p>
         </clix:description>
       </clix:special-variable>
