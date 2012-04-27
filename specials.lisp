@@ -253,6 +253,13 @@ the debugger).")
 (defvar *tmp-files* nil
   "A list of temporary files created while a request was handled.")
 
+(defparameter *upload-filename-generator* nil
+  "A filename designator to be used by RFC2388 when uploaded file
+   is being written to disk. It defaults to NIL in which case the
+   internal generator is used. It also can be a STRING of the filename,
+   a PATHNAME, or a SYMBOL which should be a function that takes no
+   arguments and return the filename")
+
 (defconstant +latin-1+
   (make-external-format :latin1 :eol-style :lf)
   "A FLEXI-STREAMS external format used for `faithful' input and
