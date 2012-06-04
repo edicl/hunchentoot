@@ -124,7 +124,7 @@ supposed to be of content type 'multipart/form-data'."
                              "BOUNDARY"
                              (rfc2388:header-parameters parsed-content-type-header)))
 		       (return-from parse-rfc2388-form-data))))
-    (loop for part in (rfc2388:parse-mime stream boundary :write-content-to-file (make-upload-filename))
+    (loop for part in (rfc2388:parse-mime stream boundary :write-content-to-file (make-upload-filename-generator))
           for headers = (rfc2388:mime-part-headers part)
           for content-disposition-header = (rfc2388:find-content-disposition-header headers)
           for name = (cdr (rfc2388:find-parameter

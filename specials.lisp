@@ -254,11 +254,13 @@ the debugger).")
   "A list of temporary files created while a request was handled.")
 
 (defparameter *upload-filename-generator* nil
-  "A filename designator to be used by RFC2388 when uploaded file
-   is being written to disk. It defaults to NIL in which case the
-   internal generator is used. It also can be a STRING of the filename,
-   a PATHNAME, or a SYMBOL which should be a function that takes no
-   arguments and return the filename")
+  "This is used to control how filename generation for the files
+being uploaded. It defaults to NIL in which case the internal
+filename generator will be used. It can also be a SYMBOL (designating
+a function) or a Function, in both cases the function should have
+signature of (&key file-name field-name content-type), and should
+return a filename to be used by the server to which uploaded content
+is written.")
 
 (defconstant +latin-1+
   (make-external-format :latin1 :eol-style :lf)

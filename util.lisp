@@ -128,9 +128,8 @@ according to HTTP/1.1 \(RFC 2068)."
 (let ((counter 0))
   (declare (ignorable counter))
   (defun make-tmp-file-name (&optional (prefix "hunchentoot"))
-    "Generates a unique name for a temporary file.  When
-    *upload-filename-generator* is NIL, then this is the default
-     function supplied to RFC2388 library when a file is uploaded."
+    "Generates a unique name for a temporary file.  This function is
+called from the RFC2388 library when a file is uploaded."
     (let ((tmp-file-name
            #+:allegro
            (pathname (system:make-temp-file-name prefix *tmp-directory*))
@@ -142,23 +141,27 @@ according to HTTP/1.1 \(RFC 2068)."
                  unless (probe-file pathname)
                  return pathname)))
       (push tmp-file-name *tmp-files*)
+      ;; maybe call hook for file uploads
+      (when *file-upload-hook*
+        (funcall *file-upload-hook* tmp-file-name))
       tmp-file-name)))
 
-(defun make-upload-filename ()
-  "This function is used to generate the filename to
-   be passed to RFC2388 library. There it will be used
-   for the content being written to the disk."
-  (let ((filename (cond
-                   ((null *upload-filename-generator*)
-                     (funcall 'make-tmp-file-name))
-                   (otherwise
-                    (etypecase *upload-filename-generator*
-                      (string *upload-filename-generator*)
-                      (pathname (namestring *upload-filename-generator*))
-                      (symbol (funcall *upload-filename-generator*))))))) ;
-    (when *file-upload-hook*
-      (funcall *file-upload-hook* filename))
-    filename))
+(defun make-upload-filename-generator ()
+  "Based on the value of *upload-filename-generator*, arrange
+for a suitable filename generator to be used by RFC2388 library
+when a file is being uploaded."
+  (etypecase *upload-filename-generator* 
+    ;; the old behaviour.
+    (null (lambda (&rest args)
+            (declare (ignore args))
+            (funcall #'make-tmp-file-name)))
+    ;; the new additional behaviour.
+    ((or symbol function) 
+     (lambda (&rest args)
+       (let ((filename (apply *upload-filename-generator* args :allow-other-keys t)))
+         (when *file-upload-hook*
+           (funcall *file-upload-hook* filename))
+         filename)))))
 
 (defun quote-string (string)
   "Quotes string according to RFC 2616's definition of `quoted-string'."

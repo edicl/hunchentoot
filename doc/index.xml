@@ -1751,12 +1751,12 @@
 
       <clix:special-variable name='*upload-filename-generator*'>
         <clix:description>
-         A filename designator for the uploaded file being written
-         to disk. It defaults to <code>NIL</code> in which case the internal
-         filename generator will be used. It also can be a <code>STRING</code> 
-         of the filename, a <code>PATHNAME</code>, or a <code>SYMBOL</code> 
-         which should be a function without arguments that returns the
-         filename <code>STRING</code>.
+         This is used to control how filename generation for the files being uploaded.
+         It defaults to <code>NIL</code> in which case the internal filename 
+         generator will be used. It can also be a <code>SYMBOL</code> (designating
+         a function) or a <code>Function</code>, in both cases the function should
+         have signature of (&key file-name field-name content-type), and should
+         return a filename to be used by the server to which uploaded content is written.
         </clix:description>
       </clix:special-variable>
 
