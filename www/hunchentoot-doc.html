@@ -496,6 +496,18 @@
       <br><b>*acceptor*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">The current ACCEPTOR object in the context of a request.
         </clix:description></blockquote></p>
 
+      <p xmlns=""><a class="none" name="listen-backlog"></a>
+      [Generic function]
+      <br><b>listen-backlog</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
+        </clix:lambda-list></i>
+        =&gt;
+        <i>number-of-pending-connections
+        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Number of pending connections allowed in the listen socket
+          before the kernel rejects further incoming connections.
+          Non-LispWorks only.
+        </clix:description></blockquote></p>
+
       <p xmlns="">
       [Generic readers]<br><a class="none" name="acceptor-address"></a><b>acceptor-address</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
@@ -509,7 +521,7 @@
           </clix:lambda-list></i>
         =&gt;
         <i>read-timeout
-          </i><br><a class="none" name="acceptor-ssl-certificate-file-listed-reader"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
+          </i><br><a class="none" name="acceptor-ssl-certificate-file"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
           </clix:lambda-list></i>
         =&gt;
         <i>ssl-certificate-file
@@ -521,27 +533,17 @@
           </clix:lambda-list></i>
         =&gt;
         <i>ssl-privatekey-password
-          </i><br><a class="none" name="acceptor-ssl-certificate-file-listed-reader"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
-          </clix:lambda-list></i>
-        =&gt;
-        <i>number-of-pending-connections
           </i><br><a class="none" name="acceptor-write-timeout"></a><b>acceptor-write-timeout</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
         =&gt;
         <i>write-timeout
-          </i><br><blockquote>
-<clix:description xmlns:clix="http://bknr.net/clixdoc">
-          Number of pending connections allowed in the listen socket
-          before the kernel rejects further incoming connections.
-          Non-LispWorks only.
-        </clix:description><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          </i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are readers for various slots of <code><a href="#acceptor">ACCEPTOR</a></code>
           objects (and some of them obviously only make sense
           for <code><a href="#ssl-acceptor">SSL-ACCEPTOR</a></code> objects).  See the docstrings of
           these slots for more information and note that there are corresponding
           initargs for all of them.
-        </clix:description>
-</blockquote></p>
+        </clix:description></blockquote></p>
 
       <p xmlns="">
       [Generic accessors]<br><a class="none" name="acceptor-access-log-destination"></a><b>acceptor-access-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
@@ -2377,7 +2379,7 @@
           session will cease to be accessible if the client's remote IP changes.
           <p xmlns="http://www.w3.org/1999/xhtml">
             This might for example be an issue if the client uses a proxy server
-            which doesn't send correct 'X_FORWARDED_FOR' headers.
+            which doesn't send correct 'X-Forwarded-For' headers.
           </p>
         </clix:description></blockquote></p>
 
@@ -3625,14 +3627,7 @@ start and test an https server instead.)
 <code><a href="#acceptor-request-class">acceptor-request-class</a></code><span class="entry-type">Generic accessor</span>
 </li>
 <li>
-<a name="acceptor-ssl-certificate-file"></a>acceptor-ssl-certificate-file<ul>
-<li>
-<code><a href="#acceptor-ssl-certificate-file-listed-reader">acceptor-ssl-certificate-file</a></code><span class="entry-type">Generic reader</span>
-</li>
-<li>
-<code><a href="#acceptor-ssl-certificate-file-listed-reader">acceptor-ssl-certificate-file</a></code><span class="entry-type">Generic reader</span>
-</li>
-</ul>
+<code><a href="#acceptor-ssl-certificate-file">acceptor-ssl-certificate-file</a></code><span class="entry-type">Generic reader</span>
 </li>
 <li>
 <code><a href="#acceptor-ssl-p">acceptor-ssl-p</a></code><span class="entry-type">Generic function</span>
@@ -3786,6 +3781,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#initialize-connection-stream">initialize-connection-stream</a></code><span class="entry-type">Generic function</span>
+</li>
+<li>
+<code><a href="#listen-backlog">listen-backlog</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#log-message*">log-message*</a></code><span class="entry-type">Function</span>
