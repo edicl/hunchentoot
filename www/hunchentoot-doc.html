@@ -648,12 +648,12 @@
       with the function <code xmlns=""><a href="#start">START</a></code> which immediately calls
       <code xmlns=""><a href="#start-listening">START-LISTENING</a></code> and then applies the function
       <code xmlns=""><a href="#execute-acceptor">EXECUTE-ACCEPTOR</a></code> to its <a href="#taskmasters">taskmaster</a>.  This function will eventually call
-      <code xmlns=""><a href="#accept-connections">ACCEPT-CONNECTIONS</a></code> which is responsible for settings
-      things up to wait for clients to connect.  For each connection which comes
-      in, <code xmlns=""><a href="#handle-incoming-connection">HANDLE-INCOMING-CONNECTION</a></code> is applied to the
-      taskmaster which will either call <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code>
-      directly, or will create a thread to call it.
-      <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> calls
+      <code xmlns=""><a href="#accept-connections">ACCEPT-CONNECTIONS</a></code> which is responsible for setting
+      things up to wait for clients to connect.  For each incoming connection
+      which comes in, <code xmlns=""><a href="#handle-incoming-connection">HANDLE-INCOMING-CONNECTION</a></code> is applied
+      to the taskmaster which will either call
+      <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> directly, or will create a thread
+      to call it.  <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> calls
       <code xmlns=""><a href="#initialize-connection-stream">INITIALIZE-CONNECTION-STREAM</a></code> before it does anything
       else, then it selects and calls a function which handles the <a href="#requests">request</a>, and finally it sends the <a href="#replies">reply</a> to the client before it calls
       <code xmlns=""><a href="#reset-connection-stream">RESET-CONNECTION-STREAM</a></code>.  If the connection is
@@ -803,32 +803,35 @@
       (asdf:load-system "hunchentoot")
       (asdf:load-system "drakma")
 
-      ;; Subclass ACCEPTOR
+      ;;; Subclass ACCEPTOR
       (defclass vhost (tbnl:acceptor)
-	;; slots
-	((dispatch-table
-	  :initform '()
-	  :accessor dispatch-table
-	  :documentation "List of dispatch functions"))
-	;; options
-	(:default-initargs                    ; default-initargs must be used
-	 :address "127.0.0.1"))               ; because ACCEPTOR uses it
+        ;;; slots
+        ((dispatch-table
+          :initform '()
+          :accessor dispatch-table
+          :documentation "List of dispatch functions"))
+        ;;; options
+        (:default-initargs                    ; default-initargs must be used
+         :address "127.0.0.1"))               ; because ACCEPTOR uses it
 
-      ;; Specialise ACCEPTOR-DISPATCH-REQUEST
+      ;;; Specialise ACCEPTOR-DISPATCH-REQUEST for VHOSTs
       (defmethod tbnl:acceptor-dispatch-request ((vhost vhost) request)
-	;; try REQUEST on each dispatcher in turn
-	(mapc (lambda (dispatcher)
-		(let ((handler (funcall dispatcher request)))
-		  (when handler               ; Handler found. FUNCALL it and return result
-		    (return-from tbnl:acceptor-dispatch-request (funcall handler)))))
-	      (dispatch-table vhost))
-	(call-next-method))
+        ;;; try REQUEST on each dispatcher in turn
+        (mapc (lambda (dispatcher)
+                (let ((handler (funcall dispatcher request)))
+                  (when handler               ; Handler found. FUNCALL it and return result
+                    (return-from tbnl:acceptor-dispatch-request (funcall handler)))))
+              (dispatch-table vhost))
+        (call-next-method))
 
-      ;; Instantiate VHOSTs
+      ;;; ======================================================================
+      ;;; Now all we need to do is test it
+
+      ;;; Instantiate VHOSTs
       (defvar vhost1 (make-instance 'vhost :port 50001))
       (defvar vhost2 (make-instance 'vhost :port 50002))
 
-      ;; Populate each dispatch table
+      ;;; Populate each dispatch table
       (push
        (tbnl:create-prefix-dispatcher "/foo" 'foo1)
        (dispatch-table vhost1))
@@ -836,15 +839,15 @@
        (tbnl:create-prefix-dispatcher "/foo" 'foo2)
        (dispatch-table vhost2))
 
-      ;; Define handlers
+      ;;; Define handlers
       (defun foo1 () "Hello")
       (defun foo2 () "Goodbye")
 
-      ;; Start VHOSTs
+      ;;; Start VHOSTs
       (tbnl:start vhost1)
       (tbnl:start vhost2)
 
-      ;; Test VHOSTs
+      ;;; Make some requests
       (drakma:http-request "http://127.0.0.1:50001/foo")
       ;;; =|
       ;;; 127.0.0.1 - [2012-06-08 14:30:39] "GET /foo HTTP/1.1" 200 5 "-" "Drakma/1.2.6 (SBCL 1.0.56; Linux; 2.6.32-5-686; http://weitz.de/drakma/)"
