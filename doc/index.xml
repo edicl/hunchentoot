@@ -814,18 +814,18 @@
 
       ;;; Subclass ACCEPTOR
       (defclass vhost (tbnl:acceptor)
-        ;;; slots
+        ;; slots
         ((dispatch-table
           :initform '()
           :accessor dispatch-table
           :documentation "List of dispatch functions"))
-        ;;; options
+        ;; options
         (:default-initargs                    ; default-initargs must be used
          :address "127.0.0.1"))               ; because ACCEPTOR uses it
 
       ;;; Specialise ACCEPTOR-DISPATCH-REQUEST for VHOSTs
       (defmethod tbnl:acceptor-dispatch-request ((vhost vhost) request)
-        ;;; try REQUEST on each dispatcher in turn
+        ;; try REQUEST on each dispatcher in turn
         (mapc (lambda (dispatcher)
                 (let ((handler (funcall dispatcher request)))
                   (when handler               ; Handler found. FUNCALL it and return result
