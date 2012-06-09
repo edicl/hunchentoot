@@ -39,7 +39,8 @@
 documentation string."
     `(progn
       (defvar ,name)
-      (setf (documentation ',name 'variable) ,doc-string)))
+      (setf (documentation ',name 'variable) ,doc-string)
+      ',name))
 
   (defvar *http-reason-phrase-map* (make-hash-table)
     "Used to map numerical return codes to reason phrases.")
