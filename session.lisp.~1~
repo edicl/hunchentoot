@@ -215,7 +215,7 @@ you want to use your own session objects."))
 (defmethod session-cookie-value ((session session))
   (and session
        (format nil
-               "~D:~A"
+               "~A:~A"
                (session-id session)
                (session-string session))))
 
