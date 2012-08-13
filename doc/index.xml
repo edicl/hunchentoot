@@ -441,12 +441,17 @@
       </clix:function>
 
       <clix:function generic='true' name='stop'>
-        <clix:lambda-list>acceptor
-        </clix:lambda-list>
+        <clix:lambda-list>acceptor &amp;key soft</clix:lambda-list>
         <clix:returns>acceptor
         </clix:returns>
-        <clix:description>Stops <clix:arg>acceptor</clix:arg> so that it
-        no longer accepts requests.
+        <clix:description>Stops the <clix:arg>acceptor</clix:arg> so
+        that it no longer accepts requests.  If
+        <clix:arg>soft</clix:arg> is true, and there are any requests
+        in progress, wait until all requests are fully processed, but
+        meanwhile do not accept new requests.  Note that
+        <clix:arg>soft</clix:arg> must not be set when calling
+        <clix:ref>stop</clix:ref> from within a request handler, as
+        that will deadlock.
         </clix:description>
       </clix:function>
 

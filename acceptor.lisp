@@ -204,8 +204,9 @@ connections.  Returns the acceptor."))
 (defgeneric stop (acceptor &key soft)
   (:documentation "Stops the ACCEPTOR so that it no longer accepts
 requests.  If SOFT is true, and there are any requests in progress,
-wait until all requests are fully processed, but meanwhile do
-not accept new requests."))
+wait until all requests are fully processed, but meanwhile do not
+accept new requests.  Note that SOFT must not be set when calling
+STOP from within a request handler, as that will deadlock."))
 
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
