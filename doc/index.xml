@@ -3128,18 +3128,17 @@
             and <clix:arg>target</clix:arg>.
           </p>
           <p>
-            If <clix:arg>code</clix:arg> is a 3xx redirection code, it
-            will be sent as status code.  In case of <code>NIL</code>, a
-            302 status code will be sent to the client.
-            If <clix:arg>host</clix:arg> is not provided, the current host
-            (see <clix:ref>HOST</clix:ref>) will be
-            used. If <clix:arg>protocol</clix:arg> is the
-            keyword <code>:HTTPS</code>, the client will be redirected
-            to a https URL, if it's <code>:HTTP</code> it'll be sent to
-            a http URL.  If both <clix:arg>host</clix:arg>
-            and <clix:arg>protocol</clix:arg> aren't provided, then the
-            value of <clix:arg>protocol</clix:arg> will match the current
-            request.
+            <clix:arg>code</clix:arg> must be a 3xx HTTP redirection
+            status code to send to the client.  It defaults to 302
+            ("Found").  If <clix:arg>host</clix:arg> is not provided,
+            the current host (see <clix:ref>HOST</clix:ref>) will be
+            used. If <clix:arg>protocol</clix:arg> is the keyword
+            <code>:HTTPS</code>, the client will be redirected to a
+            https URL, if it's <code>:HTTP</code> it'll be sent to a
+            http URL.  If both <clix:arg>host</clix:arg> and
+            <clix:arg>protocol</clix:arg> aren't provided, then the
+            value of <clix:arg>protocol</clix:arg> will match the
+            current request.
           </p>
         </clix:description>
       </clix:function>
