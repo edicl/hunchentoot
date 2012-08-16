@@ -173,7 +173,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.3.
+      The current version is 1.2.4.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -483,17 +483,34 @@
 
       <p xmlns=""><a class="none" name="stop"></a>
       [Generic function]
-      <br><b>stop</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
-        </clix:lambda-list></i>
+      <br><b>stop</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor &amp;key soft</clix:lambda-list></i>
         =&gt;
         <i>acceptor
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Stops <code><i>acceptor</i></code> so that it
-        no longer accepts requests.
+        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Stops the <code><i>acceptor</i></code> so
+        that it no longer accepts requests.  If
+        <code><i>soft</i></code> is true, and there are any requests
+        in progress, wait until all requests are fully processed, but
+        meanwhile do not accept new requests.  Note that
+        <code><i>soft</i></code> must not be set when calling
+        <code><a href="#stop">stop</a></code> from within a request handler, as
+        that will deadlock.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="*acceptor*"></a>
       [Special variable]
       <br><b>*acceptor*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">The current ACCEPTOR object in the context of a request.
+        </clix:description></blockquote></p>
+
+      <p xmlns=""><a class="none" name="listen-backlog"></a>
+      [Generic function]
+      <br><b>listen-backlog</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
+        </clix:lambda-list></i>
+        =&gt;
+        <i>number-of-pending-connections
+        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Number of pending connections allowed in the listen socket
+          before the kernel rejects further incoming connections.
+          Non-LispWorks only.
         </clix:description></blockquote></p>
 
       <p xmlns="">
@@ -509,7 +526,7 @@
           </clix:lambda-list></i>
         =&gt;
         <i>read-timeout
-          </i><br><a class="none" name="acceptor-ssl-certificate-file-listed-reader"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
+          </i><br><a class="none" name="acceptor-ssl-certificate-file"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
           </clix:lambda-list></i>
         =&gt;
         <i>ssl-certificate-file
@@ -521,27 +538,17 @@
           </clix:lambda-list></i>
         =&gt;
         <i>ssl-privatekey-password
-          </i><br><a class="none" name="acceptor-ssl-certificate-file-listed-reader"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
-          </clix:lambda-list></i>
-        =&gt;
-        <i>number-of-pending-connections
           </i><br><a class="none" name="acceptor-write-timeout"></a><b>acceptor-write-timeout</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
         =&gt;
         <i>write-timeout
-          </i><br><blockquote>
-<clix:description xmlns:clix="http://bknr.net/clixdoc">
-          Number of pending connections allowed in the listen socket
-          before the kernel rejects further incoming connections.
-          Non-LispWorks only.
-        </clix:description><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          </i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are readers for various slots of <code><a href="#acceptor">ACCEPTOR</a></code>
           objects (and some of them obviously only make sense
           for <code><a href="#ssl-acceptor">SSL-ACCEPTOR</a></code> objects).  See the docstrings of
           these slots for more information and note that there are corresponding
           initargs for all of them.
-        </clix:description>
-</blockquote></p>
+        </clix:description></blockquote></p>
 
       <p xmlns="">
       [Generic accessors]<br><a class="none" name="acceptor-access-log-destination"></a><b>acceptor-access-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
@@ -748,12 +755,12 @@
 
       <p xmlns=""><a class="none" name="acceptor-log-access"></a>
       [Generic function]
-      <br><b>acceptor-log-access</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor &amp;key return-code content content-length</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-          Function to call to log access to the acceptor.  The <code><i>return-code</i></code>,
-          <code><i>content</i></code> and <code><i>content-length</i></code> keyword arguments contain additional
+      <br><b>acceptor-log-access</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor &amp;key return-code</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Function to call to log access to the acceptor.  The
+          <code><i>return-code</i></code> keyword argument contains additional
           information about the request to log.  In addition, it can use the
-          standard request accessor functions that are available to handler
-          functions to find out more information about the request.
+          standard request and reply accessor functions that are available to
+          handler functions to find out more information about the request.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="acceptor-log-message"></a>
@@ -2377,7 +2384,7 @@
           session will cease to be accessible if the client's remote IP changes.
           <p xmlns="http://www.w3.org/1999/xhtml">
             This might for example be an issue if the client uses a proxy server
-            which doesn't send correct 'X_FORWARDED_FOR' headers.
+            which doesn't send correct 'X-Forwarded-For' headers.
           </p>
         </clix:description></blockquote></p>
 
@@ -3029,18 +3036,17 @@
             and <code xmlns=""><i>target</i></code>.
           </p>
           <p xmlns="http://www.w3.org/1999/xhtml">
-            If <code xmlns=""><i>code</i></code> is a 3xx redirection code, it
-            will be sent as status code.  In case of <code>NIL</code>, a
-            302 status code will be sent to the client.
-            If <code xmlns=""><i>host</i></code> is not provided, the current host
-            (see <code xmlns=""><a href="#host">HOST</a></code>) will be
-            used. If <code xmlns=""><i>protocol</i></code> is the
-            keyword <code>:HTTPS</code>, the client will be redirected
-            to a https URL, if it's <code>:HTTP</code> it'll be sent to
-            a http URL.  If both <code xmlns=""><i>host</i></code>
-            and <code xmlns=""><i>protocol</i></code> aren't provided, then the
-            value of <code xmlns=""><i>protocol</i></code> will match the current
-            request.
+            <code xmlns=""><i>code</i></code> must be a 3xx HTTP redirection
+            status code to send to the client.  It defaults to 302
+            ("Found").  If <code xmlns=""><i>host</i></code> is not provided,
+            the current host (see <code xmlns=""><a href="#host">HOST</a></code>) will be
+            used. If <code xmlns=""><i>protocol</i></code> is the keyword
+            <code>:HTTPS</code>, the client will be redirected to a
+            https URL, if it's <code>:HTTP</code> it'll be sent to a
+            http URL.  If both <code xmlns=""><i>host</i></code> and
+            <code xmlns=""><i>protocol</i></code> aren't provided, then the
+            value of <code xmlns=""><i>protocol</i></code> will match the
+            current request.
           </p>
         </clix:description></blockquote></p>
 
@@ -3625,14 +3631,7 @@ start and test an https server instead.)
 <code><a href="#acceptor-request-class">acceptor-request-class</a></code><span class="entry-type">Generic accessor</span>
 </li>
 <li>
-<a name="acceptor-ssl-certificate-file"></a>acceptor-ssl-certificate-file<ul>
-<li>
-<code><a href="#acceptor-ssl-certificate-file-listed-reader">acceptor-ssl-certificate-file</a></code><span class="entry-type">Generic reader</span>
-</li>
-<li>
-<code><a href="#acceptor-ssl-certificate-file-listed-reader">acceptor-ssl-certificate-file</a></code><span class="entry-type">Generic reader</span>
-</li>
-</ul>
+<code><a href="#acceptor-ssl-certificate-file">acceptor-ssl-certificate-file</a></code><span class="entry-type">Generic reader</span>
 </li>
 <li>
 <code><a href="#acceptor-ssl-p">acceptor-ssl-p</a></code><span class="entry-type">Generic function</span>
@@ -3786,6 +3785,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#initialize-connection-stream">initialize-connection-stream</a></code><span class="entry-type">Generic function</span>
+</li>
+<li>
+<code><a href="#listen-backlog">listen-backlog</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#log-message*">log-message*</a></code><span class="entry-type">Function</span>
