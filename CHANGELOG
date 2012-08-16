@@ -1,3 +1,11 @@
+Version 1.2.4
+2012-08-16
+Remove dead code & style fixes (Ala'a Mohammad)
+Bug fix: setting *print-base* / *print-radix* caused invalid cookie values (Scott L. Burson)
+Various documentation and style updates
+Fix documentation bug found (Mathieu Lemoine)
+Fix bug that could hang Hunchentoot under load (Mathieu Lemoine)
+
 Version 1.2.3
 2012-03-03
 Fix crash when error occurs while logging error (reported by Xu Jingtao)
