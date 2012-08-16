@@ -367,6 +367,8 @@ is set up via PROCESS-REQUEST."
         (decrement-taskmaster-request-count taskmaster)))
     :name (format nil (taskmaster-worker-thread-name-format taskmaster) (client-as-string socket)))
    (error (cond)
+          ;; need to decrement the request count because we didn't reach the unwind-protect body.
+          (decrement-taskmaster-request-count taskmaster)
           ;; need to bind *ACCEPTOR* so that LOG-MESSAGE* can do its work.
           (let ((*acceptor* (taskmaster-acceptor taskmaster)))
             (log-message* *lisp-errors-log-level*
