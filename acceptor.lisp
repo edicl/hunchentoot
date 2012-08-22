@@ -349,52 +349,52 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   `(do-with-acceptor-request-count-incremented ,acceptor (lambda () ,@body)))
 
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
-  (let ((*hunchentoot-stream*
-         (initialize-connection-stream *acceptor* (make-socket-stream socket *acceptor*))))
+  (let ((*hunchentoot-stream* (make-socket-stream socket *acceptor*)))
     (unwind-protect
         ;; process requests until either the acceptor is shut down,
         ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
         ;; handler, or the peer fails to send a request
-        (loop
-          (let ((*close-hunchentoot-stream* t))
-            (when (acceptor-shutdown-p *acceptor*)
-              (return))
-            (multiple-value-bind (headers-in method url-string protocol)
-                (get-request-data *hunchentoot-stream*)
-              ;; check if there was a request at all
-              (unless method
-                (return))
-              ;; bind per-request special variables, then process the
-              ;; request - note that *ACCEPTOR* was bound above already
-              (let ((*reply* (make-instance (acceptor-reply-class *acceptor*)))
-                    (*session* nil)
-                    (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
-                (when transfer-encodings
-                  (setq transfer-encodings
-                        (split "\\s*,\\s*" transfer-encodings))
-                  (when (member "chunked" transfer-encodings :test #'equalp)
-                    (cond ((acceptor-input-chunking-p *acceptor*)
-                           ;; turn chunking on before we read the request body
-                           (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
-                                 (chunked-stream-input-chunking-p *hunchentoot-stream*) t))
-                          (t (hunchentoot-error "Client tried to use ~
+        (let ((*hunchentoot-stream* (initialize-connection-stream *acceptor* *hunchentoot-stream*)))
+          (loop
+             (let ((*close-hunchentoot-stream* t))
+               (when (acceptor-shutdown-p *acceptor*)
+                 (return))
+               (multiple-value-bind (headers-in method url-string protocol)
+                   (get-request-data *hunchentoot-stream*)
+                 ;; check if there was a request at all
+                 (unless method
+                   (return))
+                 ;; bind per-request special variables, then process the
+                 ;; request - note that *ACCEPTOR* was bound above already
+                 (let ((*reply* (make-instance (acceptor-reply-class *acceptor*)))
+                       (*session* nil)
+                       (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
+                   (when transfer-encodings
+                     (setq transfer-encodings
+                           (split "\\s*,\\s*" transfer-encodings))
+                     (when (member "chunked" transfer-encodings :test #'equalp)
+                       (cond ((acceptor-input-chunking-p *acceptor*)
+                              ;; turn chunking on before we read the request body
+                              (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
+                                    (chunked-stream-input-chunking-p *hunchentoot-stream*) t))
+                             (t (hunchentoot-error "Client tried to use ~
 chunked encoding, but acceptor is configured to not use it.")))))
-                (multiple-value-bind (remote-addr remote-port)
-                    (get-peer-address-and-port socket)
-                  (with-acceptor-request-count-incremented (*acceptor*)
-                    (process-request (make-instance (acceptor-request-class *acceptor*)
-                                                    :acceptor *acceptor*
-                                                    :remote-addr remote-addr
-                                                    :remote-port remote-port
-                                                    :headers-in headers-in
-                                                    :content-stream *hunchentoot-stream*
-                                                    :method method
-                                                    :uri url-string
-                                                    :server-protocol protocol)))))
-              (finish-output *hunchentoot-stream*)
-              (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
-              (when *close-hunchentoot-stream*
-                (return)))))
+                   (multiple-value-bind (remote-addr remote-port)
+                       (get-peer-address-and-port socket)
+                     (with-acceptor-request-count-incremented (*acceptor*)
+                       (process-request (make-instance (acceptor-request-class *acceptor*)
+                                                       :acceptor *acceptor*
+                                                       :remote-addr remote-addr
+                                                       :remote-port remote-port
+                                                       :headers-in headers-in
+                                                       :content-stream *hunchentoot-stream*
+                                                       :method method
+                                                       :uri url-string
+                                                       :server-protocol protocol)))))
+                 (finish-output *hunchentoot-stream*)
+                 (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
+                 (when *close-hunchentoot-stream*
+                   (return))))))
       (when *hunchentoot-stream*
         ;; as we are at the end of the request here, we ignore all
         ;; errors that may occur while flushing and/or closing the
