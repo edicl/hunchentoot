@@ -87,21 +87,21 @@ This function is called by the acceptor's STOP method."))
     "Default method -- no limit on the number of connections."
     nil))
 
-(defgeneric taskmaster-request-count (taskmaster)
+(defgeneric taskmaster-thread-count (taskmaster)
   (:documentation
    "Returns the current number of taskmaster requests.")
   (:method ((taskmaster taskmaster))
     "Default method -- claim there is one connection thread."
     1))
 
-(defgeneric increment-taskmaster-request-count (taskmaster)
+(defgeneric increment-taskmaster-thread-count (taskmaster)
   (:documentation
    "Atomically increment the number of taskmaster requests.")
   (:method  ((taskmaster taskmaster))
     "Default method -- do nothing."
     nil))
 
-(defgeneric decrement-taskmaster-request-count (taskmaster)
+(defgeneric decrement-taskmaster-thread-count (taskmaster)
   (:documentation
    "Atomically decrement the number of taskmaster requests")
   (:method ((taskmaster taskmaster))
@@ -153,6 +153,18 @@ PROCESS-CONNECTION."))
     "The maximum number of request threads this taskmaster will simultaneously
      run before refusing or queueing new connections requests.  If the value
      is null, then there is no limit.")
+   (thread-count
+    :type integer
+    :initform 0
+    :accessor taskmaster-thread-count
+    :documentation
+    "The number of taskmaster processing threads currently running.")
+   (thread-count-lock
+    :initform (make-lock "taskmaster-thread-count")
+    :reader taskmaster-thread-count-lock
+    :documentation
+    "In the absence of 'atomic-incf', we need this to atomically
+     increment and decrement the request count.")
    (max-accept-count
     :type (or integer null)
     :initarg :max-accept-count
@@ -163,18 +175,20 @@ PROCESS-CONNECTION."))
      new connections.  If supplied, this must be greater than MAX-THREAD-COUNT.
      The number of queued requests is the difference between MAX-ACCEPT-COUNT
      and MAX-THREAD-COUNT.")
-   (request-count
+   (accept-count
     :type integer
     :initform 0
-    :accessor taskmaster-request-count
+    :accessor taskmaster-accept-count
     :documentation
-    "The number of taskmaster threads currently running.")
-   (request-count-lock
-    :initform (make-lock "taskmaster-request-count")
-    :reader taskmaster-request-count-lock
+    "The number of connection currently accepted by the taskmaster. These
+    connections are not ensured to be processed, thay may be waiting for an
+    empty processing slot or rejected because the load is too heavy.")
+   (accept-count-lock
+    :initform (make-lock "taskmaster-accept-count")
+    :reader taskmaster-accept-count-lock
     :documentation
     "In the absence of 'atomic-incf', we need this to atomically
-     increment and decrement the request count.")
+     increment and decrement the accept count.")
    (wait-queue
     :initform (make-condition-variable)
     :reader taskmaster-wait-queue
@@ -206,6 +220,11 @@ MAX-ACCEPT-COUNT is supplied, it must be greater than MAX-THREAD-COUNT;
 in this case, requests are accepted up to MAX-ACCEPT-COUNT, and only
 then is HTTP 503 sent.
 
+It is important to note that MAX-ACCEPT-COUNT and the HTTP 503 behavior
+described above is racing with the acceptor listen backlog. If we are receiving
+requests faster than threads can be spawned and 503 sent, the requests will be
+silently rejected by the kernel.
+
 In a load-balanced environment with multiple Hunchentoot servers, it's
 reasonable to provide MAX-THREAD-COUNT but leave MAX-ACCEPT-COUNT null.
 This will immediately result in HTTP 503 when one server is out of
@@ -229,18 +248,29 @@ implementations."))
     (unless (> (taskmaster-max-accept-count taskmaster) (taskmaster-max-thread-count taskmaster))
       (parameter-error "MAX-ACCEPT-COUNT must be greater than MAX-THREAD-COUNT"))))
 
-(defmethod increment-taskmaster-request-count ((taskmaster one-thread-per-connection-taskmaster))
-  (when (taskmaster-max-thread-count taskmaster)
-    (with-lock-held ((taskmaster-request-count-lock taskmaster))
-      (incf (taskmaster-request-count taskmaster)))))
+(defmethod increment-taskmaster-accept-count ((taskmaster one-thread-per-connection-taskmaster))
+  (when (taskmaster-max-accept-count taskmaster)
+    (with-lock-held ((taskmaster-accept-count-lock taskmaster))
+      (incf (taskmaster-accept-count taskmaster)))))
 
-(defmethod decrement-taskmaster-request-count ((taskmaster one-thread-per-connection-taskmaster))
+(defmethod decrement-taskmaster-accept-count ((taskmaster one-thread-per-connection-taskmaster))
+  (when (taskmaster-max-accept-count taskmaster)
+    (with-lock-held ((taskmaster-accept-count-lock taskmaster))
+      (decf (taskmaster-accept-count taskmaster)))))
+
+(defmethod increment-taskmaster-thread-count ((taskmaster one-thread-per-connection-taskmaster))
+  (when (taskmaster-max-thread-count taskmaster)
+    (with-lock-held ((taskmaster-thread-count-lock taskmaster))
+      (incf (taskmaster-thread-count taskmaster)))))
+
+(defmethod decrement-taskmaster-thread-count ((taskmaster one-thread-per-connection-taskmaster))
   (when (taskmaster-max-thread-count taskmaster)
     (prog1
-        (with-lock-held ((taskmaster-request-count-lock taskmaster))
-          (decf (taskmaster-request-count taskmaster)))
+        (with-lock-held ((taskmaster-thread-count-lock taskmaster))
+          (decf (taskmaster-thread-count taskmaster))
+          (decrement-taskmaster-accept-count taskmaster))
       (when (and (taskmaster-max-accept-count taskmaster)
-                 (< (taskmaster-request-count taskmaster) (taskmaster-max-accept-count taskmaster)))
+                 (< (taskmaster-thread-count taskmaster) (taskmaster-max-accept-count taskmaster)))
         (note-free-connection taskmaster)))))
 
 (defmethod note-free-connection ((taskmaster one-thread-per-connection-taskmaster))
@@ -251,7 +281,7 @@ implementations."))
 (defmethod wait-for-free-connection ((taskmaster one-thread-per-connection-taskmaster))
   "Wait for a connection to be freed up"
   (with-lock-held ((taskmaster-wait-lock taskmaster))
-    (loop until (< (taskmaster-request-count taskmaster) (taskmaster-max-thread-count taskmaster))
+    (loop until (< (taskmaster-thread-count taskmaster) (taskmaster-max-thread-count taskmaster))
           do (condition-variable-wait (taskmaster-wait-queue taskmaster) (taskmaster-wait-lock taskmaster)))))
 
 (defmethod too-many-taskmaster-requests ((taskmaster one-thread-per-connection-taskmaster) socket)
@@ -286,6 +316,10 @@ implementations."))
 
 #-:lispworks
 (defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) socket)
+  (create-request-handler-thread taskmaster socket))
+
+#-lispworks
+(defmethod handle-incoming-connection% ((taskmaster one-thread-per-connection-taskmaster) socket)
   ;; Here's the idea, with the stipulations given in ONE-THREAD-PER-CONNECTION-TASKMASTER
   ;;  - If MAX-THREAD-COUNT is null, just start a taskmaster
   ;;  - If the connection count will exceed MAX-ACCEPT-COUNT or if MAX-ACCEPT-COUNT
@@ -293,52 +327,58 @@ implementations."))
   ;;    return an HTTP 503 error to the client
   ;;  - Otherwise if we're between MAX-THREAD-COUNT and MAX-ACCEPT-COUNT,
   ;;    wait until the connection count drops, then handle the request
-  ;;  - Otherwise, increment REQUEST-COUNT and start a taskmaster
-  (cond ((null (taskmaster-max-thread-count taskmaster))
-         ;; No limit on number of requests, just start a taskmaster
-         (create-request-handler-thread taskmaster socket))
-        ((if (taskmaster-max-accept-count taskmaster)
-           (>= (taskmaster-request-count taskmaster) (taskmaster-max-accept-count taskmaster))
-           (>= (taskmaster-request-count taskmaster) (taskmaster-max-thread-count taskmaster)))
-         ;; Send HTTP 503 to indicate that we can't handle the request right now
-         (too-many-taskmaster-requests taskmaster socket)
-         (send-service-unavailable-reply taskmaster socket))
-        ((and (taskmaster-max-accept-count taskmaster)
-              (>= (taskmaster-request-count taskmaster) (taskmaster-max-thread-count taskmaster)))
-         ;; Wait for a request to finish, then carry on
-         (wait-for-free-connection taskmaster)
-         (increment-taskmaster-request-count taskmaster)
-         (create-request-handler-thread taskmaster socket))
-        (t
-         ;; We're within both limits, just start a taskmaster
-         (increment-taskmaster-request-count taskmaster)
-         (create-request-handler-thread taskmaster socket))))
+  ;;  - Otherwise, increment THREAD-COUNT and start a taskmaster
+  (increment-taskmaster-accept-count taskmaster)
+  (flet ((process-connection% (acceptor socket)
+           (increment-taskmaster-thread-count taskmaster)
+           (unwind-protect
+                (process-connection acceptor socket)
+             (decrement-taskmaster-thread-count taskmaster))))
+    (cond ((null (taskmaster-max-thread-count taskmaster))
+           ;; No limit on number of requests, just start a taskmaster
+           (process-connection (taskmaster-acceptor taskmaster) socket))
+          ((if (taskmaster-max-accept-count taskmaster)
+               (>= (taskmaster-accept-count taskmaster) (taskmaster-max-accept-count taskmaster))
+               (>= (taskmaster-thread-count taskmaster) (taskmaster-max-thread-count taskmaster)))
+           ;; Send HTTP 503 to indicate that we can't handle the request right now
+           (too-many-taskmaster-requests taskmaster socket)
+           (send-service-unavailable-reply taskmaster socket))
+          ((and (taskmaster-max-accept-count taskmaster)
+                (>= (taskmaster-thread-count taskmaster) (taskmaster-max-thread-count taskmaster)))
+           ;; Wait for a request to finish, then carry on
+           (wait-for-free-connection taskmaster)
+           (process-connection% (taskmaster-acceptor taskmaster) socket))
+          (t
+           ;; We're within both limits, just start a taskmaster
+           (process-connection% (taskmaster-acceptor taskmaster) socket)))))
 
 (defun send-service-unavailable-reply (taskmaster socket)
   "A helper function to send out a quick error reply, before any state
 is set up via PROCESS-REQUEST."
-  (let* ((acceptor (taskmaster-acceptor taskmaster))
-         (*acceptor* acceptor)
-         (*hunchentoot-stream*
-          (initialize-connection-stream acceptor (make-socket-stream socket acceptor)))
-         (*reply* (make-instance (acceptor-reply-class acceptor)))
-         (*request*
-          (multiple-value-bind (remote-addr remote-port)
-              (get-peer-address-and-port socket)
-            (make-instance (acceptor-request-class acceptor)
-              :acceptor acceptor
-              :remote-addr remote-addr
-              :remote-port remote-port
-              :headers-in nil
-              :content-stream nil
-              :method nil
-              :uri nil
-              :server-protocol nil))))
-    (with-character-stream-semantics
-      (send-response acceptor
-                     (flex:make-flexi-stream *hunchentoot-stream* :external-format :iso-8859-1)
-                     +http-service-unavailable+
-                     :content (acceptor-status-message acceptor +http-service-unavailable+)))))
+  (unwind-protect
+       (let* ((acceptor (taskmaster-acceptor taskmaster))
+              (*acceptor* acceptor)
+              (*hunchentoot-stream*
+               (initialize-connection-stream acceptor (make-socket-stream socket acceptor)))
+              (*reply* (make-instance (acceptor-reply-class acceptor)))
+              (*request*
+               (multiple-value-bind (remote-addr remote-port)
+                   (get-peer-address-and-port socket)
+                 (make-instance (acceptor-request-class acceptor)
+                                :acceptor acceptor
+                                :remote-addr remote-addr
+                                :remote-port remote-port
+                                :headers-in nil
+                                :content-stream nil
+                                :method nil
+                                :uri nil
+                                :server-protocol nil))))
+         (with-character-stream-semantics
+           (send-response acceptor
+                          (flex:make-flexi-stream *hunchentoot-stream* :external-format :iso-8859-1)
+                          +http-service-unavailable+
+                          :content (acceptor-status-message acceptor +http-service-unavailable+))))
+    (decrement-taskmaster-accept-count taskmaster)))
 
 #-:lispworks
 (defun client-as-string (socket)
@@ -362,19 +402,9 @@ is set up via PROCESS-REQUEST."
   (handler-case*
    (bt:make-thread
     (lambda ()
-      (unwind-protect
-           (process-connection (taskmaster-acceptor taskmaster) socket)
-        (decrement-taskmaster-request-count taskmaster)))
+      (handle-incoming-connection% taskmaster socket))
     :name (format nil (taskmaster-worker-thread-name-format taskmaster) (client-as-string socket)))
    (error (cond)
-          ;; The error occured during before the request handling
-          ;; thread was actually created - Most likely in the
-          ;; client-as-string function which potentially creates
-          ;; network errors because it tries to determine the address
-          ;; of the client.  Therefore, the unwind-protect in the
-          ;; handler thread above will never be executed and we need
-          ;; to do it here.
-          (decrement-taskmaster-request-count taskmaster)
           ;; need to bind *ACCEPTOR* so that LOG-MESSAGE* can do its work.
           (let ((*acceptor* (taskmaster-acceptor taskmaster)))
             (log-message* *lisp-errors-log-level*
@@ -402,24 +432,34 @@ is set up via PROCESS-REQUEST."
              (zerop (mod *worker-counter* *cleanup-interval*)))
     (when *cleanup-function*
       (funcall *cleanup-function*)))
-  (cond ((null (taskmaster-max-thread-count taskmaster))
-         ;; No limit on number of requests, just start a taskmaster
-         (create-request-handler-thread taskmaster socket))
-        ((if (taskmaster-max-accept-count taskmaster)
-           (>= (taskmaster-request-count taskmaster) (taskmaster-max-accept-count taskmaster))
-           (>= (taskmaster-request-count taskmaster) (taskmaster-max-thread-count taskmaster)))
-         ;; Send HTTP 503 to indicate that we can't handle the request right now
-         (too-many-taskmaster-requests taskmaster socket)
-         (send-service-unavailable-reply taskmaster socket))
-        ((and (taskmaster-max-accept-count taskmaster)
-              (>= (taskmaster-request-count taskmaster) (taskmaster-max-thread-count taskmaster)))
-         ;; Lispworks doesn't have condition variables, so punt
-         (too-many-taskmaster-requests taskmaster socket)
-         (send-service-unavailable-reply taskmaster socket))
-        (t
-         ;; We're within both limits, just start a taskmaster
-         (increment-taskmaster-request-count taskmaster)
-         (create-request-handler-thread taskmaster socket))))
+  (create-request-handler-thread taskmaster socket))
+
+#+:lispworks
+(defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) socket)
+  (increment-taskmaster-accept-count taskmaster)
+  (flet ((process-connection% (acceptor socket)
+           (increment-taskmaster-thread-count taskmaster)
+           (unwind-protect
+                (process-connection acceptor socket)
+             (decrement-taskmaster-thread-count taskmaster))))
+    (cond ((null (taskmaster-max-thread-count taskmaster))
+           ;; No limit on number of requests, just start a taskmaster
+           (process-connection (taskmaster-acceptor taskmaster) socket))
+          ((if (taskmaster-max-accept-count taskmaster)
+               (>= (taskmaster-accept-count taskmaster) (taskmaster-max-accept-count taskmaster))
+               (>= (taskmaster-thread-count taskmaster) (taskmaster-max-thread-count taskmaster)))
+           ;; Send HTTP 503 to indicate that we can't handle the request right now
+           (too-many-taskmaster-requests taskmaster socket)
+           (send-service-unavailable-reply taskmaster socket))
+          ((and (taskmaster-max-accept-count taskmaster)
+                (>= (taskmaster-thread-count taskmaster) (taskmaster-max-thread-count taskmaster)))
+           ;; Lispworks doesn't have condition variables, so punt
+           (too-many-taskmaster-requests taskmaster socket)
+           (send-service-unavailable-reply taskmaster socket))
+          (t
+           ;; We're within both limits, just start a taskmaster
+           (increment-taskmaster-thread-count taskmaster)
+           (process-connection% (taskmaster-acceptor taskmaster) socket)))))
 
 #+:lispworks
 (defmethod create-request-handler-thread ((taskmaster one-thread-per-connection-taskmaster) socket)
@@ -427,6 +467,4 @@ is set up via PROCESS-REQUEST."
                                    (multiple-value-list (get-peer-address-and-port socket)))
                            nil
                            (lambda ()
-                             (unwind-protect
-                                 (process-connection (taskmaster-acceptor taskmaster) socket)
-                               (decrement-taskmaster-request-count taskmaster)))))
+                             (handle-incoming-connection% taskmaster socket))))
