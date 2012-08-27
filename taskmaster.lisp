@@ -359,25 +359,27 @@ is set up via PROCESS-REQUEST."
          (*acceptor* acceptor)
          (*hunchentoot-stream* (make-socket-stream socket acceptor)))
     (unwind-protect
-         (let* ((*hunchentoot-stream* (initialize-connection-stream acceptor *hunchentoot-stream*))
-                (*reply* (make-instance (acceptor-reply-class acceptor)))
-                (*request*
-                 (multiple-value-bind (remote-addr remote-port)
-                     (get-peer-address-and-port socket)
-                   (make-instance (acceptor-request-class acceptor)
-                                  :acceptor acceptor
-                                  :remote-addr remote-addr
-                                  :remote-port remote-port
-                                  :headers-in nil
-                                  :content-stream nil
-                                  :method nil
-                                  :uri nil
-                                  :server-protocol nil))))
-           (with-character-stream-semantics
-             (send-response acceptor
-                            (flex:make-flexi-stream *hunchentoot-stream* :external-format :iso-8859-1)
-                            +http-service-unavailable+
-                            :content (acceptor-status-message acceptor +http-service-unavailable+))))
+         (with-conditions-caught-and-logged ()
+           (with-mapped-conditions ()
+             (let* ((*hunchentoot-stream* (initialize-connection-stream acceptor *hunchentoot-stream*))
+                    (*reply* (make-instance (acceptor-reply-class acceptor)))
+                    (*request*
+                     (multiple-value-bind (remote-addr remote-port)
+                         (get-peer-address-and-port socket)
+                       (make-instance (acceptor-request-class acceptor)
+                                      :acceptor acceptor
+                                      :remote-addr remote-addr
+                                      :remote-port remote-port
+                                      :headers-in nil
+                                      :content-stream nil
+                                      :method nil
+                                      :uri nil
+                                      :server-protocol nil))))
+               (with-character-stream-semantics
+                 (send-response acceptor
+                                (flex:make-flexi-stream *hunchentoot-stream* :external-format :iso-8859-1)
+                                +http-service-unavailable+
+                                :content (acceptor-status-message acceptor +http-service-unavailable+))))))
       (decrement-taskmaster-accept-count taskmaster)
       (when *hunchentoot-stream*
         (ignore-errors*
