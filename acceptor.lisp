@@ -316,17 +316,7 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 (defmethod process-connection :around ((*acceptor* acceptor) (socket t))
   ;; this around method is used for error handling
   ;; note that this method also binds *ACCEPTOR*
-  (handler-bind ((error
-                  ;; abort if there's an error which isn't caught inside
-                  (lambda (cond)
-                    (log-message* *lisp-errors-log-level*
-                                  "Error while processing connection: ~A" cond)
-                    (return-from process-connection)))
-                 (warning
-                  ;; log all warnings which aren't caught inside
-                  (lambda (cond)
-                    (log-message* *lisp-warnings-log-level*
-                                  "Warning while processing connection: ~A" cond))))
+  (with-conditions-caught-and-logged ()
     (with-mapped-conditions ()
       (call-next-method))))
 

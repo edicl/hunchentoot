@@ -337,3 +337,21 @@ not a chunked stream."
   #-:lispworks
   `(usocket:with-mapped-conditions ()
     ,@body))
+
+(defmacro with-conditions-caught-and-logged (() &body body)
+  "Run BODY with conditions caught and logged by the *ACCEPTOR*. Errors are
+stopped right away so no other part of the software is impacted by them."
+  `(block nil
+     (handler-bind
+         ((error
+           ;; abort if there's an error which isn't caught inside
+           (lambda (cond)
+             (log-message* *lisp-errors-log-level*
+                           "Error while processing connection: ~A" cond)
+             (return)))
+          (warning
+           ;; log all warnings which aren't caught inside
+           (lambda (cond)
+             (log-message* *lisp-warnings-log-level*
+                           "Warning while processing connection: ~A" cond))))
+       ,@body)))
