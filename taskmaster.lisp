@@ -442,7 +442,7 @@ is set up via PROCESS-REQUEST."
   (create-request-handler-thread taskmaster socket))
 
 #+:lispworks
-(defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) socket)
+(defmethod handle-incoming-connection% ((taskmaster one-thread-per-connection-taskmaster) socket)
   (increment-taskmaster-accept-count taskmaster)
   (flet ((process-connection% (acceptor socket)
            (increment-taskmaster-thread-count taskmaster)
@@ -465,7 +465,6 @@ is set up via PROCESS-REQUEST."
            (send-service-unavailable-reply taskmaster socket))
           (t
            ;; We're within both limits, just start a taskmaster
-           (increment-taskmaster-thread-count taskmaster)
            (process-connection% (taskmaster-acceptor taskmaster) socket)))))
 
 #+:lispworks
