@@ -1,3 +1,7 @@
+Version 1.2.6
+2012-09-02
+Doc fixes, add .pre-release.sh script
+
 Version 1.2.5
 2012-09-02
 High-load multithread stability fixes (Mathieu Lemoine)
