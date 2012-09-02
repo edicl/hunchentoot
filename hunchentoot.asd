@@ -33,7 +33,7 @@
 
 (in-package :hunchentoot-asd)
 
-(defvar *hunchentoot-version* "1.2.4"
+(defvar *hunchentoot-version* "1.2.5"
   "A string denoting the current version of Hunchentoot.  Used
 for diagnostic output.")
 

@@ -1,3 +1,7 @@
+Version 1.2.5
+2012-09-02
+High-load multithread stability fixes (Mathieu Lemoine)
+
 Version 1.2.4
 2012-08-16
 Remove dead code & style fixes (Ala'a Mohammad)
