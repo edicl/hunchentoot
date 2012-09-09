@@ -565,36 +565,23 @@ REQUEST."
                     :key #'car :test #'eq)))
   (values))
 
+(defun sanitize-path (path)
+  "Return a relative pathname that has been sanitized both from double
+  slashes and relative directory traversals."
+  (pathname (cl-ppcre:regex-replace "^/*" ; make into relative pathname
+                                    (cl-ppcre:regex-replace-all "//*" ; remove double slashes
+                                                                (cl-ppcre:regex-replace-all "(^|[^/]*/+)\\.\\.(/|$)" ; /foo/.. -> /
+                                                                                            path "")
+                                                                "/")
+                                    "")))
+
 (defun request-pathname (&optional (request *request*) drop-prefix)
   "Construct a relative pathname from the request's SCRIPT-NAME.
 If DROP-PREFIX is given, pathname construction starts at the first path
 segment after the prefix.
-
-Returns NIL if the SCRIPT-NAME refers to a location above the
-DROP-PREFIX (or the root if no prefix was given)."
-  (labels ((to-pathname (directory filename)
-             (ppcre:register-groups-bind (name type) ("^(.*?)(?:[.]([^.]*))?$" filename)
-               (make-pathname :name name :type type
-                              :directory (and directory (cons :relative directory)))))
-           (resolve-path (segments)
-               (if (null segments)
-                   (make-pathname)
-                   (loop with path for (segment . rest) on segments by #'cdr do
-                        (let ((dotdot (string= ".." segment)))
-                          (cond ((and dotdot (or (null path) (null rest)))
-                                 (return nil))
-                                (dotdot
-                                 (pop path))
-                                ((null rest)
-                                 (return (to-pathname (nreverse path) segment)))
-                                ((string= "" segment)
-                                 #| skip empty segment |#)
-                                (t
-                                 (push segment path))))))))
-    (let ((segments (ppcre:split "/" (url-decode (script-name request)))))
-      (if drop-prefix
-          (loop for prefix-segment in (ppcre:split "/" drop-prefix)
-                for rest = segments then (cdr rest)
-                if (string/= (car rest) prefix-segment) do (return nil)
-                finally (return (resolve-path (cdr rest))))
-          (resolve-path segments)))))
+"
+  (let ((path (url-decode (script-name request))))
+    (if drop-prefix
+        (when (starts-with-p path drop-prefix)
+          (sanitize-path (subseq path (length drop-prefix))))
+        (sanitize-path path))))
