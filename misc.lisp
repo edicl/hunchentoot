@@ -170,8 +170,7 @@ via the file's suffix."
     (handle-if-modified-since time)
     (with-open-file (file pathname
                           :direction :input
-                          :element-type 'octet
-                          :if-does-not-exist nil)
+                          :element-type 'octet)
       (setf bytes-to-send (maybe-handle-range-header file)
             (content-length*) bytes-to-send)
       (let ((out (send-headers))

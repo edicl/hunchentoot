@@ -125,7 +125,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.3.
+      The current version is 1.2.5.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a
@@ -460,6 +460,18 @@
         </clix:description>
       </clix:special-variable>
 
+      <clix:function generic='true' name='listen-backlog'>
+        <clix:lambda-list>listen-backlog
+        </clix:lambda-list>
+        <clix:returns>number-of-pending-connections
+        </clix:returns>
+        <clix:description>
+          Number of pending connections allowed in the listen socket
+          before the kernel rejects further incoming connections.
+          Non-LispWorks only.
+        </clix:description>
+      </clix:function>
+
       <clix:readers generic='true'>
         <clix:listed-reader generic='true' name='acceptor-address'>
           <clix:lambda-list>acceptor
@@ -502,19 +514,6 @@
           <clix:returns>ssl-privatekey-password
           </clix:returns>
         </clix:listed-reader>
-
-        <clix:listed-reader generic='true' name='acceptor-ssl-certificate-file'>
-          <clix:lambda-list>listen-backlog
-          </clix:lambda-list>
-          <clix:returns>number-of-pending-connections
-          </clix:returns>
-        </clix:listed-reader>
-
-        <clix:description>
-          Number of pending connections allowed in the listen socket
-          before the kernel rejects further incoming connections.
-          Non-LispWorks only.
-        </clix:description>
 
         <clix:listed-reader generic='true' name='acceptor-write-timeout'>
           <clix:lambda-list>acceptor
@@ -759,13 +758,13 @@
       </clix:function>
 
       <clix:function name="acceptor-log-access" generic="true">
-        <clix:lambda-list>acceptor &amp;key return-code content content-length</clix:lambda-list>
+        <clix:lambda-list>acceptor &amp;key return-code</clix:lambda-list>
         <clix:description>
-          Function to call to log access to the acceptor.  The <clix:arg>return-code</clix:arg>,
-          <clix:arg>content</clix:arg> and <clix:arg>content-length</clix:arg> keyword arguments contain additional
+          Function to call to log access to the acceptor.  The
+          <clix:arg>return-code</clix:arg> keyword argument contains additional
           information about the request to log.  In addition, it can use the
-          standard request accessor functions that are available to handler
-          functions to find out more information about the request.
+          standard request and reply accessor functions that are available to
+          handler functions to find out more information about the request.
         </clix:description>
       </clix:function>
 
@@ -2475,7 +2474,7 @@
           session will cease to be accessible if the client&#039;s remote IP changes.
           <p>
             This might for example be an issue if the client uses a proxy server
-            which doesn&#039;t send correct &#039;X_FORWARDED_FOR&#039; headers.
+            which doesn&#039;t send correct &#039;X-Forwarded-For&#039; headers.
           </p>
         </clix:description>
       </clix:special-variable>
@@ -3129,18 +3128,17 @@
             and <clix:arg>target</clix:arg>.
           </p>
           <p>
-            If <clix:arg>code</clix:arg> is a 3xx redirection code, it
-            will be sent as status code.  In case of <code>NIL</code>, a
-            302 status code will be sent to the client.
-            If <clix:arg>host</clix:arg> is not provided, the current host
-            (see <clix:ref>HOST</clix:ref>) will be
-            used. If <clix:arg>protocol</clix:arg> is the
-            keyword <code>:HTTPS</code>, the client will be redirected
-            to a https URL, if it's <code>:HTTP</code> it'll be sent to
-            a http URL.  If both <clix:arg>host</clix:arg>
-            and <clix:arg>protocol</clix:arg> aren't provided, then the
-            value of <clix:arg>protocol</clix:arg> will match the current
-            request.
+            <clix:arg>code</clix:arg> must be a 3xx HTTP redirection
+            status code to send to the client.  It defaults to 302
+            ("Found").  If <clix:arg>host</clix:arg> is not provided,
+            the current host (see <clix:ref>HOST</clix:ref>) will be
+            used. If <clix:arg>protocol</clix:arg> is the keyword
+            <code>:HTTPS</code>, the client will be redirected to a
+            https URL, if it's <code>:HTTP</code> it'll be sent to a
+            http URL.  If both <clix:arg>host</clix:arg> and
+            <clix:arg>protocol</clix:arg> aren't provided, then the
+            value of <clix:arg>protocol</clix:arg> will match the
+            current request.
           </p>
         </clix:description>
       </clix:function>
