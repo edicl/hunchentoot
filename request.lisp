@@ -569,7 +569,7 @@ REQUEST."
   "Return a relative pathname that has been verified to not contain
   any directory traversals or explicit device or host fields.  Returns
   NIL if the path is not acceptable."
-  (let* ((pathname (pathname (regex-replace "^/*" path "")))
+  (let* ((pathname (pathname (remove #\\ (regex-replace "^/*" path ""))))
          (directory (pathname-directory pathname)))
     (when (and (or (null (pathname-host pathname))
                    (equal (pathname-host pathname) (pathname-host *default-pathname-defaults*)))
