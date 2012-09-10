@@ -565,15 +565,20 @@ REQUEST."
                     :key #'car :test #'eq)))
   (values))
 
-(defun sanitize-path (path)
-  "Return a relative pathname that has been sanitized both from double
-  slashes and relative directory traversals."
-  (pathname (cl-ppcre:regex-replace "^/*" ; make into relative pathname
-                                    (cl-ppcre:regex-replace-all "//*" ; remove double slashes
-                                                                (cl-ppcre:regex-replace-all "(^|[^/]*/+)\\.\\.(/|$)" ; /foo/.. -> /
-                                                                                            path "")
-                                                                "/")
-                                    "")))
+(defun parse-path (path)
+  "Return a relative pathname that has been verified to not contain
+  any directory traversals or explicit device or host fields.  Returns
+  NIL if the path is not acceptable."
+  (let* ((pathname (pathname (regex-replace "^/*" path "")))
+         (directory (pathname-directory pathname)))
+    (when (and (or (null (pathname-host pathname))
+                   (equal (pathname-host pathname) (pathname-host *default-pathname-defaults*)))
+               (or (null (pathname-device pathname))
+                   (equal (pathname-device pathname) (pathname-device *default-pathname-defaults*)))
+               (or (null directory)
+                   (and (eql (first directory) :relative)
+                        (every #'stringp (rest directory))))) ; only string components, no :UP traversals
+      pathname)))
 
 (defun request-pathname (&optional (request *request*) drop-prefix)
   "Construct a relative pathname from the request's SCRIPT-NAME.
@@ -583,5 +588,5 @@ segment after the prefix.
   (let ((path (url-decode (script-name request))))
     (if drop-prefix
         (when (starts-with-p path drop-prefix)
-          (sanitize-path (subseq path (length drop-prefix))))
-        (sanitize-path path))))
+          (parse-path (subseq path (length drop-prefix))))
+        (parse-path path))))
