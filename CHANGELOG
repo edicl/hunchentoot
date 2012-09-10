@@ -1,3 +1,8 @@
+Version 1.2.7
+2012-09-10
+Hunchentoot could not deal with / pointing to a static file directory.
+This bug has been fixed with the help of Stas Boukarev.
+
 Version 1.2.6
 2012-09-02
 Doc fixes, add .pre-release.sh script
