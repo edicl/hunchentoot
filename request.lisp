@@ -569,16 +569,17 @@ REQUEST."
   "Return a relative pathname that has been verified to not contain
   any directory traversals or explicit device or host fields.  Returns
   NIL if the path is not acceptable."
-  (let* ((pathname (pathname (remove #\\ (regex-replace "^/*" path ""))))
-         (directory (pathname-directory pathname)))
-    (when (and (or (null (pathname-host pathname))
-                   (equal (pathname-host pathname) (pathname-host *default-pathname-defaults*)))
-               (or (null (pathname-device pathname))
-                   (equal (pathname-device pathname) (pathname-device *default-pathname-defaults*)))
-               (or (null directory)
-                   (and (eql (first directory) :relative)
-                        (every #'stringp (rest directory))))) ; only string components, no :UP traversals
-      pathname)))
+  (when (every #'graphic-char-p path)
+    (let* ((pathname (pathname (remove #\\ (regex-replace "^/*" path ""))))
+           (directory (pathname-directory pathname)))
+      (when (and (or (null (pathname-host pathname))
+                     (equal (pathname-host pathname) (pathname-host *default-pathname-defaults*)))
+                 (or (null (pathname-device pathname))
+                     (equal (pathname-device pathname) (pathname-device *default-pathname-defaults*)))
+                 (or (null directory)
+                     (and (eql (first directory) :relative)
+                          (every #'stringp (rest directory))))) ; only string components, no :UP traversals
+        pathname))))
 
 (defun request-pathname (&optional (request *request*) drop-prefix)
   "Construct a relative pathname from the request's SCRIPT-NAME.
