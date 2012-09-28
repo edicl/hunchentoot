@@ -57,7 +57,7 @@
         several requests at the same time.  Therefore, it cannot be
         implemented completely in
         <a href="http://www.lispworks.com/documentation/HyperSpec/Front/index.htm">portable
-        Common Lisp</a>.  It currently works "natively" with 
+        Common Lisp</a>.  It currently works "natively" with
         <a href="http://www.lispworks.com/">LispWorks</a> (which is the
         main development and testing platform), and additionally on all
         Lisps which are supported by the compatibility
@@ -66,7 +66,7 @@
         Threads</a>.
       </p>
       <p>
-        Hunchentoot comes with a 
+        Hunchentoot comes with a
         <a href="http://www.opensource.org/licenses/bsd-license.php">BSD-style
         license</a> so you can basically do with it whatever you want.
       </p>
@@ -75,11 +75,11 @@
         <a href="http://quickhoney.com/">QuickHoney</a>,
         <a href="http://postabon.com/">Postabon</a>,
         <a href="http://www.city-farming.de/">City Farming</a>,
-        <a href="http://www.thoughtcrime.us/tp/">Trip Planner</a>, 
-        <a href="http://www.jalat.com/">Jalat</a>, 
-        <a href="http://heikestephan.de/">Heike Stephan</a>, 
-        <a href="http://www.memetrics.com/">xOs</a>, and 
-        <a href="http://syseng.nist.gov/moss">the</a> 
+        <a href="http://www.thoughtcrime.us/tp/">Trip Planner</a>,
+        <a href="http://www.jalat.com/">Jalat</a>,
+        <a href="http://heikestephan.de/">Heike Stephan</a>,
+        <a href="http://www.memetrics.com/">xOs</a>, and
+        <a href="http://syseng.nist.gov/moss">the</a>
         <a href="http://syseng.nist.gov/se-interop">NIST</a>.
       </p>
       <p>
@@ -106,6 +106,7 @@
 <a href="#reference">Function and variable reference</a><ol>
 <li><a href="#acceptors">Acceptors</a></li>
 <li><a href="#acceptor-behaviour">Customizing acceptor behaviour</a></li>
+<li><a href="#subclassing-acceptors">An example of how to subclass ACCEPTOR</a></li>
 <li><a href="#taskmasters">Taskmasters</a></li>
 <li><a href="#request-dispatch">Request dispatch and handling</a></li>
 <li><a href="#easy-handlers">Using the easy-handler framework</a></li>
@@ -148,7 +149,7 @@
         higher), and <a href="http://weitz.de/cl-ppcre/">
         CL-PPCRE</a> (plus
         <a href="http://weitz.de/cl-who/">CL-WHO</a> for the <a href="#start">example code</a>
-        and <a href="http://weitz.de/drakma/">Drakma</a> for the <a href="#testing">tests</a>). 
+        and <a href="http://weitz.de/drakma/">Drakma</a> for the <a href="#testing">tests</a>).
       </li>
     </ul>
 
@@ -454,7 +455,7 @@
             ports) at the same time.
           </p>
         </clix:description></blockquote></p>
-  
+
       <p xmlns=""><a class="none" name="ssl-acceptor"></a>
       [Standard class]
       <br><b>ssl-acceptor</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Create and <code><a href="#start">START</a></code> an instance of this class
@@ -646,29 +647,24 @@
     <h4 xmlns=""><a name="acceptor-behaviour">Customizing acceptor behaviour</a></h4>
 
       If you want to modify what acceptors do, you should subclass
-      <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> (or
-      <code xmlns=""><a href="#ssl-acceptor">SSL-ACCEPTOR</a></code>) and specialize the generic
-      functions that constitute their behaviour.  The life of an
-      acceptor looks like this: It is started with the function
-      <code xmlns=""><a href="#start">START</a></code> which immediately calls
-      <code xmlns=""><a href="#start-listening">START-LISTENING</a></code> and then applies the
-      function <code xmlns=""><a href="#execute-acceptor">EXECUTE-ACCEPTOR</a></code> to its <a href="#taskmasters">taskmaster</a>.  This function will
-      eventually call <code xmlns=""><a href="#accept-connections">ACCEPT-CONNECTIONS</a></code> which is
-      responsible for settings things up to wait for clients to
-      connect.  For each connection which comes in,
-      <code xmlns=""><a href="#handle-incoming-connection">HANDLE-INCOMING-CONNECTION</a></code> is applied to
-      the taskmaster which will either call
-      <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> directly,
-      or will create a thread to call it.
-      <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> calls
-      <code xmlns=""><a href="#initialize-connection-stream">INITIALIZE-CONNECTION-STREAM</a></code> before it does
-      anything else, then it selects and calls a function which
-      handles the <a href="#requests">request</a>, and finally it
-      sends the <a href="#replies">reply</a> to the client before it
-      calls <code xmlns=""><a href="#reset-connection-stream">RESET-CONNECTION-STREAM</a></code>.  If the
-      connection is persistent, this procedure is repeated (except for
-      the intialization step) in a loop until the connection is
-      closed.  The acceptor is stopped with <code xmlns=""><a href="#stop">STOP</a></code>.
+      <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> (or <code xmlns=""><a href="#ssl-acceptor">SSL-ACCEPTOR</a></code>) and
+      specialize the generic functions that constitute their behaviour (see
+      example below).  The life of an acceptor looks like this: It is started
+      with the function <code xmlns=""><a href="#start">START</a></code> which immediately calls
+      <code xmlns=""><a href="#start-listening">START-LISTENING</a></code> and then applies the function
+      <code xmlns=""><a href="#execute-acceptor">EXECUTE-ACCEPTOR</a></code> to its <a href="#taskmasters">taskmaster</a>.  This function will eventually call
+      <code xmlns=""><a href="#accept-connections">ACCEPT-CONNECTIONS</a></code> which is responsible for setting
+      things up to wait for clients to connect.  For each incoming connection
+      which comes in, <code xmlns=""><a href="#handle-incoming-connection">HANDLE-INCOMING-CONNECTION</a></code> is applied
+      to the taskmaster which will either call
+      <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> directly, or will create a thread
+      to call it.  <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> calls
+      <code xmlns=""><a href="#initialize-connection-stream">INITIALIZE-CONNECTION-STREAM</a></code> before it does anything
+      else, then it selects and calls a function which handles the <a href="#requests">request</a>, and finally it sends the <a href="#replies">reply</a> to the client before it calls
+      <code xmlns=""><a href="#reset-connection-stream">RESET-CONNECTION-STREAM</a></code>.  If the connection is
+      persistent, this procedure is repeated (except for the intialization step)
+      in a loop until the connection is closed.  The acceptor is stopped with
+      <code xmlns=""><a href="#stop">STOP</a></code>.
 
       <p>
         If you just want to use the standard acceptors that come with
@@ -798,8 +794,95 @@
           lisp-implementation-version and hunchentoot-version
           variables are available.
         </clix:description></blockquote></p>
-
     
+
+  <h4 xmlns=""><a name="subclassing-acceptors">An example of how to subclass ACCEPTOR</a></h4>
+
+    This example shows how to subclass <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> in order to
+    provide Hunchentoot with basic virtual host support.  It assumes
+    Hunchentoot is sitting behind an Internet-facing reverse-proxy web server
+    that maps the host (or domain) part of incoming HTTP requests to unique
+    localhost ports.
+
+    <pre>(asdf:load-system "hunchentoot")
+(asdf:load-system "drakma")
+
+;;; Subclass ACCEPTOR
+(defclass vhost (tbnl:acceptor)
+  ;; slots
+  ((dispatch-table
+    :initform '()
+    :accessor dispatch-table
+    :documentation "List of dispatch functions"))
+  ;; options
+  (:default-initargs                    ; default-initargs must be used
+   :address "127.0.0.1"))               ; because ACCEPTOR uses it
+
+;;; Specialise ACCEPTOR-DISPATCH-REQUEST for VHOSTs
+(defmethod tbnl:acceptor-dispatch-request ((vhost vhost) request)
+  ;; try REQUEST on each dispatcher in turn
+  (mapc (lambda (dispatcher)
+	  (let ((handler (funcall dispatcher request)))
+	    (when handler               ; Handler found. FUNCALL it and return result
+	      (return-from tbnl:acceptor-dispatch-request (funcall handler)))))
+	(dispatch-table vhost))
+  (call-next-method))
+
+;;; ======================================================================
+;;; Now all we need to do is test it
+
+;;; Instantiate VHOSTs
+(defvar vhost1 (make-instance 'vhost :port 50001))
+(defvar vhost2 (make-instance 'vhost :port 50002))
+
+;;; Populate each dispatch table
+(push
+ (tbnl:create-prefix-dispatcher "/foo" 'foo1)
+ (dispatch-table vhost1))
+(push
+ (tbnl:create-prefix-dispatcher "/foo" 'foo2)
+ (dispatch-table vhost2))
+
+;;; Define handlers
+(defun foo1 () "Hello")
+(defun foo2 () "Goodbye")
+
+;;; Start VHOSTs
+(tbnl:start vhost1)
+(tbnl:start vhost2)
+
+;;; Make some requests
+(drakma:http-request "http://127.0.0.1:50001/foo")
+;;; =|
+;;; 127.0.0.1 - [2012-06-08 14:30:39] "GET /foo HTTP/1.1" 200 5 "-" "Drakma/1.2.6 (SBCL 1.0.56; Linux; 2.6.32-5-686; http://weitz.de/drakma/)"
+;;; =&gt;
+;;; "Hello"
+;;; 200
+;;; ((:CONTENT-LENGTH . "5") (:DATE . "Fri, 08 Jun 2012 14:30:39 GMT")
+;;;  (:SERVER . "Hunchentoot 1.2.3") (:CONNECTION . "Close")
+;;;  (:CONTENT-TYPE . "text/html; charset=utf-8"))
+;;; #&lt;PURI:URI http://127.0.0.1:50001/foo&gt;
+;;; #&lt;FLEXI-STREAMS:FLEXI-IO-STREAM {CA90059}&gt;
+;;; T
+;;; "OK"
+(drakma:http-request "http://127.0.0.1:50002/foo")
+;;; =|
+;;; 127.0.0.1 - [2012-06-08 14:30:47] "GET /foo HTTP/1.1" 200 7 "-" "Drakma/1.2.6 (SBCL 1.0.56; Linux; 2.6.32-5-686; http://weitz.de/drakma/)"
+;;; =&gt;
+;;; "Goodbye"
+;;; 200
+;;; ((:CONTENT-LENGTH . "7") (:DATE . "Fri, 08 Jun 2012 14:30:47 GMT")
+;;;  (:SERVER . "Hunchentoot 1.2.3") (:CONNECTION . "Close")
+;;;  (:CONTENT-TYPE . "text/html; charset=utf-8"))
+;;; #&lt;PURI:URI http://127.0.0.1:50002/foo&gt;
+;;; #&lt;FLEXI-STREAMS:FLEXI-IO-STREAM {CAE8059}&gt;
+;;; T
+;;; "OK"</pre>
+
+    How to make each VHOST write to separate access log streams (or files) is
+    left as an exercise to the reader.
+
+  
 
     <h4 xmlns=""><a name="taskmasters">Taskmasters</a></h4>
       As a "normal" Hunchentoot user, you can completely ignore
@@ -817,7 +900,7 @@
       straightforward to create a taskmaster which allocates threads
       from a fixed pool instead of creating a new one for each
       connection.
- 
+
       <p>
         You can control the resources consumed by a threaded taskmaster via
         two initargs. <code>:max-thread-count</code> lets you set the maximum
@@ -851,7 +934,7 @@
         then the reply will be <code xmlns=""><a href="#+http-service-unavailable+">+HTTP-SERVICE-UNAVAILABLE+</a></code>.
         The default for these values is 100 and 120, respectively.
       </p>
- 
+
       <p>
         If you want to implement your own taskmasters, you should subclass
         <code xmlns=""><a href="#taskmaster">TASKMASTER</a></code> or one of its subclasses,
@@ -951,7 +1034,7 @@
                       (with-monitor-variable-bindings
                         (process-connection (taskmaster-acceptor taskmaster) socket))
                    (decrement-taskmaster-request-count taskmaster))))))</pre>
- 
+
 
 
 
@@ -1056,7 +1139,7 @@
           use the easy handler framework, acceptors of this class or
           one of its subclasses must be used.
         </clix:description></blockquote></p>
-  
+
       <p xmlns=""><a class="none" name="easy-ssl-acceptor"></a>
       [Standard class]
       <br><b>easy-ssl-acceptor</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -1064,7 +1147,7 @@
           the <code><a href="#easy-acceptor">EASY-ACCEPTOR</a></code> classes.  It is used
           when both ssl and the easy handler framework are required.
         </clix:description></blockquote></p>
-  
+
       <p xmlns=""><a class="none" name="*dispatch-table*"></a>
       [Special variable]
       <br><b>*dispatch-table*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -1122,7 +1205,7 @@
 
       <p xmlns=""><a class="none" name="create-static-file-dispatcher-and-handler"></a>
       [Function]
-      <br><b>create-static-file-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri path 
+      <br><b>create-static-file-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri path
         <tt>&amp;optional
         </tt> content-type
         </clix:lambda-list></i>
@@ -1396,7 +1479,7 @@
 
       <p xmlns=""><a class="none" name="parameter"></a>
       [Function]
-      <br><b>parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name 
+      <br><b>parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
@@ -1508,7 +1591,7 @@
 
       <p xmlns=""><a class="none" name="cookie-in"></a>
       [Function]
-      <br><b>cookie-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name 
+      <br><b>cookie-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
@@ -1617,7 +1700,7 @@
 
       <p xmlns=""><a class="none" name="header-in*"></a>
       [Function]
-      <br><b>header-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name 
+      <br><b>header-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
@@ -1684,13 +1767,13 @@
 
       <p xmlns=""><a class="none" name="aux-request-value"></a>
       [Accessor]
-      <br><b>aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol 
+      <br><b>aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
       =&gt;
       <i>value, present-p
-        </i><br><tt>(setf (</tt><b>aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol 
+        </i><br><tt>(setf (</tt><b>aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -1701,7 +1784,7 @@
 
       <p xmlns=""><a class="none" name="delete-aux-request-value"></a>
       [Function]
-      <br><b>delete-aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol 
+      <br><b>delete-aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
@@ -2008,13 +2091,13 @@
 
       <p xmlns=""><a class="none" name="header-out"></a>
       [Accessor]
-      <br><b>header-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name 
+      <br><b>header-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> reply
         </clix:lambda-list></i>
       =&gt;
       <i>string
-        </i><br><tt>(setf (</tt><b>header-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name 
+        </i><br><tt>(setf (</tt><b>header-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2069,7 +2152,7 @@
 
       <p xmlns=""><a class="none" name="cookie-out"></a>
       [Function]
-      <br><b>cookie-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name 
+      <br><b>cookie-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> reply
         </clix:lambda-list></i>
@@ -2290,13 +2373,13 @@
 
       <p xmlns=""><a class="none" name="session-value"></a>
       [Accessor]
-      <br><b>session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol 
+      <br><b>session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> session
         </clix:lambda-list></i>
       =&gt;
       <i>value, present-p
-        </i><br><tt>(setf (</tt><b>session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol 
+        </i><br><tt>(setf (</tt><b>session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> session
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2316,7 +2399,7 @@
 
       <p xmlns=""><a class="none" name="delete-session-value"></a>
       [Function]
-      <br><b>delete-session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol 
+      <br><b>delete-session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> session
         </clix:lambda-list></i>
@@ -2622,7 +2705,7 @@
 
       <p xmlns=""><a class="none" name="session-db-lock"></a>
       [Generic function]
-      <br><b>session-db-lock</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor 
+      <br><b>session-db-lock</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         <tt>&amp;key
         </tt> whole-db-p
         </clix:lambda-list></i>
@@ -2809,7 +2892,7 @@
 
       <p xmlns=""><a class="none" name="log-message*"></a>
       [Function]
-      <br><b>log-message*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">log-level format-string 
+      <br><b>log-message*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">log-level format-string
         <tt>&amp;rest
         </tt> format-arguments
         </clix:lambda-list></i>
@@ -3106,24 +3189,24 @@
         <i>string
         </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Generates a time string according to <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.faqs.org/rfcs/rfc1123.html">RFC 1123</a>.  Default is current time.
-          This can be used to send a 'Last-Modified' header - see <code><a href="#handle-if-modified-since">HANDLE-IF-MODIFIED-SINCE</a></code>. 
+          This can be used to send a 'Last-Modified' header - see <code><a href="#handle-if-modified-since">HANDLE-IF-MODIFIED-SINCE</a></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="url-encode"></a>
       [Function]
-      <br><b>url-encode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string 
+      <br><b>url-encode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
         <tt>&amp;optional
         </tt> external-format
         </clix:lambda-list></i>
         =&gt;
         <i>string
         </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-          URL-encodes a string using the external format <code><i>external-format</i></code>.  The default for <code><i>external-format</i></code> is the value of <code><a href="#*hunchentoot-default-external-format*">*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</a></code>. 
+          URL-encodes a string using the external format <code><i>external-format</i></code>.  The default for <code><i>external-format</i></code> is the value of <code><a href="#*hunchentoot-default-external-format*">*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</a></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="url-decode"></a>
       [Function]
-      <br><b>url-decode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string 
+      <br><b>url-decode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
         <tt>&amp;optional
         </tt> external-format
         </clix:lambda-list></i>
@@ -4049,7 +4132,7 @@ start and test an https server instead.)
     Loh</a> for
     the <a href="http://www.htg1.de/hunchentoot/hunchentoot.html">Hunchentoot
     logo</a>.
-    
+
     <p>
       Hunchentoot originally used code
       from <a href="http://www.cliki.net/ACL-COMPAT">ACL-COMPAT</a>,
@@ -4058,7 +4141,7 @@ start and test an https server instead.)
       Hunchentoot to other Lisps than LispWorks, I stole code from
       ACL-COMPAT, <a href="http://www.cliki.net/kmrcl">KMRCL</a>,
       and <a href="http://www.cliki.net/trivial-sockets">trivial-sockets</a> for
-      implementation-dependent stuff like sockets and MP.  (This has been replaced by 
+      implementation-dependent stuff like sockets and MP.  (This has been replaced by
       <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
       Threads</a>
       and <a href="http://common-lisp.net/project/usocket/">usocket</a>.)
