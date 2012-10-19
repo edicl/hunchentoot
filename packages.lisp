@@ -164,7 +164,7 @@
            #:create-regex-dispatcher
            #:create-request-handler-thread
            #:create-static-file-dispatcher-and-handler
-           #:decrement-taskmaster-request-count
+           #:decrement-taskmaster-thread-count
            #:default-document-directory
            #:define-easy-handler
            #:delete-aux-request-value
@@ -193,7 +193,7 @@
            #:hunchentoot-condition
            #:hunchentoot-error
            #:hunchentoot-warning
-           #:increment-taskmaster-request-count
+           #:increment-taskmaster-thread-count
            #:initialize-connection-stream
            #:log-message*
            #:maybe-invoke-debugger
@@ -272,7 +272,7 @@
            #:taskmaster-acceptor
            #:taskmaster-max-accept-count
            #:taskmaster-max-thread-count
-           #:taskmaster-request-count
+           #:taskmaster-thread-count
            #:too-many-taskmaster-requests
            #:url-decode
            #:url-encode

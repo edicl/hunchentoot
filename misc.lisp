@@ -138,13 +138,13 @@ had returned RESULT.  See the source code of REDIRECT for an example."
       (when (or (< start 0)
                 (>= end (file-length file)))
         (setf (return-code*) +http-requested-range-not-satisfiable+
-              (header-out :content-range) (format nil "bytes 0-~D/*" (1- (file-length file))))
+              (header-out :content-range) (format nil "bytes 0-~D/~D" (1- (file-length file)) (file-length file)))
         (throw 'handler-done
           (format nil "invalid request range (requested ~D-~D, accepted 0-~D)"
                   start end (1- (file-length file)))))
       (file-position file start)
       (setf (return-code*) +http-partial-content+
-            bytes-to-send (1+ (- end start))
+            bytes-to-send (- end start)
             (header-out :content-range) (format nil "bytes ~D-~D/~D" start end (file-length file))))
     bytes-to-send))
 
@@ -167,12 +167,12 @@ via the file's suffix."
                               "application/octet-stream")
           (header-out :last-modified) (rfc-1123-date time)
           (header-out :accept-ranges) "bytes")
-    (handle-if-modified-since time)
     (with-open-file (file pathname
                           :direction :input
                           :element-type 'octet)
       (setf bytes-to-send (maybe-handle-range-header file)
             (content-length*) bytes-to-send)
+      (handle-if-modified-since time)
       (let ((out (send-headers))
             (buf (make-array +buffer-length+ :element-type 'octet)))
         (loop
