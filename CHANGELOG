@@ -1,3 +1,7 @@
+Version X.X.X
+2012-10-19
+Fix documentation for COOKIE-IN, which returns a string, not a cookie.
+
 Version 1.2.7
 2012-09-10
 Hunchentoot could not deal with / pointing to a static file directory.
