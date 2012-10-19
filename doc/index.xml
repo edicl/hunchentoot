@@ -1521,7 +1521,7 @@
         <clix:lkw>optional
         </clix:lkw> request
         </clix:lambda-list>
-        <clix:returns>cookie
+        <clix:returns>string
         </clix:returns>
         <clix:description>
           Returns the cookie with the name <clix:arg>name</clix:arg> (a string) as sent by the
