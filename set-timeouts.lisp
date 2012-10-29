@@ -40,7 +40,7 @@ which means that the corresponding socket timeout value will not be
 set."
   (declare (ignorable usocket read-timeout write-timeout))
   ;; add other Lisps here if necessary
-  #+(or :sbcl :cmu)
+  #+(or :sbcl :cmu :abcl)
   (unless (eql read-timeout write-timeout)
     (parameter-error "Read and write timeouts for socket must be equal."))
   #+:clisp
@@ -74,6 +74,14 @@ set."
   #+:cmu
   (setf (lisp::fd-stream-timeout (usocket:socket-stream usocket))
         (coerce read-timeout 'integer))
-  #-(or :clisp :allegro :openmcl :sbcl :lispworks :cmu :ecl)
+  #+:abcl
+  (when read-timeout
+    (java:jcall (java:jmethod "java.net.Socket" "setSoTimeout"  "int")
+                (usocket:socket usocket)
+                (* 1000 read-timeout)))
+  #+:abcl
+  (when write-timeout
+    (warn "Unimplemented."))
+  #-(or :clisp :allegro :openmcl :sbcl :lispworks :cmu :ecl :abcl)
   (not-implemented 'set-timeouts))
 
