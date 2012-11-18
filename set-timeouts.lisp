@@ -51,12 +51,10 @@ set."
     (socket:socket-options (usocket:socket usocket) :SO-SNDTIMEO write-timeout))
   #+:ecl
   (when read-timeout
-    (print (list (usocket:socket usocket) read-timeout))
     (setf (sb-bsd-sockets:sockopt-receive-timeout (usocket:socket usocket))
 	  read-timeout))
   #+:ecl
   (when write-timeout
-    (print (list (usocket:socket usocket) write-timeout))
     (setf (sb-bsd-sockets:sockopt-send-timeout (usocket:socket usocket))
 	  write-timeout))
   #+:openmcl
