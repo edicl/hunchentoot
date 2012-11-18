@@ -33,8 +33,6 @@
   (:use :cl :cl-ppcre :chunga :flexi-streams :url-rewrite)
   (:shadow #:defconstant
            #:url-encode)
-  ;; see asdf system definition
-  (:import-from :hunchentoot-asd :*hunchentoot-version*)
   #+:lispworks
   (:import-from :lw #:with-unique-names #:when-let)
   (:export #:*acceptor*
@@ -52,6 +50,7 @@
            #:*header-stream*
            #:*http-error-handler*
            #:*hunchentoot-default-external-format*
+	   #:*hunchentoot-version*
            #:*lisp-errors-log-level*
            #:*lisp-warnings-log-level*
            #:*log-lisp-backtraces-p*
@@ -278,3 +277,7 @@
            #:url-encode
            #:user-agent
            #:within-request-p))
+
+;; see asdf system definition
+(defparameter hunchentoot:*hunchentoot-version*
+  #.hunchentoot-asd::*hunchentoot-version*)
