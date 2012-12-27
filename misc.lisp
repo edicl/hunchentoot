@@ -144,7 +144,7 @@ had returned RESULT.  See the source code of REDIRECT for an example."
                   start end (1- (file-length file)))))
       (file-position file start)
       (setf (return-code*) +http-partial-content+
-            bytes-to-send (- end start)
+            bytes-to-send (1+ (- end start))
             (header-out :content-range) (format nil "bytes ~D-~D/~D" start end (file-length file))))
     bytes-to-send))
 

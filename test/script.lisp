@@ -165,7 +165,7 @@ expecting certain responses."
       (say " End out of range")
       (http-request uploaded-file-url :range (list 0 range-test-file-size))
       (http-assert 'status-code 416)
-      (http-assert-header :content-range (format nil "bytes 0-~D/\\*" (1- range-test-file-size)))
+      (http-assert-header :content-range (format nil "bytes 0-~D/~A" (1- range-test-file-size) range-test-file-size))
 
       (say " Request whole file as partial")
       (http-request uploaded-file-url :range (list 0 (1- range-test-file-size)))
