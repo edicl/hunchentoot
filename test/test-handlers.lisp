@@ -281,10 +281,7 @@ and see what's happening.")
       (setq post-parameter-p t))
     (when (post-parameter "clean")
       (clean-tmp-dir)
-      (setq post-parameter-p t))
-    (when post-parameter-p
-      ;; redirect so user can safely use 'Back' button
-      (redirect (script-name*))))
+      (setq post-parameter-p t)))
   (no-cache)
   (with-html
     (:html
