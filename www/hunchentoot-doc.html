@@ -174,7 +174,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.8.
+      The current version is 1.2.9.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -473,21 +473,21 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="start"></a>
-      [Generic function]
-      <br><b>start</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+          [Generic function]
+          <br><b>start</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>acceptor
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Starts <code><i>acceptor</i></code> so that it begins accepting
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">acceptor
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Starts <code><i>acceptor</i></code> so that it begins accepting
         connections.  Returns the acceptor.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="stop"></a>
-      [Generic function]
-      <br><b>stop</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor &amp;key soft</clix:lambda-list></i>
-        =&gt;
-        <i>acceptor
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Stops the <code><i>acceptor</i></code> so
+          [Generic function]
+          <br><b>stop</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor &amp;key soft</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">acceptor
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Stops the <code><i>acceptor</i></code> so
         that it no longer accepts requests.  If
         <code><i>soft</i></code> is true, and there are any requests
         in progress, wait until all requests are fully processed, but
@@ -503,12 +503,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="listen-backlog"></a>
-      [Generic function]
-      <br><b>listen-backlog</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
+          [Generic function]
+          <br><b>listen-backlog</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
         </clix:lambda-list></i>
-        =&gt;
-        <i>number-of-pending-connections
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">number-of-pending-connections
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Number of pending connections allowed in the listen socket
           before the kernel rejects further incoming connections.
           Non-LispWorks only.
@@ -518,32 +518,32 @@
       [Generic readers]<br><a class="none" name="acceptor-address"></a><b>acceptor-address</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
         =&gt;
-        <i>address
-          </i><br><a class="none" name="acceptor-port"></a><b>acceptor-port</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">address
+          </clix:returns></i><br><a class="none" name="acceptor-port"></a><b>acceptor-port</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
         =&gt;
-        <i>port
-          </i><br><a class="none" name="acceptor-read-timeout"></a><b>acceptor-read-timeout</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">port
+          </clix:returns></i><br><a class="none" name="acceptor-read-timeout"></a><b>acceptor-read-timeout</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
         =&gt;
-        <i>read-timeout
-          </i><br><a class="none" name="acceptor-ssl-certificate-file"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">read-timeout
+          </clix:returns></i><br><a class="none" name="acceptor-ssl-certificate-file"></a><b>acceptor-ssl-certificate-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
           </clix:lambda-list></i>
         =&gt;
-        <i>ssl-certificate-file
-          </i><br><a class="none" name="acceptor-ssl-privatekey-file"></a><b>acceptor-ssl-privatekey-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">ssl-certificate-file
+          </clix:returns></i><br><a class="none" name="acceptor-ssl-privatekey-file"></a><b>acceptor-ssl-privatekey-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
           </clix:lambda-list></i>
         =&gt;
-        <i>ssl-privatekey-file
-          </i><br><a class="none" name="acceptor-ssl-privatekey-password"></a><b>acceptor-ssl-privatekey-password</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">ssl-privatekey-file
+          </clix:returns></i><br><a class="none" name="acceptor-ssl-privatekey-password"></a><b>acceptor-ssl-privatekey-password</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">ssl-acceptor
           </clix:lambda-list></i>
         =&gt;
-        <i>ssl-privatekey-password
-          </i><br><a class="none" name="acceptor-write-timeout"></a><b>acceptor-write-timeout</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">ssl-privatekey-password
+          </clix:returns></i><br><a class="none" name="acceptor-write-timeout"></a><b>acceptor-write-timeout</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
         =&gt;
-        <i>write-timeout
-          </i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">write-timeout
+          </clix:returns></i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are readers for various slots of <code><a href="#acceptor">ACCEPTOR</a></code>
           objects (and some of them obviously only make sense
           for <code><a href="#ssl-acceptor">SSL-ACCEPTOR</a></code> objects).  See the docstrings of
@@ -555,53 +555,53 @@
       [Generic accessors]<br><a class="none" name="acceptor-access-log-destination"></a><b>acceptor-access-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>(or pathname null)
-          </i><br><tt>(setf (</tt><b>acceptor-access-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">(or pathname null)
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-access-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-document-root"></a><b>acceptor-document-root</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>(or pathname null)
-          </i><br><tt>(setf (</tt><b>acceptor-document-root</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">(or pathname null)
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-document-root</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-error-template-directory"></a><b>acceptor-error-template-directory</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>(or pathname null)
-          </i><br><tt>(setf (</tt><b>acceptor-error-template-directory</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">(or pathname null)
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-error-template-directory</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-input-chunking-p"></a><b>acceptor-input-chunking-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>input-chunking-p
-          </i><br><tt>(setf (</tt><b>acceptor-input-chunking-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">input-chunking-p
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-input-chunking-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-message-log-destination"></a><b>acceptor-message-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>(or pathname null)
-          </i><br><tt>(setf (</tt><b>acceptor-message-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">(or pathname null)
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-message-log-destination</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-name"></a><b>acceptor-name</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>name
-          </i><br><tt>(setf (</tt><b>acceptor-name</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">name
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-name</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-output-chunking-p"></a><b>acceptor-output-chunking-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>output-chunking-p
-          </i><br><tt>(setf (</tt><b>acceptor-output-chunking-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">output-chunking-p
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-output-chunking-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-persistent-connections-p"></a><b>acceptor-persistent-connections-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>persistent-connections-p
-          </i><br><tt>(setf (</tt><b>acceptor-persistent-connections-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">persistent-connections-p
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-persistent-connections-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-reply-class"></a><b>acceptor-reply-class</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>reply-class
-          </i><br><tt>(setf (</tt><b>acceptor-reply-class</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">reply-class
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-reply-class</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="acceptor-request-class"></a><b>acceptor-request-class</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i>
       =&gt;
-      <i>request-class
-          </i><br><tt>(setf (</tt><b>acceptor-request-class</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">request-class
+          </clix:returns></i><br><tt>(setf (</tt><b>acceptor-request-class</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are accessors for various slots of <code><a href="#acceptor">ACCEPTOR</a></code>
           objects.  See the docstrings of these slots for more information and
@@ -609,12 +609,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="acceptor-ssl-p"></a>
-      [Generic function]
-      <br><b>acceptor-ssl-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+          [Generic function]
+          <br><b>acceptor-ssl-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>generalized-boolean
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns a true value if <code><i>acceptor</i></code> uses SSL
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns a true value if <code><i>acceptor</i></code> uses SSL
         connections.  The default is to unconditionally return <code xmlns="http://www.w3.org/1999/xhtml">NIL</code> and
         subclasses of <code><a href="#acceptor">ACCEPTOR</a></code> must specialize this method to signal that
         they're using secure connections - see the <code><a href="#ssl-acceptor">SSL-ACCEPTOR</a></code> class.
@@ -630,12 +630,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="acceptor-remove-session"></a>
-      [Generic function]
-      <br><b>acceptor-remove-session</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor session
+          [Generic function]
+          <br><b>acceptor-remove-session</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor session
         </clix:lambda-list></i>
-        =&gt;
-        <i>generalized-boolean
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called whenever a session in
           <code><a href="#acceptor">ACCEPTOR</a></code> is being destroyed because of
           a session timout or an explicit
@@ -673,12 +673,12 @@
       </p>
 
       <p xmlns=""><a class="none" name="start-listening"></a>
-      [Generic function]
-      <br><b>start-listening</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+          [Generic function]
+          <br><b>start-listening</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Sets up a listen socket for the given acceptor and
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Sets up a listen socket for the given acceptor and
         enables it to listen to incoming connections.  This function is called
         from the thread that starts the acceptor initially and may return
         errors resulting from the listening operation (like 'address in use'
@@ -686,12 +686,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="accept-connections"></a>
-      [Generic function]
-      <br><b>accept-connections</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+          [Generic function]
+          <br><b>accept-connections</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>nil
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">In a loop, accepts a connection and hands it over
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">nil
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">In a loop, accepts a connection and hands it over
         to the acceptor's taskmaster for processing using
         <code><a href="#handle-incoming-connection">HANDLE-INCOMING-CONNECTION</a></code>. On LispWorks, this
         function returns immediately, on other Lisps it returns only once the
@@ -699,12 +699,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="process-connection"></a>
-      [Generic function]
-      <br><b>process-connection</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor socket
+          [Generic function]
+          <br><b>process-connection</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor socket
         </clix:lambda-list></i>
-        =&gt;
-        <i>nil
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">nil
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called by the taskmaster when a new client
           connection has been established.  Its arguments are the
           <code><a href="#acceptor">ACCEPTOR</a></code> object and a LispWorks socket
@@ -721,12 +721,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="initialize-connection-stream"></a>
-      [Generic function]
-      <br><b>initialize-connection-stream</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor stream
+          [Generic function]
+          <br><b>initialize-connection-stream</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor stream
         </clix:lambda-list></i>
-        =&gt;
-        <i>stream
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">stream
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Can be used to modify the stream which is used to
           communicate between client and server before the request is
           read.  The default method of <code><a href="#acceptor">ACCEPTOR</a></code>
@@ -736,12 +736,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="reset-connection-stream"></a>
-      [Generic function]
-      <br><b>reset-connection-stream</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor stream
+          [Generic function]
+          <br><b>reset-connection-stream</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor stream
         </clix:lambda-list></i>
-        =&gt;
-        <i>stream
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">stream
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Resets the stream which is used to communicate
           between client and server after one request has been served so that it
           can be used to process the next request.  This generic function is
@@ -750,8 +750,8 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="acceptor-log-access"></a>
-      [Generic function]
-      <br><b>acceptor-log-access</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor &amp;key return-code</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Generic function]
+          <br><b>acceptor-log-access</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor &amp;key return-code</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Function to call to log access to the acceptor.  The
           <code><i>return-code</i></code> keyword argument contains additional
           information about the request to log.  In addition, it can use the
@@ -760,8 +760,8 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="acceptor-log-message"></a>
-      [Generic function]
-      <br><b>acceptor-log-message</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor log-level format-string &amp;rest format-arguments</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Generic function]
+          <br><b>acceptor-log-message</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor log-level format-string &amp;rest format-arguments</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Function to call to log messages by the <code><i>acceptor</i></code>.  It must accept
           a severity level for the message, which will be one of :ERROR, :INFO,
           or :WARNING, a format string and an arbitary number of formatting
@@ -769,8 +769,8 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="acceptor-status-message"></a>
-      [Generic function]
-      <br><b>acceptor-status-message</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor http-return-code content</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Generic function]
+          <br><b>acceptor-status-message</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor http-return-code content</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called after the request's handler has been
           invoked to convert the <code><i>HTTP-STATUS-CODE</i></code>
           to a HTML message to be displayed to the user.  If this
@@ -978,12 +978,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="execute-acceptor"></a>
-      [Generic function]
-      <br><b>execute-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
+          [Generic function]
+          <br><b>execute-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This is a callback called by the acceptor once it
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This is a callback called by the acceptor once it
         has performed all initial processing to start listening for incoming
         connections (see <code><a href="#start-listening">START-LISTENING</a></code>).  It usually calls the
         <code><a href="#accept-connections">ACCEPT-CONNECTIONS</a></code> method of the acceptor, but depending on the
@@ -991,12 +991,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="handle-incoming-connection"></a>
-      [Generic function]
-      <br><b>handle-incoming-connection</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster socket
+          [Generic function]
+          <br><b>handle-incoming-connection</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster socket
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called by the acceptor to start
           processing of requests on a new incoming connection.  <code><i>socket</i></code> is the
           usocket instance that represents the new connection (or a socket
@@ -1015,12 +1015,12 @@
               </clix:description></blockquote></p>
 
             <p xmlns=""><a class="none" name="create-taskmaster-thread"></a>
-      [Generic function]
-      <br><b>create-taskmaster-thread</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster socket
+          [Generic function]
+          <br><b>create-taskmaster-thread</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster socket
             </clix:lambda-list></i>
-        =&gt;
-        <i>thread
-            </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This function is called by <code><a href="#handle-incoming-thread">HANDLE-INCOMING-THREAD</a></code>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">thread
+            </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This function is called by <code><a href="#handle-incoming-thread">HANDLE-INCOMING-THREAD</a></code>
           to create a new thread which calls <code><a href="#process-connection">PROCESS-CONNECTION</a></code>.
           If you specialize this function, you must be careful to have the thread
           call <code><a href="#decrement-taskmaster-request-count">DECREMENT-TASKMASTER-REQUEST-COUNT</a></code> before
@@ -1044,12 +1044,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="shutdown"></a>
-      [Generic function]
-      <br><b>shutdown</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
+          [Generic function]
+          <br><b>shutdown</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
         </clix:lambda-list></i>
-        =&gt;
-        <i>taskmaster
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Shuts down the taskmaster, i.e. frees all resources
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">taskmaster
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Shuts down the taskmaster, i.e. frees all resources
         that were set up by it.  For example, a multi-threaded taskmaster
         might terminate all threads that are currently associated with it.
         This function is called by the acceptor's <code><a href="#stop">STOP</a></code> method.
@@ -1060,8 +1060,8 @@
       <br><b>taskmaster-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
         </clix:lambda-list></i>
       =&gt;
-      <i>acceptor
-        </i><br><tt>(setf (</tt><b>taskmaster-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">acceptor
+        </clix:returns></i><br><tt>(setf (</tt><b>taskmaster-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This is an accessor for the slot of a <code><a href="#taskmaster">TASKMASTER</a></code>
           object that links back to the <a xmlns="http://www.w3.org/1999/xhtml" href="#acceptors">acceptor</a> it is
@@ -1157,10 +1157,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="create-prefix-dispatcher"></a>
-      [Function]
-      <br><b>create-prefix-dispatcher</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">prefix handler</clix:lambda-list></i>
-        =&gt;
-        <i>dispatch-fn</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>create-prefix-dispatcher</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">prefix handler</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">dispatch-fn</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           A convenience function which will return a dispatcher that
           returns <code><i>handler</i></code> whenever the path part of
           the request URI starts with the
@@ -1168,10 +1168,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="create-regex-dispatcher"></a>
-      [Function]
-      <br><b>create-regex-dispatcher</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">regex handler</clix:lambda-list></i>
-        =&gt;
-        <i>dispatch-fn</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>create-regex-dispatcher</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">regex handler</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">dispatch-fn</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           A convenience function which will return a dispatcher that
           returns <code><i>handler</i></code> whenever the path part of
           the request URI matches
@@ -1181,10 +1181,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="create-folder-dispatcher-and-handler"></a>
-      [Function]
-      <br><b>create-folder-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri-prefix base-path <tt>&amp;optional</tt> content-type</clix:lambda-list></i>
-        =&gt;
-        <i>dispatch-fn</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>create-folder-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri-prefix base-path <tt>&amp;optional</tt> content-type</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">dispatch-fn</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Creates and returns a dispatch function which will dispatch to
           a handler function which emits the file relative
           to <code><i>base-path</i></code> that is denoted by the URI of
@@ -1204,14 +1204,14 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="create-static-file-dispatcher-and-handler"></a>
-      [Function]
-      <br><b>create-static-file-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri path
+          [Function]
+          <br><b>create-static-file-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri path
         <tt>&amp;optional
         </tt> content-type
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Creates and returns a request dispatch function which will
           dispatch to a handler function which emits the file denoted
           by the pathname designator PATH with content type
@@ -1221,8 +1221,8 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="define-easy-handler"></a>
-      [Macro]
-      <br><b>define-easy-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">description lambda-list [[declaration* | documentation]] form*</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Macro]
+          <br><b>define-easy-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">description lambda-list [[declaration* | documentation]] form*</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Defines a handler as if
           by <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.lispworks.com/documentation/HyperSpec/Body/m_defun.htm">
             <code>DEFUN</code></a> and optionally registers it with a
@@ -1411,12 +1411,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="dispatch-easy-handlers"></a>
-      [Function]
-      <br><b>dispatch-easy-handlers</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+          [Function]
+          <br><b>dispatch-easy-handlers</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This is a dispatcher which returns the appropriate handler
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This is a dispatcher which returns the appropriate handler
         defined with <code><a href="#define-easy-handler">DEFINE-EASY-HANDLER</a></code>, if there is one.
         </clix:description></blockquote></p>
 
@@ -1463,14 +1463,14 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="real-remote-addr"></a>
-      [Function]
-      <br><b>real-remote-addr</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>real-remote-addr</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>string{, list}
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string{, list}
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the '<code xmlns="http://www.w3.org/1999/xhtml">X-Forwarded-For</code>' incoming http header as the
           second value in the form of a list of IP addresses and the first
           element of this list as the first value if this header exists.
@@ -1478,14 +1478,14 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="parameter"></a>
-      [Function]
-      <br><b>parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
+          [Function]
+          <br><b>parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the GET or the POST parameter with name
           <code><i>name</i></code> (a string) - or <code xmlns="http://www.w3.org/1999/xhtml">NIL</code>
           if there is none.  If both a GET and a POST parameter with
@@ -1496,10 +1496,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="get-parameter"></a>
-      [Function]
-      <br><b>get-parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name <tt>&amp;optional</tt> request</clix:lambda-list></i>
-        =&gt;
-        <i>string</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>get-parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name <tt>&amp;optional</tt> request</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the value of the GET parameter (as provided via the
           request URI) named by the string <code><i>name</i></code> as a
           string (or <code xmlns="http://www.w3.org/1999/xhtml">NIL</code> if there ain't no GET parameter
@@ -1510,10 +1510,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="post-parameter"></a>
-      [Function]
-      <br><b>post-parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name <tt>&amp;optional</tt> request</clix:lambda-list></i>
-        =&gt;
-        <i>string</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>post-parameter</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name <tt>&amp;optional</tt> request</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the value of the POST parameter (as provided in the
           request's body) named by the
           string <code><i>name</i></code>. Note that only the first value
@@ -1550,10 +1550,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="get-parameters*"></a>
-      [Function]
-      <br><b>get-parameters*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc"><tt>&amp;optional</tt> request</clix:lambda-list></i>
-        =&gt;
-        <i>alist</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>get-parameters*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc"><tt>&amp;optional</tt> request</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">alist</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns
           an <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#alist">alist</a>
           of all GET parameters (as provided via the request
@@ -1566,10 +1566,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="post-parameters*"></a>
-      [Function]
-      <br><b>post-parameters*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc"><tt>&amp;optional</tt> request</clix:lambda-list></i>
-        =&gt;
-        <i>alist</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>post-parameters*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc"><tt>&amp;optional</tt> request</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">alist</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns
           an <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#alist">alist</a>
           of all POST parameters (as provided via the request's
@@ -1590,175 +1590,175 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="cookie-in"></a>
-      [Function]
-      <br><b>cookie-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
+          [Function]
+          <br><b>cookie-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the cookie with the name <code><i>name</i></code> (a string) as sent by the
           browser - or <code xmlns="http://www.w3.org/1999/xhtml">NIL</code> if there is none.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="cookies-in*"></a>
-      [Function]
-      <br><b>cookies-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>cookies-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>alist
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns an alist of all cookies associated with the <code><a href="#request">REQUEST</a></code> object
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">alist
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns an alist of all cookies associated with the <code><a href="#request">REQUEST</a></code> object
         <code><i>request</i></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="host"></a>
-      [Function]
-      <br><b>host</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>host</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>host
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns the 'Host' incoming http header value.
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">host
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns the 'Host' incoming http header value.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="query-string*"></a>
-      [Function]
-      <br><b>query-string*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>query-string*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the query string of the <code><a href="#request">REQUEST</a></code> object <code><i>request</i></code>. That's
           the part behind the question mark (i.e. the GET parameters).
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="referer"></a>
-      [Function]
-      <br><b>referer</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>referer</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the 'Referer' (sic!) http header.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="request-method*"></a>
-      [Function]
-      <br><b>request-method*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>request-method*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>keyword
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">keyword
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the request method as a Lisp keyword.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="request-uri*"></a>
-      [Function]
-      <br><b>request-uri*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>request-uri*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>uri
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">uri
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the request URI.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="server-protocol*"></a>
-      [Function]
-      <br><b>server-protocol*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>server-protocol*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>keyword
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">keyword
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the request protocol as a Lisp keyword.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="user-agent"></a>
-      [Function]
-      <br><b>user-agent</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>user-agent</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the 'User-Agent' http header.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="header-in*"></a>
-      [Function]
-      <br><b>header-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
+          [Function]
+          <br><b>header-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>header
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">header
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the incoming header with name
           <code><i>name</i></code>.  <code><i>name</i></code> can be
           a keyword (recommended) or a string.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="headers-in*"></a>
-      [Function]
-      <br><b>headers-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>headers-in*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>alist
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">alist
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns an alist of the incoming headers associated with the
           <code><a href="#request">REQUEST</a></code> object
           <code><i>request</i></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="remote-addr*"></a>
-      [Function]
-      <br><b>remote-addr*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>remote-addr*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>address
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">address
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the address the current request originated from.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="remote-port*"></a>
-      [Function]
-      <br><b>remote-port*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>remote-port*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>port
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">port
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the port the current request originated from.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="script-name*"></a>
-      [Function]
-      <br><b>script-name*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>script-name*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>script-name
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">script-name
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the file name of the <code><a href="#request">REQUEST</a></code>
           object <code><i>request</i></code>. That's the
           requested URI without the query string (i.e the GET
@@ -1772,8 +1772,8 @@
         </tt> request
         </clix:lambda-list></i>
       =&gt;
-      <i>value, present-p
-        </i><br><tt>(setf (</tt><b>aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">value, present-p
+        </clix:returns></i><br><tt>(setf (</tt><b>aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -1783,27 +1783,27 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="delete-aux-request-value"></a>
-      [Function]
-      <br><b>delete-aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
+          [Function]
+          <br><b>delete-aux-request-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Removes the value associated with <code><i>symbol</i></code> from the <code><a href="#request">REQUEST</a></code> object
           <code><i>request</i></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="authorization"></a>
-      [Function]
-      <br><b>authorization</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>authorization</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> request
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns as two values the user and password (if any) as
           encoded in the 'AUTHORIZATION' header.  Returns
           <code xmlns="http://www.w3.org/1999/xhtml">NIL</code> if there is no such header.
@@ -1830,13 +1830,13 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="raw-post-data"></a>
-      [Function]
-      <br><b>raw-post-data</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>raw-post-data</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;key</tt>
           request external-format force-text force-binary want-stream
         </clix:lambda-list></i>
-        =&gt;
-        <i>raw-body-or-stream</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">raw-body-or-stream</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the content sent by the client in the request body if
           there was any (unless the content type
           was <code xmlns="http://www.w3.org/1999/xhtml">multipart/form-data</code> in which
@@ -1901,26 +1901,26 @@
 
 
       <p xmlns=""><a class="none" name="recompute-request-parameters"></a>
-      [Function]
-      <br><b>recompute-request-parameters</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>recompute-request-parameters</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;key
           </tt> request external-format
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Recomputes the GET and POST parameters for the <code><a href="#request">REQUEST</a></code> object
           <code><i>request</i></code>.  This only makes sense if you're switching external formats
           during the request.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="process-request"></a>
-      [Generic function]
-      <br><b>process-request</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+          [Generic function]
+          <br><b>process-request</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
         </clix:lambda-list></i>
-        =&gt;
-        <i>nil
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">nil
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called by <code><a href="#process-connection">PROCESS-CONNECTION</a></code>
           after the incoming headers have been read.  It
           calls <code><a href="#handle-request">HANDLE-REQUEST</a></code> (and is more or less just a
@@ -1941,12 +1941,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="handle-request"></a>
-      [Generic function]
-      <br><b>handle-request</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor request
+          [Generic function]
+          <br><b>handle-request</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor request
         </clix:lambda-list></i>
-        =&gt;
-        <i>content
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">content
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called by <code><a href="#process-request">PROCESS-REQUEST</a></code> once
           the request has been read and a <code><a href="#request">REQUEST</a></code> object
           has been created.  Its job is to actually handle the request, i.e. to
@@ -1965,12 +1965,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="acceptor-dispatch-request"></a>
-      [Generic function]
-      <br><b>acceptor-dispatch-request</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor request
+          [Generic function]
+          <br><b>acceptor-dispatch-request</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor request
         </clix:lambda-list></i>
-        =&gt;
-        <i>content
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">content
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called to actually dispatch the request
           once the standard logging and error handling has been set
           up.  <code><a href="#acceptor">ACCEPTOR</a></code> subclasses implement
@@ -1985,56 +1985,56 @@
       [Generic readers]<br><a class="none" name="cookies-in"></a><b>cookies-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>cookies
-          </i><br><a class="none" name="get-parameters"></a><b>get-parameters</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookies
+          </clix:returns></i><br><a class="none" name="get-parameters"></a><b>get-parameters</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>get-parameters
-          </i><br><a class="none" name="header-in"></a><b>header-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">get-parameters
+          </clix:returns></i><br><a class="none" name="header-in"></a><b>header-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name request
           </clix:lambda-list></i>
         =&gt;
-        <i>result
-          </i><br><a class="none" name="headers-in"></a><b>headers-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+          </clix:returns></i><br><a class="none" name="headers-in"></a><b>headers-in</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>headers
-          </i><br><a class="none" name="post-parameters"></a><b>post-parameters</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">headers
+          </clix:returns></i><br><a class="none" name="post-parameters"></a><b>post-parameters</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>post-parameters
-          </i><br><a class="none" name="query-string"></a><b>query-string</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">post-parameters
+          </clix:returns></i><br><a class="none" name="query-string"></a><b>query-string</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>query-string
-          </i><br><a class="none" name="remote-addr"></a><b>remote-addr</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">query-string
+          </clix:returns></i><br><a class="none" name="remote-addr"></a><b>remote-addr</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>address
-          </i><br><a class="none" name="remote-port"></a><b>remote-port</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">address
+          </clix:returns></i><br><a class="none" name="remote-port"></a><b>remote-port</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>port
-          </i><br><a class="none" name="request-acceptor"></a><b>request-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">port
+          </clix:returns></i><br><a class="none" name="request-acceptor"></a><b>request-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>acceptor
-          </i><br><a class="none" name="request-method"></a><b>request-method</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">acceptor
+          </clix:returns></i><br><a class="none" name="request-method"></a><b>request-method</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>method
-          </i><br><a class="none" name="request-uri"></a><b>request-uri</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">method
+          </clix:returns></i><br><a class="none" name="request-uri"></a><b>request-uri</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>uri
-          </i><br><a class="none" name="server-protocol"></a><b>server-protocol</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">uri
+          </clix:returns></i><br><a class="none" name="server-protocol"></a><b>server-protocol</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>protocol
-          </i><br><a class="none" name="script-name"></a><b>script-name</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">protocol
+          </clix:returns></i><br><a class="none" name="script-name"></a><b>script-name</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
-        <i>result
-          </i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+          </clix:returns></i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are various generic readers which are used
           to read information about a <code><a href="#request">REQUEST</a></code> object.  If you are writing a
           <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these readers but instead utilize the
@@ -2096,8 +2096,8 @@
         </tt> reply
         </clix:lambda-list></i>
       =&gt;
-      <i>string
-        </i><br><tt>(setf (</tt><b>header-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><br><tt>(setf (</tt><b>header-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2109,14 +2109,14 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="headers-out*"></a>
-      [Function]
-      <br><b>headers-out*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>headers-out*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> reply
         </clix:lambda-list></i>
-        =&gt;
-        <i>alist
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns an alist of the outgoing headers associated with the
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">alist
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Returns an alist of the outgoing headers associated with the
         <code><a href="#reply">REPLY</a></code> object <code><i>reply</i></code>.  See also <code><a href="#header-out">HEADER-OUT</a></code>.
         </clix:description></blockquote></p>
 
@@ -2127,8 +2127,8 @@
           </tt> reply
         </clix:lambda-list></i>
       =&gt;
-      <i>content-length
-        </i><br><tt>(setf (</tt><b>content-length*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">content-length
+        </clix:returns></i><br><tt>(setf (</tt><b>content-length*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2142,8 +2142,8 @@
           </tt> reply
         </clix:lambda-list></i>
       =&gt;
-      <i>content-type
-        </i><br><tt>(setf (</tt><b>content-type*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">content-type
+        </clix:returns></i><br><tt>(setf (</tt><b>content-type*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2151,14 +2151,14 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="cookie-out"></a>
-      [Function]
-      <br><b>cookie-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
+          [Function]
+          <br><b>cookie-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">name
         <tt>&amp;optional
         </tt> reply
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the current value of the outgoing <a xmlns="http://www.w3.org/1999/xhtml" href="#cookies">cookie</a> named
           <code><i>name</i></code>. Search is case-sensitive.
         </clix:description></blockquote></p>
@@ -2170,8 +2170,8 @@
           </tt> reply
         </clix:lambda-list></i>
       =&gt;
-      <i>alist
-        </i><br><tt>(setf (</tt><b>cookies-out*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">alist
+        </clix:returns></i><br><tt>(setf (</tt><b>cookies-out*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2187,8 +2187,8 @@
           </tt> reply
         </clix:lambda-list></i>
       =&gt;
-      <i>return-code
-        </i><br><tt>(setf (</tt><b>return-code*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">return-code
+        </clix:returns></i><br><tt>(setf (</tt><b>return-code*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2199,10 +2199,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="send-headers"></a>
-      [Function]
-      <br><b>send-headers</b> <i></i>
-        =&gt;
-        <i>stream</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>send-headers</b> <i></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">stream</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Sends the initial status line and all headers as determined
           by the <code><a href="#reply">REPLY</a></code>
           object <code><a href="#*reply*">*REPLY*</a></code>.  Returns
@@ -2231,8 +2231,8 @@
           </tt> reply
         </clix:lambda-list></i>
       =&gt;
-      <i>external-format
-        </i><br><tt>(setf (</tt><b>reply-external-format*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">external-format
+        </clix:returns></i><br><tt>(setf (</tt><b>reply-external-format*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2258,16 +2258,16 @@
       [Generic readers]<br><a class="none" name="content-length"></a><b>content-length</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i>
         =&gt;
-        <i>content-length
-          </i><br><a class="none" name="content-type"></a><b>content-type</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">content-length
+          </clix:returns></i><br><a class="none" name="content-type"></a><b>content-type</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i>
         =&gt;
-        <i>content-type
-          </i><br><a class="none" name="headers-out"></a><b>headers-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">content-type
+          </clix:returns></i><br><a class="none" name="headers-out"></a><b>headers-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i>
         =&gt;
-        <i>headers-out
-          </i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">headers-out
+          </clix:returns></i><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are various generic readers which are used
           to read information about a <code><a href="#reply">REPLY</a></code> object.  If you are writing a
           <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>, you should <em xmlns="http://www.w3.org/1999/xhtml">not</em> use these readers but instead utilize the
@@ -2281,18 +2281,18 @@
       [Generic accessors]<br><a class="none" name="cookies-out"></a><b>cookies-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i>
       =&gt;
-      <i>result
-          </i><br><tt>(setf (</tt><b>cookies-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+          </clix:returns></i><br><tt>(setf (</tt><b>cookies-out</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="return-code"></a><b>return-code</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i>
       =&gt;
-      <i>result
-          </i><br><tt>(setf (</tt><b>return-code</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+          </clix:returns></i><br><tt>(setf (</tt><b>return-code</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><a class="none" name="reply-external-format"></a><b>reply-external-format</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i>
       =&gt;
-      <i>result
-          </i><br><tt>(setf (</tt><b>reply-external-format</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+          </clix:returns></i><br><tt>(setf (</tt><b>reply-external-format</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">reply
           </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><br><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           These are various generic accessors which are
           used to query and modify a <code><a href="#reply">REPLY</a></code> objects.  If
@@ -2359,12 +2359,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="start-session"></a>
-      [Function]
-      <br><b>start-session</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>start-session</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
         </clix:lambda-list></i>
-        =&gt;
-        <i>session
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">session
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the current <code><a href="#session">SESSION</a></code>
           object. If there is no current session, creates one and updates the
           corresponding data structures. In this case the function will also
@@ -2378,8 +2378,8 @@
         </tt> session
         </clix:lambda-list></i>
       =&gt;
-      <i>value, present-p
-        </i><br><tt>(setf (</tt><b>session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">value, present-p
+        </clix:returns></i><br><tt>(setf (</tt><b>session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> session
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2398,14 +2398,14 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="delete-session-value"></a>
-      [Function]
-      <br><b>delete-session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
+          [Function]
+          <br><b>delete-session-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">symbol
         <tt>&amp;optional
         </tt> session
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Removes the value associated with
           <code><i>symbol</i></code> from
           <code><i>session</i></code> if there is one.
@@ -2419,26 +2419,26 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="remove-session"></a>
-      [Function]
-      <br><b>remove-session</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+          [Function]
+          <br><b>remove-session</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Completely removes the <code><a href="#session">SESSION</a></code> object
           <code><i>session</i></code> from Hunchentoot's
           internal <a xmlns="http://www.w3.org/1999/xhtml" href="#session-db">session database</a>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="reset-sessions"></a>
-      [Function]
-      <br><b>reset-sessions</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>reset-sessions</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Removes <em xmlns="http://www.w3.org/1999/xhtml">all</em> stored sessions of
           <code><i>acceptor</i></code>.  The default for
           <code><i>acceptor</i></code> is
@@ -2472,12 +2472,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-remote-addr"></a>
-      [Generic function]
-      <br><b>session-remote-addr</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+          [Generic function]
+          <br><b>session-remote-addr</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
-        =&gt;
-        <i>remote-addr
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">remote-addr
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           The remote IP address of the client when this session was started (as
           returned by <code><a href="#real-remote-addr">REAL-REMOTE-ADDR</a></code>).
         </clix:description></blockquote></p>
@@ -2491,12 +2491,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-user-agent"></a>
-      [Generic function]
-      <br><b>session-user-agent</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+          [Generic function]
+          <br><b>session-user-agent</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
-        =&gt;
-        <i>user-agent
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">user-agent
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           The incoming 'User-Agent' header that
           was sent when this session was created.
         </clix:description></blockquote></p>
@@ -2506,8 +2506,8 @@
       <br><b>session-max-time</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
       =&gt;
-      <i>max-time
-        </i><br><tt>(setf (</tt><b>session-max-time</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">max-time
+        </clix:returns></i><br><tt>(setf (</tt><b>session-max-time</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Gets or sets the time (in seconds) after
           which <code><i>session</i></code> expires if it's not used.
@@ -2530,44 +2530,44 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-gc"></a>
-      [Function]
-      <br><b>session-gc</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>session-gc</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Removes sessions from the current session database which are
           too old - see <code><a href="#session-too-old-p">SESSION-TOO-OLD-P</a></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-too-old-p"></a>
-      [Function]
-      <br><b>session-too-old-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+          [Function]
+          <br><b>session-too-old-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
-        =&gt;
-        <i>generalized-boolean
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns true if the <code><a href="#session">SESSION</a></code> object <code><i>session</i></code> has not been active in
           the last <code xmlns="http://www.w3.org/1999/xhtml">(session-max-time session)</code> seconds.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-id"></a>
-      [Generic function]
-      <br><b>session-id</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+          [Generic function]
+          <br><b>session-id</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
-        =&gt;
-        <i>session-id
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">session-id
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           The unique ID (an INTEGER) of the session.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-start"></a>
-      [Generic function]
-      <br><b>session-start</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+          [Generic function]
+          <br><b>session-start</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
-        =&gt;
-        <i>universal-time
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">universal-time
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           The time this session was started.
         </clix:description></blockquote></p>
 
@@ -2635,23 +2635,23 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="reset-session-secret"></a>
-      [Function]
-      <br><b>reset-session-secret</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>reset-session-secret</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
         </clix:lambda-list></i>
-        =&gt;
-        <i>secret
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">secret
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Sets <code><a href="#*session-secret*">*SESSION-SECRET*</a></code> to a
           new random value. All old sessions will cease to be valid.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-cookie-name"></a>
-      [Generic function]
-      <br><b>session-cookie-name</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+          [Generic function]
+          <br><b>session-cookie-name</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>name
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">name
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the name (a string) of the cookie (or
           the GET parameter) which is used to store a session on the client
           side.  The default is to use the
@@ -2660,12 +2660,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-created"></a>
-      [Generic function]
-      <br><b>session-created</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor new-session
+          [Generic function]
+          <br><b>session-created</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor new-session
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called whenever a new session
           has been created.  There's a default method which might trigger
           a <a xmlns="http://www.w3.org/1999/xhtml" href="#session-gc">session GC</a> based on the value of
@@ -2676,12 +2676,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="next-session-id"></a>
-      [Generic function]
-      <br><b>next-session-id</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+          [Generic function]
+          <br><b>next-session-id</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>id
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">id
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the next sequential session ID, an
           integer, which should be unique per session.  The default method uses
           a simple global counter and isn't guarded by a lock.  For a
@@ -2694,8 +2694,8 @@
       <br><b>session-db</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i>
       =&gt;
-      <i>database
-        </i><br><tt>(setf (</tt><b>session-db</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+      <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">database
+        </clix:returns></i><br><tt>(setf (</tt><b>session-db</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns the current session database which is an
           alist where each car is a session's ID and the cdr is the
@@ -2704,14 +2704,14 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-db-lock"></a>
-      [Generic function]
-      <br><b>session-db-lock</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+          [Generic function]
+          <br><b>session-db-lock</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
         <tt>&amp;key
         </tt> whole-db-p
         </clix:lambda-list></i>
-        =&gt;
-        <i>lock
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">lock
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           A function which returns a lock that will be
           used to prevent concurrent access to sessions.  The first argument
           will be the <a xmlns="http://www.w3.org/1999/xhtml" href="#acceptors">acceptor</a> that handles the
@@ -2729,12 +2729,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-verify"></a>
-      [Generic function]
-      <br><b>session-verify</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+          [Generic function]
+          <br><b>session-verify</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
         </clix:lambda-list></i>
-        =&gt;
-        <i>session-or-nil
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">session-or-nil
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Tries to get a session identifier from the cookies
           (or alternatively from the GET parameters) sent by the client (see
           <code><a href="#session-cookie-name">SESSION-COOKIE-NAME</a></code>
@@ -2750,12 +2750,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="session-cookie-value"></a>
-      [Generic function]
-      <br><b>session-cookie-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+          [Generic function]
+          <br><b>session-cookie-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns a string which can be used to safely
           restore the session <code><i>session</i></code> if as session has
           already been established.  This is used as the value stored in the
@@ -2817,13 +2817,13 @@
       the <code>HUNCHENTOOT</code> package.  For now, the class name itself is <em>not</em> exported.
 
       <p xmlns=""><a class="none" name="set-cookie"></a>
-      [Function]
-      <br><b>set-cookie</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>set-cookie</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           name <tt>&amp;key</tt> value expires path
           domain secure http-only reply
         </clix:lambda-list></i>
-        =&gt;
-        <i>cookie</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookie</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Creates a <code xmlns="http://www.w3.org/1999/xhtml">COOKIE</code> object from the parameters
           provided to this function and adds it to the outgoing cookies
           of the <a xmlns="http://www.w3.org/1999/xhtml" href="#replies"><code>REPLY</code> object</a>
@@ -2835,10 +2835,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="set-cookie*"></a>
-      [Function]
-      <br><b>set-cookie*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">cookie <tt>&amp;optional</tt> reply</clix:lambda-list></i>
-        =&gt;
-        <i>cookie</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>set-cookie*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">cookie <tt>&amp;optional</tt> reply</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookie</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Adds the <code xmlns="http://www.w3.org/1999/xhtml">COOKIE</code> object <code><i>cookie</i></code>
           to the outgoing cookies of
           the <a xmlns="http://www.w3.org/1999/xhtml" href="#replies"><code>REPLY</code> object</a>
@@ -2891,14 +2891,14 @@
       </p>
 
       <p xmlns=""><a class="none" name="log-message*"></a>
-      [Function]
-      <br><b>log-message*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">log-level format-string
+          [Function]
+          <br><b>log-message*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">log-level format-string
         <tt>&amp;rest
         </tt> format-arguments
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Convenience function which calls the message
           logger of the current acceptor (if there is one) with the same
           arguments it accepts.  Returns <code xmlns="http://www.w3.org/1999/xhtml">NIL</code> if there is no message
@@ -2992,12 +2992,12 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="maybe-invoke-debugger"></a>
-      [Generic function]
-      <br><b>maybe-invoke-debugger</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">condition
+          [Generic function]
+          <br><b>maybe-invoke-debugger</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">condition
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This generic function is called whenever a
           <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.lispworks.com/documentation/HyperSpec/Body/09_.htm">condition</a> <code xmlns="http://www.w3.org/1999/xhtml"><i>condition</i></code>
           is signaled in Hunchentoot.  You might want to specialize it on
@@ -3039,14 +3039,14 @@
       other categories.
 
       <p xmlns=""><a class="none" name="abort-request-handler"></a>
-      [Function]
-      <br><b>abort-request-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>abort-request-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> result
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function can be called by a request handler
           at any time to immediately abort handling the request.  This works as
           if the handler had returned <code><i>result</i></code>.  See the
@@ -3054,10 +3054,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="handle-if-modified-since"></a>
-      [Function]
-      <br><b>handle-if-modified-since</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">time <tt>&amp;optional</tt> request</clix:lambda-list></i>
-        =&gt;
-        <i>|</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>handle-if-modified-since</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">time <tt>&amp;optional</tt> request</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is designed to be used inside
           a <a xmlns="http://www.w3.org/1999/xhtml" href="#request-dispatch">handler</a>. If the client has sent an
           'If-Modified-Since' header
@@ -3077,10 +3077,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="handle-static-file"></a>
-      [Function]
-      <br><b>handle-static-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">path <tt>&amp;optional</tt> content-type</clix:lambda-list></i>
-        =&gt;
-        <i>nil</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>handle-static-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">path <tt>&amp;optional</tt> content-type</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">nil</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Sends the file denoted by the pathname designator
           <code><i>path</i></code> with content type
           <code><i>content-type</i></code> to the client.  Sets the
@@ -3101,10 +3101,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="redirect"></a>
-      [Function]
-      <br><b>redirect</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">target <tt>&amp;key</tt> host port protocol add-session-id code</clix:lambda-list></i>
-        =&gt;
-        <i>|</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>redirect</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">target <tt>&amp;key</tt> host port protocol add-session-id code</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Sends back appropriate headers to redirect the client
           to <code><i>target</i></code> (a string).
           <p xmlns="http://www.w3.org/1999/xhtml">
@@ -3134,10 +3134,10 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="require-authorization"></a>
-      [Function]
-      <br><b>require-authorization</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc"><tt>&amp;optional</tt> realm</clix:lambda-list></i>
-        =&gt;
-        <i>|</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>require-authorization</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc"><tt>&amp;optional</tt> realm</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Sends back appropriate headers to require basic HTTP
           authentication
           (see <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617</a>)
@@ -3146,73 +3146,73 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="no-cache"></a>
-      [Function]
-      <br><b>no-cache</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>no-cache</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
         </clix:lambda-list></i>
-        =&gt;
-        <i>|
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Adds appropriate headers to completely prevent caching on most browsers.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="ssl-p"></a>
-      [Function]
-      <br><b>ssl-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>ssl-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> acceptor
         </clix:lambda-list></i>
-        =&gt;
-        <i>generalized-boolean
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Whether the current connection to the client is secure.  See <code><a href="#acceptor-ssl-p">ACCEPTOR-SSL-P</a></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="reason-phrase"></a>
-      [Function]
-      <br><b>reason-phrase</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">return-code
+          [Function]
+          <br><b>reason-phrase</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">return-code
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns a reason phrase for the HTTP return code <code><i>return-code</i></code>
           (which should be an integer) or <code xmlns="http://www.w3.org/1999/xhtml">NIL</code> for return codes Hunchentoot
           doesn't know.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="rfc-1123-date"></a>
-      [Function]
-      <br><b>rfc-1123-date</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>rfc-1123-date</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
           <tt>&amp;optional
           </tt> time
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Generates a time string according to <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.faqs.org/rfcs/rfc1123.html">RFC 1123</a>.  Default is current time.
           This can be used to send a 'Last-Modified' header - see <code><a href="#handle-if-modified-since">HANDLE-IF-MODIFIED-SINCE</a></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="url-encode"></a>
-      [Function]
-      <br><b>url-encode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
+          [Function]
+          <br><b>url-encode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
         <tt>&amp;optional
         </tt> external-format
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           URL-encodes a string using the external format <code><i>external-format</i></code>.  The default for <code><i>external-format</i></code> is the value of <code><a href="#*hunchentoot-default-external-format*">*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*</a></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="url-decode"></a>
-      [Function]
-      <br><b>url-decode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
+          [Function]
+          <br><b>url-decode</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
         <tt>&amp;optional
         </tt> external-format
         </clix:lambda-list></i>
-        =&gt;
-        <i>string
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Decodes a URL-encoded string which is assumed to
           be encoded using the external
           format <code><i>external-format</i></code>, i.e. this is the inverse
@@ -3223,20 +3223,20 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="escape-for-html"></a>
-      [Function]
-      <br><b>escape-for-html</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
+          [Function]
+          <br><b>escape-for-html</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">string
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Escapes the characters #\&lt;, #\&gt;, #\', #\", and #\&amp; for HTML output.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="http-token-p"></a>
-      [Function]
-      <br><b>http-token-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">object</clix:lambda-list></i>
-        =&gt;
-        <i>generalized-boolean</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>http-token-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">object</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function tests whether <code><i>object</i></code> is a
           non-empty string which is a <em xmlns="http://www.w3.org/1999/xhtml">token</em> according
           to <a xmlns="http://www.w3.org/1999/xhtml" href="http://www.faqs.org/rfcs/rfc2068.html">RFC
@@ -3244,24 +3244,24 @@
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="mime-type"></a>
-      [Function]
-      <br><b>mime-type</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">pathspec
+          [Function]
+          <br><b>mime-type</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">pathspec
         </clix:lambda-list></i>
-        =&gt;
-        <i>result
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Given a pathname designator <code><i>pathspec</i></code> returns the <a xmlns="http://www.w3.org/1999/xhtml" href="http://en.wikipedia.org/wiki/Internet_media_type">MIME type</a>
           (as a string) corresponding to the suffix of the file denoted by
           <code><i>pathspec</i></code> (or <code xmlns="http://www.w3.org/1999/xhtml">NIL</code>).
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="within-request-p"></a>
-      [Function]
-      <br><b>within-request-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>within-request-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
         </clix:lambda-list></i>
-        =&gt;
-        <i>generalized-boolean
-        </i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns true if in the context of a request. Otherwise, <code xmlns="http://www.w3.org/1999/xhtml">NIL</code>.
         </clix:description></blockquote></p>
 
@@ -3330,10 +3330,10 @@ start and test an https server instead.)
     </p>
 
     <p xmlns=""><a class="none" name="hunchentoot-test:test-hunchentoot"></a>
-      [Function]
-      <br><b>hunchentoot-test:test-hunchentoot</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">base-url <tt>&amp;key</tt></clix:lambda-list></i>
-        =&gt;
-        <i>|</i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          [Function]
+          <br><b>hunchentoot-test:test-hunchentoot</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">base-url <tt>&amp;key</tt></clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">|</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
         Runs the built-in confidence
         test.  <code><i>base-url</i></code> is the base URL to use
         for testing, it should not have a trailing slash.  The keyword

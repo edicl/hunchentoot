@@ -1,3 +1,8 @@
+Version 1.2.9
+2012-12-28
+Fix test script to accomodate for Drakma fix regarding redirect from POST to GET
+Fix range handling once again
+
 Version 1.2.8
 2012-12-19
 ECL fixes (Juan Jose Giarcia-Ripoll)
