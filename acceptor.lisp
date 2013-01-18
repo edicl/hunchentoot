@@ -371,16 +371,20 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 chunked encoding, but acceptor is configured to not use it.")))))
                    (multiple-value-bind (remote-addr remote-port)
                        (get-peer-address-and-port socket)
-                     (with-acceptor-request-count-incremented (*acceptor*)
-                       (process-request (make-instance (acceptor-request-class *acceptor*)
-                                                       :acceptor *acceptor*
-                                                       :remote-addr remote-addr
-                                                       :remote-port remote-port
-                                                       :headers-in headers-in
-                                                       :content-stream *hunchentoot-stream*
-                                                       :method method
-                                                       :uri url-string
-                                                       :server-protocol protocol)))))
+                     (multiple-value-bind (local-addr local-port)
+                         (get-local-address-and-port socket)
+                       (with-acceptor-request-count-incremented (*acceptor*)
+                         (process-request (make-instance (acceptor-request-class *acceptor*)
+                                                         :acceptor *acceptor*
+                                                         :local-addr local-addr
+                                                         :local-port local-port
+                                                         :remote-addr remote-addr
+                                                         :remote-port remote-port
+                                                         :headers-in headers-in
+                                                         :content-stream *hunchentoot-stream*
+                                                         :method method
+                                                         :uri url-string
+                                                         :server-protocol protocol))))))
                  (finish-output *hunchentoot-stream*)
                  (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
                  (when *close-hunchentoot-stream*

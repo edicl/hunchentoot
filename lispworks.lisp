@@ -86,6 +86,14 @@ notation."
       (comm:get-socket-peer-address socket)
     (values (ignore-errors (comm:ip-address-string peer-addr)) peer-port)))
 
+(defun get-local-address-and-port (socket)
+  "Returns the local address and port of the socket SOCKET as two
+values.  The address is returned as a string in dotted IP address
+notation."
+  (multiple-value-bind (local-addr local-port)
+      (comm:get-socket-address socket)
+    (values (ignore-errors (comm:ip-address-string local-addr)) local-port)))
+
 (defun make-socket-stream (socket acceptor)
   "Returns a stream for the socket SOCKET.  The ACCEPTOR argument is
 used to set the timeouts."

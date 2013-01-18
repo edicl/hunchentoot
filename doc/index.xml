@@ -1762,6 +1762,30 @@
         </clix:description>
       </clix:function>
 
+      <clix:function name='local-addr*'>
+        <clix:lambda-list>
+          <clix:lkw>optional
+          </clix:lkw> request
+        </clix:lambda-list>
+        <clix:returns>address
+        </clix:returns>
+        <clix:description>
+          The IP address of the local system that the client connected to.
+        </clix:description>
+      </clix:function>
+
+      <clix:function name='local-port*'>
+        <clix:lambda-list>
+          <clix:lkw>optional
+          </clix:lkw> request
+        </clix:lambda-list>
+        <clix:returns>port
+        </clix:returns>
+        <clix:description>
+          The TCP port number of the local system that the client connected to.
+        </clix:description>
+      </clix:function>
+
       <clix:function name='script-name*'>
         <clix:lambda-list>
           <clix:lkw>optional
@@ -2044,6 +2068,20 @@
         </clix:listed-reader>
 
         <clix:listed-reader generic='true' name='remote-port'>
+          <clix:lambda-list>request
+          </clix:lambda-list>
+          <clix:returns>port
+          </clix:returns>
+        </clix:listed-reader>
+
+        <clix:listed-reader generic='true' name='local-addr'>
+          <clix:lambda-list>request
+          </clix:lambda-list>
+          <clix:returns>address
+          </clix:returns>
+        </clix:listed-reader>
+
+        <clix:listed-reader generic='true' name='local-port'>
           <clix:lambda-list>request
           </clix:lambda-list>
           <clix:returns>port

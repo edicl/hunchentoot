@@ -45,6 +45,14 @@ object."
    (server-protocol :initarg :server-protocol
                     :documentation "The HTTP protocol as a keyword."
                     :reader server-protocol)
+   (local-addr :initarg :local-addr
+               :documentation "The IP address of the local system
+that the client connected to."
+               :reader local-addr)
+   (local-port :initarg :local-port
+               :documentation "The TCP port number of the local
+system that the client connected to."
+               :reader local-port)
    (remote-addr :initarg :remote-addr
                 :documentation "The IP address of the client that
 initiated this request."
@@ -404,6 +412,14 @@ the 'AUTHORIZATION' header.  Returns NIL if there is no such header."
 (defun remote-port* (&optional (request *request*))
   "Returns the port the current request originated from."
   (remote-port request))
+
+(defun local-addr* (&optional (request *request*))
+  "Returns the address the current request connected to."
+  (local-addr request))
+
+(defun local-port* (&optional (request *request*))
+  "Returns the port the current request connected to."
+  (local-port request))
 
 (defun real-remote-addr (&optional (request *request*))
   "Returns the 'X-Forwarded-For' incoming http header as the

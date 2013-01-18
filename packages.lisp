@@ -219,6 +219,10 @@
            #:remote-addr*
            #:remote-port
            #:remote-port*
+           #:local-addr
+           #:local-addr*
+           #:local-port
+           #:local-port*
            #:remove-session
            #:reply
            #:reply-external-format
