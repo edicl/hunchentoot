@@ -363,22 +363,7 @@ is set up via PROCESS-REQUEST."
            (with-mapped-conditions ()
              (let* ((*hunchentoot-stream* (initialize-connection-stream acceptor *hunchentoot-stream*))
                     (*reply* (make-instance (acceptor-reply-class acceptor)))
-                    (*request*
-                     (multiple-value-bind (remote-addr remote-port)
-                         (get-peer-address-and-port socket)
-                       (multiple-value-bind (local-addr local-port)
-                           (get-local-address-and-port socket)
-                         (make-instance (acceptor-request-class acceptor)
-                                        :acceptor acceptor
-                                        :remote-addr remote-addr
-                                        :remote-port remote-port
-                                        :local-addr local-addr
-                                        :local-port local-port
-                                        :headers-in nil
-                                        :content-stream nil
-                                        :method nil
-                                        :uri nil
-                                        :server-protocol nil)))))
+                    (*request* (acceptor-make-request acceptor socket)))
                (with-character-stream-semantics
                  (send-response acceptor
                                 (flex:make-flexi-stream *hunchentoot-stream* :external-format :iso-8859-1)

@@ -338,6 +338,32 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   processing."
   `(do-with-acceptor-request-count-incremented ,acceptor (lambda () ,@body)))
 
+(defun acceptor-make-request (acceptor socket
+                              &key
+                                  headers-in
+                                  content-stream
+                                  method
+                                  uri
+                                  server-protocol)
+  "Make a REQUEST instance for the ACCEPTOR, setting up those slots
+  that are determined from the SOCKET by calling the appropriate
+  socket query functions."
+  (multiple-value-bind (remote-addr remote-port)
+      (get-peer-address-and-port socket)
+    (multiple-value-bind (local-addr local-port)
+        (get-local-address-and-port socket)
+      (make-instance (acceptor-request-class acceptor)
+                     :acceptor acceptor
+                     :local-addr local-addr
+                     :local-port local-port
+                     :remote-addr remote-addr
+                     :remote-port remote-port
+                     :headers-in headers-in
+                     :content-stream content-stream
+                     :method method
+                     :uri uri
+                     :server-protocol server-protocol))))
+
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let ((*hunchentoot-stream* (make-socket-stream socket *acceptor*)))
     (unwind-protect
@@ -369,22 +395,13 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
                                     (chunked-stream-input-chunking-p *hunchentoot-stream*) t))
                              (t (hunchentoot-error "Client tried to use ~
 chunked encoding, but acceptor is configured to not use it.")))))
-                   (multiple-value-bind (remote-addr remote-port)
-                       (get-peer-address-and-port socket)
-                     (multiple-value-bind (local-addr local-port)
-                         (get-local-address-and-port socket)
-                       (with-acceptor-request-count-incremented (*acceptor*)
-                         (process-request (make-instance (acceptor-request-class *acceptor*)
-                                                         :acceptor *acceptor*
-                                                         :local-addr local-addr
-                                                         :local-port local-port
-                                                         :remote-addr remote-addr
-                                                         :remote-port remote-port
-                                                         :headers-in headers-in
-                                                         :content-stream *hunchentoot-stream*
-                                                         :method method
-                                                         :uri url-string
-                                                         :server-protocol protocol))))))
+                   (with-acceptor-request-count-incremented (*acceptor*)
+                     (process-request (acceptor-make-request *acceptor* socket
+                                                             :headers-in headers-in
+                                                             :content-stream *hunchentoot-stream*
+                                                             :method method
+                                                             :uri url-string
+                                                             :server-protocol protocol))))
                  (finish-output *hunchentoot-stream*)
                  (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
                  (when *close-hunchentoot-stream*
