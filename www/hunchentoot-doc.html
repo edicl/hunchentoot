@@ -174,7 +174,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.9.
+      The current version is 1.2.10.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -1750,6 +1750,30 @@
           Returns the port the current request originated from.
         </clix:description></blockquote></p>
 
+      <p xmlns=""><a class="none" name="local-addr*"></a>
+          [Function]
+          <br><b>local-addr*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          <tt>&amp;optional
+          </tt> request
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">address
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          The IP address of the local system that the client connected to.
+        </clix:description></blockquote></p>
+
+      <p xmlns=""><a class="none" name="local-port*"></a>
+          [Function]
+          <br><b>local-port*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+          <tt>&amp;optional
+          </tt> request
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">port
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          The TCP port number of the local system that the client connected to.
+        </clix:description></blockquote></p>
+
       <p xmlns=""><a class="none" name="script-name*"></a>
           [Function]
           <br><b>script-name*</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
@@ -2011,6 +2035,14 @@
         =&gt;
         <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">address
           </clix:returns></i><br><a class="none" name="remote-port"></a><b>remote-port</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+          </clix:lambda-list></i>
+        =&gt;
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">port
+          </clix:returns></i><br><a class="none" name="local-addr"></a><b>local-addr</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
+          </clix:lambda-list></i>
+        =&gt;
+        <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">address
+          </clix:returns></i><br><a class="none" name="local-port"></a><b>local-port</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">request
           </clix:lambda-list></i>
         =&gt;
         <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">port
@@ -3871,6 +3903,18 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#listen-backlog">listen-backlog</a></code><span class="entry-type">Generic function</span>
+</li>
+<li>
+<code><a href="#local-addr">local-addr</a></code><span class="entry-type">Generic reader</span>
+</li>
+<li>
+<code><a href="#local-addr*">local-addr*</a></code><span class="entry-type">Function</span>
+</li>
+<li>
+<code><a href="#local-port">local-port</a></code><span class="entry-type">Generic reader</span>
+</li>
+<li>
+<code><a href="#local-port*">local-port*</a></code><span class="entry-type">Function</span>
 </li>
 <li>
 <code><a href="#log-message*">log-message*</a></code><span class="entry-type">Function</span>

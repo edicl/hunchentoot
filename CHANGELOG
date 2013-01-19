@@ -1,3 +1,7 @@
+Version 1.2.10
+2013-01-19
+Add local-addr* and local-port* functions
+
 Version 1.2.9
 2012-12-28
 Fix test script to accomodate for Drakma fix regarding redirect from POST to GET
