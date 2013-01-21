@@ -1037,13 +1037,13 @@
           it exits.  A typical method will look like this:
 
                 <pre>(defmethod create-taskmaster-thread ((taskmaster monitor-taskmaster) socket)
-            (bt:make-thread
-             (lambda ()
-               (with-monitor-error-handlers
-                 (unwind-protect
-                      (with-monitor-variable-bindings
-                        (process-connection (taskmaster-acceptor taskmaster) socket))
-                   (decrement-taskmaster-request-count taskmaster))))))</pre>
+  (bt:make-thread
+   (lambda ()
+     (with-monitor-error-handlers
+         (unwind-protect
+              (with-monitor-variable-bindings
+                  (process-connection (taskmaster-acceptor taskmaster) socket))
+           (decrement-taskmaster-request-count taskmaster))))))</pre>
 
 
 

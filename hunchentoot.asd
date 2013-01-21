@@ -96,3 +96,8 @@ for diagnostic output.")
 
 (defmethod perform ((o test-op) (c (eql (find-system 'hunchentoot))))
   (load (merge-pathnames "run-test.lisp" (system-source-directory c))))
+
+(defsystem :hunchentoot-dev
+    :description "Development tools for Hunchentoot development and releases"
+    :components ((:file "make-docstrings"))
+    :depends-on (:hunchentoot :xpath :cxml-stp :swank))
