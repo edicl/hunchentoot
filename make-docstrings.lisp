@@ -95,7 +95,7 @@
 
 (defvar *output*)
 
-(defun make-docstring% (node transform)
+(defun xml-to-docstring% (node transform)
   (stp:do-children (child node)
     (typecase child
       (stp:text
@@ -105,14 +105,14 @@
          (:p
           (terpri *output*)
           (terpri *output*)
-          (make-docstring% child transform))
+          (xml-to-docstring% child transform))
          ((:a :code :tt :blockquote :span :ul)
-          (make-docstring% child transform))
+          (xml-to-docstring% child transform))
          ((:li)
-           (make-docstring% child transform)
+           (xml-to-docstring% child transform)
            (terpri *output*))
          ((:ref :arg :em :i)
-          (make-docstring% child (alexandria:compose #'string-upcase transform)))
+          (xml-to-docstring% child (alexandria:compose #'string-upcase transform)))
          ((:sup)
           ;; skip
           )
@@ -120,14 +120,14 @@
           (terpri *output*)
           (terpri *output*)
           (setf (word-wrap-p *output*) nil)
-          (make-docstring% child #'identity)
+          (xml-to-docstring% child #'identity)
           (setf (word-wrap-p *output*) t)
           (terpri *output*)))))))
 
-(defun make-docstring (description-node)
+(defun xml-to-docstring (description-node)
   (with-output-to-string (s)
     (with-open-stream (*output* (make-instance 'formatting-stream :understream s :width 75))
-      (make-docstring% description-node #'collapse-whitespace))))
+      (xml-to-docstring% description-node #'collapse-whitespace))))
 
 (defun maybe-qualify-name (name package-name)
   (if (find #\: name)
@@ -146,17 +146,17 @@
   (loop until (eql char (peek-char nil stream))
         do (read-char stream)))
 
-(defun get-function-docstring (source-string position)
+(defun get-simple-def-docstring (source-string position)
   (with-input-from-string (s source-string :start (1+ position))
-    (read s)                            ; DEFUN
-    (read s)                            ; function name
-    (read s)                            ; argument list
+    (read s)                            ; DEFUN/DEFVAR/DEFPARAMETER
+    (read s)                            ; name
+    (read s)                            ; argument list/initial value
     (skip-to s #\")
-    (values (file-position s)
-            (read s)
-            (file-position s))))
+    (list :start (file-position s)
+          :text (read s)
+          :end (file-position s))))
 
-(defun get-def*-docstring (source-string position)
+(defun get-complex-def-docstring (source-string position)
   (with-input-from-string (s source-string :start (1+ position))
     (read s)                            ; DEFCLASS/DEFINE-CONDITION/DEFGENERIC
     (read s)                            ; name
@@ -164,25 +164,20 @@
     (loop
       (let* ((start-of-clause (file-position s))
              (clause (read s)))
-        (format t "first of clause: ~S~%" (first clause))
         (when (eql (first clause) :documentation)
           (file-position s start-of-clause)
           (skip-to s #\()
           (read-char s)
           (read s)                      ; :DOCUMENTATION
           (skip-to s #\")
-          (return (values (file-position s)
-                          (read s)
-                          (file-position s))))))))
-
-(defun get-special-variable-docstring (source-string position)
-  nil)
+          (return (list :start (file-position s)
+                        :text (read s)
+                        :end (file-position s))))))))
 
 (defun get-doc-function (type)
   (case type
-    (:function 'get-function-docstring)
-    ((:generic-function :class) 'get-def*-docstring)
-    (:special-variable 'get-special-variable-docstring)))
+    ((:function :special-variable) 'get-simple-def-docstring)
+    ((:generic-function :class) 'get-complex-def-docstring)))
 
 (defun source-location-flatten (location-info)
   (apply #'append (rest (find :location (rest location-info) :key #'first))))
@@ -192,31 +187,32 @@
 (defclass file ()
   ((file-pathname :initarg :file-pathname
                   :reader file-pathname)
-   (original-contents :reader original-contents)
-   (contents :initarg :contents
-             :accessor contents)))
+   (docstrings :initform nil
+               :accessor docstrings)
+   (contents :accessor contents)))
 
-(defmethod initialize-instance :after ((file file) &key contents)
-  (setf (slot-value file 'original-contents) contents))
+(defmethod initialize-instance :after ((file file) &key file-pathname)
+  (setf (slot-value file 'contents) (alexandria:read-file-into-string file-pathname)))
 
-(defun file-contents (pathname)
-  (unless (gethash pathname *files*)
-    (setf (gethash pathname *files*)
-          (make-instance 'file
-                         :file-pathname pathname
-                         :contents (alexandria:read-file-into-string pathname))))
-  (contents (gethash pathname *files*)))
+(defun get-file (pathname)
+  (or (gethash pathname *files*)
+      (setf (gethash pathname *files*)
+            (make-instance 'file
+                           :file-pathname pathname))))
 
-(defun get-source-docstring (get-doc-function symbol-name)
+(defun record-docstring (doc-docstring get-doc-function symbol-name)
   (let ((definitions (remove-if (lambda (definition)
                                   (or (cl-ppcre:scan "(?i)^\\s*\\(defmethod\\s" (first definition))
                                       (eql (first (second definition)) :error)))
                                 (swank:find-definitions-for-emacs symbol-name))))
     (case (length definitions)
-      (0 "NO DEFINITIONS FOUND")
-      (1 (let ((source-location (source-location-flatten (first definitions))))
-           (funcall get-doc-function (alexandria:read-file-into-string (getf source-location :file)) (getf source-location :position))))
-      (2 "MULTIPLE DEFINITIONS FOUND"))))
+      (0 (warn "no source location for ~A" symbol-name))
+      (1 (let* ((source-location (source-location-flatten (first definitions)))
+                (file (get-file (getf source-location :file))))
+           (push (list* :doc-docstring doc-docstring
+                        (funcall get-doc-function (contents file) (getf source-location :position)))
+                 (docstrings file))))
+      (2 (warn "multiple source locations for ~A" symbol-name)))))
 
 (defun parse-doc (pathname default-package-name)
   (let ((*files* (make-hash-table :test #'equal)))
@@ -224,11 +220,8 @@
       (xpath:do-node-set (node (xpath:evaluate "//*[clix:description!='']" (cxml:parse pathname (stp:make-builder))))
         (let ((type (get-doc-entry-type node))
               (symbol-name (maybe-qualify-name (stp:attribute-value node "name") default-package-name)))
-          (format t "~%~%--- found element: ~A ~A~%~S~%DOCSTRING: ~A~%"
-                  type
-                  symbol-name
-                  (swank:find-definitions-for-emacs symbol-name)
-                  (alexandria:when-let (get-doc-function (get-doc-function type))
-                    (get-source-docstring get-doc-function symbol-name)))
           (xpath:do-node-set (description (xpath:evaluate "clix:description" node))
-            (write-string (make-docstring description))))))))
+            (alexandria:when-let (get-doc-function (get-doc-function type))
+              (record-docstring (xml-to-docstring description)
+                                get-doc-function symbol-name))))))
+    *files*))
