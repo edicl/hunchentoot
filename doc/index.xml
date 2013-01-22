@@ -783,23 +783,26 @@
           to a HTML message to be displayed to the user.  If this
           function returns a string, that string is sent to the client
           instead of the content produced by the handler, if any.
-
-          If an ERROR-TEMPLATE-DIRECTORY is set in the current
-          acceptor and the directory contains a file corresponding to
-          HTTP-STATUS-CODE named &lt;code&gt;.html, that file is sent
-          to the client after variable substitution.  Variables are
-          referenced by ${&lt;variable-name&gt;}.
-
-          Additional keyword arguments may be provided which are made
-          available to the templating logic as substitution variables.
-          These variables can be interpolated into error message
-          templates in, which contains the current URL relative to the
-          server and without GET parameters.
-
-          In addition to the variables corresponding to keyword
-          arguments, the script-name, lisp-implementation-type,
-          lisp-implementation-version and hunchentoot-version
-          variables are available.
+          <p>
+            If an ERROR-TEMPLATE-DIRECTORY is set in the current
+            acceptor and the directory contains a file corresponding to
+            HTTP-STATUS-CODE named &lt;code&gt;.html, that file is sent
+            to the client after variable substitution.  Variables are
+            referenced by ${&lt;variable-name&gt;}.
+          </p>
+          <p>
+            Additional keyword arguments may be provided which are made
+            available to the templating logic as substitution variables.
+            These variables can be interpolated into error message
+            templates in, which contains the current URL relative to the
+            server and without GET parameters.
+          </p>
+          <p>
+            In addition to the variables corresponding to keyword
+            arguments, the script-name, lisp-implementation-type,
+            lisp-implementation-version and hunchentoot-version
+            variables are available.
+          </p>
         </clix:description>
       </clix:function>
     </clix:subchapter>
