@@ -55,9 +55,8 @@ digits."
               (random base *the-random-state*)))))
 
 (defun reason-phrase (return-code)
-  "Returns a reason phrase for the HTTP return code RETURN-CODE
-\(which should be an integer) or NIL for return codes Hunchentoot
-doesn't know."
+  "Returns a reason phrase for the HTTP return code RETURN-CODE \(which
+should be an integer) or NIL for return codes Hunchentoot doesn't know."
   (gethash return-code *http-reason-phrase-map* 
            "No reason phrase known"))
 
@@ -74,11 +73,12 @@ THING is a string or a symbol.")
 (defun md5-hex (string)
   "Calculates the md5 sum of the string STRING and returns it as a hex string."
   (with-output-to-string (s)
-    (loop for code across (md5:md5sum-sequence (coerce string 'simple-string))
+    (loop for code across (md5:md5sum-string string)
 	  do (format s "~2,'0x" code))))
 
 (defun escape-for-html (string)
-  "Escapes the characters #\\<, #\\>, #\\', #\\\", and #\\& for HTML output."
+  "Escapes the characters #\\<, #\\>, #\\', #\\\", and #\\& for HTML
+output."
   (with-output-to-string (out)
     (with-input-from-string (in string)
       (loop for char = (read-char in nil nil)
@@ -92,8 +92,9 @@ THING is a string or a symbol.")
                  (otherwise (write-char char out)))))))
 
 (defun http-token-p (token)
-  "Tests whether TOKEN is a string which is a valid 'token'
-according to HTTP/1.1 \(RFC 2068)."
+  "This function tests whether OBJECT is a non-empty string which is a
+TOKEN according to RFC 2068 \(i.e. whether it may be used for, say,
+cookie names)."
   (and (stringp token)
        (plusp (length token))
        (every (lambda (char)
@@ -105,7 +106,9 @@ according to HTTP/1.1 \(RFC 2068)."
 
 
 (defun rfc-1123-date (&optional (time (get-universal-time)))
-  "Generates a time string according to RFC 1123.  Default is current time."
+  "Generates a time string according to RFC 1123. Default is current time.
+This can be used to send a 'Last-Modified' header - see
+HANDLE-IF-MODIFIED-SINCE."
   (multiple-value-bind
         (second minute hour date month year day-of-week)
       (decode-universal-time time 0)
@@ -180,8 +183,11 @@ The macro also uses SETQ to store the new vector in VECTOR."
                finally (return new-vector))))
 
 (defun url-decode (string &optional (external-format *hunchentoot-default-external-format*))
-  "Decodes a URL-encoded STRING which is assumed to be encoded using
-the external format EXTERNAL-FORMAT."
+  "Decodes a URL-encoded string which is assumed to be encoded using the
+external format EXTERNAL-FORMAT, i.e. this is the inverse of
+URL-ENCODE. It is assumed that you'll rarely need this function, if
+ever. But just in case - here it is. The default for EXTERNAL-FORMAT is
+the value of *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
   (when (zerop (length string))
     (return-from url-decode ""))
   (let ((vector (make-array (length string) :element-type 'octet :fill-pointer 0))
@@ -244,7 +250,9 @@ alist.  Both names and values are url-decoded while doing this."
           cookies))
 
 (defun url-encode (string &optional (external-format *hunchentoot-default-external-format*))
-  "URL-encodes a string using the external format EXTERNAL-FORMAT."
+  "URL-encodes a string using the external format EXTERNAL-FORMAT. The
+default for EXTERNAL-FORMAT is the value of
+*HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
   (with-output-to-string (s)
     (loop for c across string
           for index from 0
@@ -326,7 +334,8 @@ not a chunked stream."
   (chunked-stream-input-chunking-p *hunchentoot-stream*))
 
 (defun ssl-p (&optional (acceptor *acceptor*))
-  "Whether the current connection to the client is secure."
+  "Whether the current connection to the client is secure. See
+ACCEPTOR-SSL-P."
   (acceptor-ssl-p acceptor))
 
 (defmacro with-mapped-conditions (() &body body)
