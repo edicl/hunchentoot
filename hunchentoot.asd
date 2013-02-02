@@ -100,4 +100,8 @@ for diagnostic output.")
 (defsystem :hunchentoot-dev
     :description "Development tools for Hunchentoot development and releases"
     :components ((:file "make-docstrings"))
-    :depends-on (:hunchentoot :xpath :cxml-stp :swank))
+    :depends-on (:hunchentoot
+                 :hunchentoot-test
+                 :xpath
+                 :cxml-stp
+                 :swank))
