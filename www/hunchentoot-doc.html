@@ -174,7 +174,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.10.
+      The current version is 1.2.11.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -1027,13 +1027,13 @@
           it exits.  A typical method will look like this:
 
                 <pre xmlns="http://www.w3.org/1999/xhtml">(defmethod create-taskmaster-thread ((taskmaster monitor-taskmaster) socket)
-            (bt:make-thread
-             (lambda ()
-               (with-monitor-error-handlers
-                 (unwind-protect
-                      (with-monitor-variable-bindings
-                        (process-connection (taskmaster-acceptor taskmaster) socket))
-                   (decrement-taskmaster-request-count taskmaster))))))</pre>
+  (bt:make-thread
+   (lambda ()
+     (with-monitor-error-handlers
+         (unwind-protect
+              (with-monitor-variable-bindings
+                  (process-connection (taskmaster-acceptor taskmaster) socket))
+           (decrement-taskmaster-request-count taskmaster))))))</pre>
 
 
 
