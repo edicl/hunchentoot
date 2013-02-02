@@ -116,6 +116,7 @@
            #:acceptor
            #:acceptor-access-log-destination
            #:acceptor-address
+           #:acceptor-listen-backlog
            #:acceptor-dispatch-request
            #:acceptor-error-template-directory
            #:acceptor-input-chunking-p
