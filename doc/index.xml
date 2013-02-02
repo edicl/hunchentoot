@@ -460,7 +460,7 @@
         </clix:description>
       </clix:special-variable>
 
-      <clix:function generic='true' name='listen-backlog'>
+      <clix:function generic='true' name='acceptor-listen-backlog'>
         <clix:lambda-list>listen-backlog
         </clix:lambda-list>
         <clix:returns>number-of-pending-connections
@@ -1016,7 +1016,7 @@
           <clix:ref>PROCESS-CONNECTION</clix:ref> as an argument.
 
           If the taskmaster is a multi-threaded taskmaster, <clix:ref>HANDLE-INCOMING-THREAD</clix:ref>
-          will call <clix:ref>CREATE-TASKMASTER-THREAD</clix:ref>, which will call
+          will call <clix:ref>CREATE-REQUEST-HANDLER-THREAD</clix:ref>, which will call
           <clix:ref>PROCESS-CONNECTION</clix:ref> in a new thread.
           <clix:ref>HANDLE-INCOMING-THREAD</clix:ref> might issue a
           <clix:ref>+HTTP-SERVICE-UNAVAILABLE+</clix:ref> error
@@ -1025,7 +1025,7 @@
               </clix:description>
             </clix:function>
 
-            <clix:function generic='true' name='create-taskmaster-thread'>
+            <clix:function generic='true' name='create-request-handler-thread'>
             <clix:lambda-list>taskmaster socket
             </clix:lambda-list>
             <clix:returns>thread
@@ -1036,7 +1036,7 @@
           call <clix:ref>DECREMENT-TASKMASTER-REQUEST-COUNT</clix:ref> before
           it exits.  A typical method will look like this:
 
-                <pre>(defmethod create-taskmaster-thread ((taskmaster monitor-taskmaster) socket)
+                <pre>(defmethod create-request-handler-thread ((taskmaster monitor-taskmaster) socket)
   (bt:make-thread
    (lambda ()
      (with-monitor-error-handlers
