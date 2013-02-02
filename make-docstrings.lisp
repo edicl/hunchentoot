@@ -1,7 +1,8 @@
 ;; -*- Lisp -*-
 
 (defpackage :make-docstrings
-  (:use :cl))
+  (:use :cl)
+  (:export #:parse-doc))
 
 (in-package :make-docstrings)
 
