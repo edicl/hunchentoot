@@ -1,20 +1,13 @@
 ;; -*- Lisp -*-
 
 (defpackage :make-docstrings
-<<<<<<< HEAD
-  (:use :cl))
+  (:use :cl)
+  (:export #:update-doc))
 
 (in-package :make-docstrings)
 
 (defparameter *docstring-width* 70)
 
-=======
-  (:use :cl)
-  (:export #:parse-doc))
-
-(in-package :make-docstrings)
-
->>>>>>> master
 (defclass formatting-stream (trivial-gray-streams:fundamental-character-input-stream)
   ((understream :initarg :understream
                 :reader understream)
@@ -54,7 +47,6 @@
     (setf (fill-pointer (word-buffer stream)) 0)))
 
 (defmethod trivial-gray-streams:stream-write-char ((stream formatting-stream) char)
-<<<<<<< HEAD
   (cond
     ((word-wrap-p stream)
      (cond
@@ -71,18 +63,6 @@
      (when (member char '(#\" #\\))
        (write-char #\\ (understream stream)))
      (write-char char (understream stream)))))
-=======
-  (if (word-wrap-p stream)
-      (cond
-        ((eql #\Space char)
-         (maybe-flush-word stream))
-        ((eql #\Newline char)
-         (maybe-flush-word stream)
-         (print-newline stream))
-        (t
-         (vector-push-extend char (word-buffer stream))))
-      (write-char char (understream stream))))
->>>>>>> master
 
 (defmethod trivial-gray-streams:stream-line-column (stream)
   (+ (column stream) (length (word-buffer stream))))
@@ -155,11 +135,7 @@
 
 (defun xml-to-docstring (description-node)
   (with-output-to-string (s)
-<<<<<<< HEAD
     (with-open-stream (*output* (make-instance 'formatting-stream :understream s :width *docstring-width*))
-=======
-    (with-open-stream (*output* (make-instance 'formatting-stream :understream s :width 75))
->>>>>>> master
       (xml-to-docstring% description-node #'collapse-whitespace))))
 
 (defun maybe-qualify-name (name package-name)
@@ -179,7 +155,6 @@
   (loop until (eql char (peek-char nil stream))
         do (read-char stream)))
 
-<<<<<<< HEAD
 (defclass docstring ()
   ((start :initarg :start
           :reader start)
@@ -220,21 +195,6 @@
 (defun get-complex-def-docstring (source-string position)
   (with-input-from-string (s source-string :start position)
     (ensure-read-symbol s 'defclass 'define-condition 'defgeneric)
-=======
-(defun get-simple-def-docstring (source-string position)
-  (with-input-from-string (s source-string :start (1+ position))
-    (read s)                            ; DEFUN/DEFVAR/DEFPARAMETER
-    (read s)                            ; name
-    (read s)                            ; argument list/initial value
-    (skip-to s #\")
-    (list :start (file-position s)
-          :text (read s)
-          :end (file-position s))))
-
-(defun get-complex-def-docstring (source-string position)
-  (with-input-from-string (s source-string :start (1+ position))
-    (read s)                            ; DEFCLASS/DEFINE-CONDITION/DEFGENERIC
->>>>>>> master
     (read s)                            ; name
     (read s)                            ; arguments/supers
     (loop
@@ -244,15 +204,6 @@
           (file-position s start-of-clause)
           (skip-to s #\()
           (read-char s)
-<<<<<<< HEAD
-          (ensure-read-symbol s :documentation)
-          (return (read-docstring s)))))))
-
-(defun get-doc-function (type)
-  (case type
-    ((:function :special-variable :macro) 'get-simple-def-docstring)
-    ((:generic-function :class :condition) 'get-complex-def-docstring)))
-=======
           (read s)                      ; :DOCUMENTATION
           (skip-to s #\")
           (return (list :start (file-position s)
@@ -263,7 +214,6 @@
   (case type
     ((:function :special-variable) 'get-simple-def-docstring)
     ((:generic-function :class) 'get-complex-def-docstring)))
->>>>>>> master
 
 (defun source-location-flatten (location-info)
   (apply #'append (rest (find :location (rest location-info) :key #'first))))
@@ -295,14 +245,9 @@
       (0 (warn "no source location for ~A" symbol-name))
       (1 (let* ((source-location (source-location-flatten (first definitions)))
                 (file (get-file (getf source-location :file))))
-<<<<<<< HEAD
            (push (let ((docstring (funcall get-doc-function (contents file) (getf source-location :position))))
                    (setf (doc-text docstring) doc-docstring)
                    docstring)
-=======
-           (push (list* :doc-docstring doc-docstring
-                        (funcall get-doc-function (contents file) (getf source-location :position)))
->>>>>>> master
                  (docstrings file))))
       (2 (warn "multiple source locations for ~A" symbol-name)))))
 
