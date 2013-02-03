@@ -151,9 +151,12 @@
             :function)
         basic-type)))
 
-(defun skip-to (stream char)
-  (loop until (eql char (peek-char nil stream))
-        do (read-char stream)))
+(defun skip-to (stream char &key (eof-error-p t))
+  (loop
+    (when (eql char (peek-char nil stream eof-error-p))
+      (return t))
+    (unless (read-char stream eof-error-p)
+      (return nil))))
 
 (defclass docstring ()
   ((start :initarg :start
@@ -184,7 +187,8 @@
       (error "expected one of ~S, got ~S" symbols got))
     got))
 
-(defun get-simple-def-docstring (source-string position)
+(defun get-simple-def-docstring (symbol-name source-string position)
+  (declare (ignore symbol-name))
   (with-input-from-string (s source-string :start position)
     (let ((definer (ensure-read-symbol s 'defun 'defmacro 'defvar 'defparameter 'defvar-unbound)))
       (read s)                          ; name
@@ -192,7 +196,8 @@
         (read s))                       ; argument list/initial value
       (read-docstring s))))
 
-(defun get-complex-def-docstring (source-string position)
+(defun get-complex-def-docstring (symbol-name source-string position)
+  (declare (ignore symbol-name))
   (with-input-from-string (s source-string :start position)
     (ensure-read-symbol s 'defclass 'define-condition 'defgeneric)
     (read s)                            ; name
@@ -207,10 +212,56 @@
           (read s)                      ; :DOCUMENTATION
           (return (read-docstring s)))))))
 
+(defun name-equal-p (a b)
+  (string-equal a b
+                :start1 (1+ (or (position #\: (string a)) -1))
+                :start2 (1+ (or (position #\: (string b)) -1))))
+
+(defun get-slot-accessor-docstring (symbol-name source-string position)
+  (with-input-from-string (s source-string :start position)
+    (ensure-read-symbol s 'defclass)
+    (read s)                            ; name
+    (read s)                            ; supers
+    (skip-to s #\()
+    (let ((slots-begin (1+ (file-position s)))
+          (slots (read s))
+          (slots-end (+ (position #\) source-string :from-end t :end (file-position s)))))
+      (declare (ignore slots))
+      (with-input-from-string (s source-string :start slots-begin :end slots-end)
+        ;; s now is a stream over all slot definitions in the class.
+        ;; For each slot, the definition s-expression is read and
+        ;; analyzed.  If it contains the accessor that we're looking
+        ;; for, the documentation string is read in another round over
+        ;; the data.
+        (or (block found
+              (loop
+                (or (skip-to s #\( :eof-error-p nil)
+                    (return))
+                (let* ((slot-start-position (file-position s))
+                       (slot-initargs (rest (read s))))
+                  (alexandria:doplist (key value slot-initargs)
+                    (when (and (member key '(:reader :accessor))
+                               (name-equal-p value symbol-name))
+                      (file-position s slot-start-position)
+                      (read-char s)     ; skip over opening paren
+                      (read s)          ; read slot name
+                      (loop
+                        (when (eql (read s) :documentation)
+                          (return-from found (read-docstring s)))))))))
+            (error "no docstring found in class definition for ~A" symbol-name))))))
+
+(defun get-generic-function-def-docstring (symbol-name source-string position)
+  (with-input-from-string (s source-string :start position)
+    (ecase (read s)
+      (defgeneric (get-complex-def-docstring symbol-name source-string position))
+      (defmethod (get-simple-def-docstring symbol-name source-string position))
+      (defclass (get-slot-accessor-docstring symbol-name source-string position)))))
+
 (defun get-doc-function (type)
   (case type
     ((:function :special-variable) 'get-simple-def-docstring)
-    ((:generic-function :class) 'get-complex-def-docstring)))
+    (:class 'get-complex-def-docstring)
+    (:generic-function 'get-generic-function-def-docstring)))
 
 (defun source-location-flatten (location-info)
   (apply #'append (rest (find :location (rest location-info) :key #'first))))
@@ -233,16 +284,35 @@
             (make-instance 'file
                            :file-pathname pathname))))
 
+(defun find-definitions (symbol-name)
+  (flet ((method-definition-p (definition)
+           (cl-ppcre:scan "(?i)^\\s*\\(defmethod\\s" (first definition)))
+         (generic-function-definition-p (definition)
+           (cl-ppcre:scan "(?i)^\\s*\\(defgeneric\\s" (first definition))))
+    (let* ((definitions (remove-if (lambda (definition)
+                                     (eql (first (second definition)) :error))
+                                   (swank:find-definitions-for-emacs symbol-name)))
+           (defmethod-count (count-if #'method-definition-p definitions))
+           (defgeneric-count (count-if #'generic-function-definition-p definitions)))
+      (cond
+        ((plusp defgeneric-count)
+         (remove-if #'method-definition-p definitions))
+        ((and (= 1 defmethod-count)
+              (= 0 defgeneric-count))
+         definitions)
+        ((plusp defmethod-count)
+         (error "Multiple methods defined for ~A but no defgeneric found.  Don't know which docstring to use"
+                symbol-name))
+        (t
+         definitions)))))
+
 (defun record-docstring (doc-docstring get-doc-function symbol-name)
-  (let ((definitions (remove-if (lambda (definition)
-                                  (or (cl-ppcre:scan "(?i)^\\s*\\(defmethod\\s" (first definition))
-                                      (eql (first (second definition)) :error)))
-                                (swank:find-definitions-for-emacs symbol-name))))
+  (let ((definitions (find-definitions symbol-name)))
     (case (length definitions)
       (0 (warn "no source location for ~A" symbol-name))
       (1 (let* ((source-location (source-location-flatten (first definitions)))
                 (file (get-file (getf source-location :file))))
-           (push (let ((docstring (funcall get-doc-function (contents file) (getf source-location :position))))
+           (push (let ((docstring (funcall get-doc-function symbol-name (contents file) (getf source-location :position))))
                    (setf (doc-text docstring) doc-docstring)
                    docstring)
                  (docstrings file))))
