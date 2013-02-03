@@ -277,7 +277,7 @@
                     :key #'start))
         (let ((new-contents (get-output-stream-string s)))
           (unless (equal new-contents (contents file))
-            (with-open-file (f (file-pathname file) :direction :output :if-exists :rename)
+            (with-open-file (f (file-pathname file) :direction :output :if-exists :supersede)
               (write-string new-contents f))))))))
 
 (defun update-doc (doc-pathname default-package-name)
