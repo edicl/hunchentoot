@@ -205,10 +205,7 @@
           (skip-to s #\()
           (read-char s)
           (read s)                      ; :DOCUMENTATION
-          (skip-to s #\")
-          (return (list :start (file-position s)
-                        :text (read s)
-                        :end (file-position s))))))))
+          (return (read-docstring s)))))))
 
 (defun get-doc-function (type)
   (case type
@@ -254,7 +251,7 @@
 (defun parse-doc (pathname default-package-name)
   (let ((*files* (make-hash-table :test #'equal)))
     (xpath:with-namespaces (("clix" "http://bknr.net/clixdoc"))
-      (xpath:do-node-set (node (xpath:evaluate "//*[clix:description!='']" (cxml:parse pathname (stp:make-builder))))
+      (xpath:do-node-set (node (xpath:evaluate "//*[clix:description!='']" (cxml:parse (pathname pathname) (stp:make-builder))))
         (let ((type (get-doc-entry-type node))
               (symbol-name (maybe-qualify-name (stp:attribute-value node "name") default-package-name)))
           (xpath:do-node-set (description (xpath:evaluate "clix:description" node))
