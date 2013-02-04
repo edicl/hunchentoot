@@ -286,39 +286,69 @@
             (make-instance 'file
                            :file-pathname pathname))))
 
-(defun find-definitions (symbol-name)
-  (flet ((method-definition-p (definition)
-           (cl-ppcre:scan "(?i)^\\s*\\(defmethod\\s" (first definition)))
-         (generic-function-definition-p (definition)
-           (cl-ppcre:scan "(?i)^\\s*\\(defgeneric\\s" (first definition))))
-    (let* ((definitions (remove-if (lambda (definition)
-                                     (eql (first (second definition)) :error))
-                                   (swank:find-definitions-for-emacs symbol-name)))
-           (defmethod-count (count-if #'method-definition-p definitions))
-           (defgeneric-count (count-if #'generic-function-definition-p definitions)))
-      (cond
-        ((plusp defgeneric-count)
-         (remove-if #'method-definition-p definitions))
-        ((and (= 1 defmethod-count)
-              (= 0 defgeneric-count))
-         definitions)
-        ((plusp defmethod-count)
-         (error "Multiple methods defined for ~A but no defgeneric found.  Don't know which docstring to use"
-                symbol-name))
-        (t
-         definitions)))))
+(defmacro define-scanner-predicate (definer)
+  `(defun ,(alexandria:format-symbol *package* "~A~A~A" '#:is- definer '#:-p) (string)
+     (cl-ppcre:scan ,(format nil "(?i)^\\s*\\(\\s*~A\\s" (string definer)) string)))
 
-(defun record-docstring (doc-docstring get-doc-function symbol-name)
-  (let ((definitions (find-definitions symbol-name)))
-    (case (length definitions)
-      (0 (warn "no source location for ~A" symbol-name))
-      (1 (let* ((source-location (source-location-flatten (first definitions)))
-                (file (get-file (getf source-location :file))))
-           (push (let ((docstring (funcall get-doc-function symbol-name (contents file) (getf source-location :position))))
-                   (setf (doc-text docstring) doc-docstring)
-                   docstring)
-                 (docstrings file))))
-      (2 (warn "multiple source locations for ~A" symbol-name)))))
+(define-scanner-predicate defvar)
+(define-scanner-predicate defvar-unbound)
+(define-scanner-predicate defparameter)
+(define-scanner-predicate defun)
+(define-scanner-predicate defmacro)
+(define-scanner-predicate defgeneric)
+(define-scanner-predicate defmethod)
+(define-scanner-predicate defclass)
+(define-scanner-predicate define-condition)
+
+(defun is-definition-type-p (doc-type definition)
+  (ecase doc-type
+    (:function
+     (or (is-defun-p definition)
+         (is-defmacro-p definition)))
+    ((:generic-function :accessor :listed-reader)
+     (or (is-defgeneric-p definition)
+         (is-defmethod-p definition)))
+    (:special-variable
+     (or (is-defvar-p definition)
+         (is-defvar-unbound-p definition)
+         (is-defparameter-p definition)))
+    (:class
+     (is-defclass-p definition))
+    (:condition
+     (is-define-condition-p definition))))
+
+(defun find-definitions (doc-type symbol-name)
+  (let* ((definitions (remove-if (lambda (definition)
+                                   (or (eql (first (second definition)) :error)
+                                       (not (is-definition-type-p doc-type (first definition)))))
+                                 (swank:find-definitions-for-emacs symbol-name)))
+         (defmethod-count (count-if #'is-defmethod-p definitions :key #'first))
+         (defgeneric-count (count-if #'is-defgeneric-p definitions :key #'first)))
+    (cond
+      ((plusp defgeneric-count)
+       (remove-if #'is-defmethod-p definitions :key #'first))
+      ((and (= 1 defmethod-count)
+            (= 0 defgeneric-count))
+       definitions)
+      ((plusp defmethod-count)
+       (error "Multiple methods defined for ~A but no defgeneric found.  Don't know which docstring to use"
+              symbol-name))
+      (t
+       definitions))))
+
+(defun record-docstring (doc-docstring type symbol-name)
+  (let ((definitions (find-definitions type symbol-name))
+        (get-doc-function  (get-doc-function type)))
+    (when get-doc-function
+      (case (length definitions)
+        (0 (warn "no source location for ~A" symbol-name))
+        (1 (let* ((source-location (source-location-flatten (first definitions)))
+                  (file (get-file (getf source-location :file))))
+             (push (let ((docstring (funcall get-doc-function symbol-name (contents file) (getf source-location :position))))
+                     (setf (doc-text docstring) doc-docstring)
+                     docstring)
+                   (docstrings file))))
+        (2 (warn "multiple source locations for ~A" symbol-name))))))
 
 (defun parse-doc (pathname default-package-name)
   (let ((*files* (make-hash-table :test #'equal)))
@@ -327,9 +357,7 @@
         (let ((type (get-doc-entry-type node))
               (symbol-name (maybe-qualify-name (stp:attribute-value node "name") default-package-name)))
           (xpath:do-node-set (description (xpath:evaluate "clix:description" node))
-            (alexandria:when-let (get-doc-function (get-doc-function type))
-              (record-docstring (xml-to-docstring description)
-                                get-doc-function symbol-name))))))
+            (record-docstring (xml-to-docstring description) type symbol-name)))))
     *files*))
 
 (defun edit-files (files)
