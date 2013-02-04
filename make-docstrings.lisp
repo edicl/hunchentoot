@@ -173,7 +173,7 @@
   (let* ((start (1+ (file-position s)))
          (text (read s)))
     (loop for position = (file-position s)
-          until (eql (peek-char nil s) #\")
+          until (eql (peek-char nil s nil) #\")
           do (file-position s (1- position)))
     (read-char s)                       ; position at char after closing quote
     (make-instance 'docstring
@@ -237,17 +237,19 @@
               (loop
                 (or (skip-to s #\( :eof-error-p nil)
                     (return))
-                (let* ((slot-start-position (file-position s))
-                       (slot-initargs (rest (read s))))
-                  (alexandria:doplist (key value slot-initargs)
-                    (when (and (member key '(:reader :accessor))
-                               (name-equal-p value symbol-name))
-                      (file-position s slot-start-position)
-                      (read-char s)     ; skip over opening paren
-                      (read s)          ; read slot name
-                      (loop
-                        (when (eql (read s) :documentation)
-                          (return-from found (read-docstring s)))))))))
+                (let* ((slot-begin (1+ (file-position s)))
+                       (slot-initargs (rest (read s)))
+                       (slot-end (+ (position #\) source-string :from-end t :end (file-position s)))))
+                  (with-input-from-string (s source-string :start slot-begin :end slot-end)
+                    (alexandria:doplist (key value slot-initargs)
+                      (when (and (member key '(:reader :accessor))
+                                 (name-equal-p value symbol-name))
+                        (read s)        ; read slot name
+                        (loop
+                          (when (eql (or (read s nil)
+                                         (return-from found nil))
+                                     :documentation)
+                            (return-from found (read-docstring s))))))))))
             (error "no docstring found in class definition for ~A" symbol-name))))))
 
 (defun get-generic-function-def-docstring (symbol-name source-string position)
