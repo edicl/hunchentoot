@@ -174,7 +174,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.11.
+      The current version is 1.2.12.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -502,9 +502,9 @@
       <br><b>*acceptor*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">The current ACCEPTOR object in the context of a request.
         </clix:description></blockquote></p>
 
-      <p xmlns=""><a class="none" name="listen-backlog"></a>
+      <p xmlns=""><a class="none" name="acceptor-listen-backlog"></a>
           [Generic function]
-          <br><b>listen-backlog</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
+          <br><b>acceptor-listen-backlog</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">listen-backlog
         </clix:lambda-list></i>
             =&gt;
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">number-of-pending-connections
@@ -1006,7 +1006,7 @@
           <code><a href="#process-connection">PROCESS-CONNECTION</a></code> as an argument.
 
           If the taskmaster is a multi-threaded taskmaster, <code><a href="#handle-incoming-thread">HANDLE-INCOMING-THREAD</a></code>
-          will call <code><a href="#create-taskmaster-thread">CREATE-TASKMASTER-THREAD</a></code>, which will call
+          will call <code><a href="#create-request-handler-thread">CREATE-REQUEST-HANDLER-THREAD</a></code>, which will call
           <code><a href="#process-connection">PROCESS-CONNECTION</a></code> in a new thread.
           <code><a href="#handle-incoming-thread">HANDLE-INCOMING-THREAD</a></code> might issue a
           <code><a href="#+http-service-unavailable+">+HTTP-SERVICE-UNAVAILABLE+</a></code> error
@@ -1014,9 +1014,9 @@
           request thread to finish.
               </clix:description></blockquote></p>
 
-            <p xmlns=""><a class="none" name="create-taskmaster-thread"></a>
+            <p xmlns=""><a class="none" name="create-request-handler-thread"></a>
           [Generic function]
-          <br><b>create-taskmaster-thread</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster socket
+          <br><b>create-request-handler-thread</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster socket
             </clix:lambda-list></i>
             =&gt;
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">thread
@@ -1026,7 +1026,7 @@
           call <code><a href="#decrement-taskmaster-request-count">DECREMENT-TASKMASTER-REQUEST-COUNT</a></code> before
           it exits.  A typical method will look like this:
 
-                <pre xmlns="http://www.w3.org/1999/xhtml">(defmethod create-taskmaster-thread ((taskmaster monitor-taskmaster) socket)
+                <pre xmlns="http://www.w3.org/1999/xhtml">(defmethod create-request-handler-thread ((taskmaster monitor-taskmaster) socket)
   (bt:make-thread
    (lambda ()
      (with-monitor-error-handlers
@@ -3713,6 +3713,9 @@ start and test an https server instead.)
 <code><a href="#acceptor-input-chunking-p">acceptor-input-chunking-p</a></code><span class="entry-type">Generic accessor</span>
 </li>
 <li>
+<code><a href="#acceptor-listen-backlog">acceptor-listen-backlog</a></code><span class="entry-type">Generic function</span>
+</li>
+<li>
 <code><a href="#acceptor-log-access">acceptor-log-access</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
@@ -3809,10 +3812,10 @@ start and test an https server instead.)
 <code><a href="#create-regex-dispatcher">create-regex-dispatcher</a></code><span class="entry-type">Function</span>
 </li>
 <li>
-<code><a href="#create-static-file-dispatcher-and-handler">create-static-file-dispatcher-and-handler</a></code><span class="entry-type">Function</span>
+<code><a href="#create-request-handler-thread">create-request-handler-thread</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
-<code><a href="#create-taskmaster-thread">create-taskmaster-thread</a></code><span class="entry-type">Generic function</span>
+<code><a href="#create-static-file-dispatcher-and-handler">create-static-file-dispatcher-and-handler</a></code><span class="entry-type">Function</span>
 </li>
 <li>
 <code><a href="#define-easy-handler">define-easy-handler</a></code><span class="entry-type">Macro</span>
@@ -3900,9 +3903,6 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#initialize-connection-stream">initialize-connection-stream</a></code><span class="entry-type">Generic function</span>
-</li>
-<li>
-<code><a href="#listen-backlog">listen-backlog</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#local-addr">local-addr</a></code><span class="entry-type">Generic reader</span>

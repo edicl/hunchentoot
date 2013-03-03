@@ -1,3 +1,8 @@
+Version 1.2.12
+2013-03-03
+Various documentation updates
+Fix bug in static file handling that caused Safari to hang on 304 responses by Hunchentoot (reported by Wim Oudshoorn)
+
 Version 1.2.11
 2013-01-27
 Fix bug in MD5-HEX that could cause session keys to be reused
