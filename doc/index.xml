@@ -776,7 +776,7 @@
       </clix:function>
 
       <clix:function name="acceptor-status-message" generic="true">
-        <clix:lambda-list>acceptor http-return-code content</clix:lambda-list>
+        <clix:lambda-list>acceptor http-return-code &amp;key &amp;allow-other-keys</clix:lambda-list>
         <clix:description>
           This function is called after the request's handler has been
           invoked to convert the <clix:arg>HTTP-STATUS-CODE</clix:arg>
