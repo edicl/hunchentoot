@@ -174,7 +174,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.12.
+      The current version is 1.2.13.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -770,7 +770,7 @@
 
       <p xmlns=""><a class="none" name="acceptor-status-message"></a>
           [Generic function]
-          <br><b>acceptor-status-message</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor http-return-code content</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          <br><b>acceptor-status-message</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor http-return-code &amp;key &amp;allow-other-keys</clix:lambda-list></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           This function is called after the request's handler has been
           invoked to convert the <code><i>HTTP-STATUS-CODE</i></code>
           to a HTML message to be displayed to the user.  If this
