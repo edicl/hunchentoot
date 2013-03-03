@@ -167,12 +167,12 @@ via the file's suffix."
                               "application/octet-stream")
           (header-out :last-modified) (rfc-1123-date time)
           (header-out :accept-ranges) "bytes")
+    (handle-if-modified-since time)
     (with-open-file (file pathname
                           :direction :input
                           :element-type 'octet)
       (setf bytes-to-send (maybe-handle-range-header file)
             (content-length*) bytes-to-send)
-      (handle-if-modified-since time)
       (let ((out (send-headers))
             (buf (make-array +buffer-length+ :element-type 'octet)))
         (loop
