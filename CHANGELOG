@@ -1,3 +1,7 @@
+Version 1.2.13
+2013-03-03
+fix wrong documented signature in acceptor-status-message (reported by Zach Beane)
+
 Version 1.2.12
 2013-03-03
 Various documentation updates
