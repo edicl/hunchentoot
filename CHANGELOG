@@ -1,3 +1,7 @@
+Version 1.2.14
+2013-03-08
+Call ACCEPTOR-STATUS-MESSAGE in a saner and more useful fashion (sponsored by Ron Garret)
+
 Version 1.2.13
 2013-03-03
 fix wrong documented signature in acceptor-status-message (reported by Zach Beane)
