@@ -778,11 +778,12 @@
       <clix:function name="acceptor-status-message" generic="true">
         <clix:lambda-list>acceptor http-return-code &amp;key &amp;allow-other-keys</clix:lambda-list>
         <clix:description>
-          This function is called after the request's handler has been
-          invoked to convert the <clix:arg>HTTP-STATUS-CODE</clix:arg>
-          to a HTML message to be displayed to the user.  If this
-          function returns a string, that string is sent to the client
-          instead of the content produced by the handler, if any.
+          This function is called when a request's handler has been
+          called but failed to provide content to send back to the
+          client.  It converts the
+          <clix:arg>HTTP-STATUS-CODE</clix:arg> to some request
+          contents, typically a human readable description of the
+          status code to be displayed to the user.
 
           If an ERROR-TEMPLATE-DIRECTORY is set in the current
           acceptor and the directory contains a file corresponding to

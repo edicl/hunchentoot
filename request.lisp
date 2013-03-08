@@ -216,9 +216,7 @@ slot values are computed in this :AFTER method."
         (setf (return-code*) +http-bad-request+)))))
 
 (defmethod process-request (request)
-  "Standard implementation for processing a request.  You should not
-change or replace this functionality unless you know what you're
-doing."
+  "Standard implementation for processing a request."
   (catch 'request-processed ; used by HTTP HEAD handling to end request processing in a HEAD request (see START-OUTPUT)
     (let (*tmp-files*
           *headers-sent*
@@ -235,7 +233,7 @@ doing."
                                                            +http-internal-server-error+
                                                            :error (princ-to-string error)
                                                            :backtrace (princ-to-string backtrace)))))
-               (multiple-value-bind (body error backtrace)
+               (multiple-value-bind (contents error backtrace)
                    ;; skip dispatch if bad request
                    (when (eql (return-code *reply*) +http-ok+)
                      (catch 'handler-done
@@ -247,9 +245,9 @@ doing."
                    (handler-case
                        (with-debugger
                          (start-output (return-code *reply*)
-                                       (or (acceptor-status-message *acceptor*
-                                                                    (return-code *reply*))
-                                           body)))
+                                       (or contents
+                                           (acceptor-status-message *acceptor*
+                                                                    (return-code *reply*)))))
                      (error (e)
                        ;; error occured while writing to the client.  attempt to report.
                        (report-error-to-client e)))))))
