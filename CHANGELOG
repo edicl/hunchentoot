@@ -1,3 +1,7 @@
+Version 1.2.15
+2013-03-17
+Fix race condition in acceptor shutdown (Faré Rideau)
+
 Version 1.2.14
 2013-03-08
 Call ACCEPTOR-STATUS-MESSAGE in a saner and more useful fashion (sponsored by Ron Garret)
@@ -34,7 +38,7 @@ Fix documentation for COOKIE-IN, which returns a string, not a cookie.
 Hunchentoot could not deal with / pointing to a static file directory (Stas Boukarev).
 Fixes to pathname sanitizing when handling static files.
 Further Range: header handling fixes
-Fix some export names relating to taskmaster thread count (Far� Rideau)
+Fix some export names relating to taskmaster thread count (Faré Rideau)
 
 Version 1.2.6
 2012-09-02
@@ -82,15 +86,15 @@ External format EOL style fixes for Windows (Anton Kovalenko)
 
 Version 1.2.0
 2011-10-30
-Fix to allow send-service-unavailable-reply to work (Far� Rideau)
-Make sure we always have a cooked message to send in case of error (Far� Rideau)
+Fix to allow send-service-unavailable-reply to work (Faré Rideau)
+Make sure we always have a cooked message to send in case of error (Faré Rideau)
 Add www/ directory with default file tree that is being served
 Add error template mechanism and improve error reporting in general.
 Improve automatic testing, SBCL kludge to support asdf:test-op
 Allegro CL modern mode fixes
 Fix bugs in serving partial responses
 Limit maximum number of threads that Hunchentoot creates (Dan Weinreb, Scott McKay)
-Export fixes (Gordon Sims, Andrey Moskvitin, Far� Rideau)
+Export fixes (Gordon Sims, Andrey Moskvitin, Faré Rideau)
 Factor out easy-handler logic into separate acceptor subclass
 Export two session functions (Nico de Jager)
 Allow no Content-Type header (Chaitanya Gupta)
@@ -102,10 +106,10 @@ Fixed typo in code which interprets transfer encodings
 
 Version 1.1.1
 2010-08-24
-Exported WITHIN-REQUEST-P (Far� Rideau)
+Exported WITHIN-REQUEST-P (Faré Rideau)
 Safeguard measures against XSS attacks (J.P. Larocque)
 Prevent potential leak when closing stream (Matt Lamari, Martin Simmons)
-Change some occurrences of HANDLER-CASE* to HANDLER-CASE (Hans H�bner, Allan Dee)
+Change some occurrences of HANDLER-CASE* to HANDLER-CASE (Hans Hübner, Allan Dee)
 
 Version 1.1.0
 2010-01-08
@@ -121,17 +125,17 @@ Enabled SSL key passwords for Lisps other than LW (Vsevolod)
 
 Version 1.0.0
 2009-02-19
-Complete architectural redesign (together with Hans H�bner)
+Complete architectural redesign (together with Hans Hübner)
 Lots of small fixes and improvements, too many to enumerate here
 
 Version 0.15.6
 2008-04-09
-Fixed embarrassingly mis-placed parentheses (thanks to Hans H�bner)
+Fixed embarrassingly mis-placed parentheses (thanks to Hans Hübner)
 
 Version 0.15.5
 2008-04-08
-Removed FORCE-OUTPUT* and thus the ACL-COMPAT dependency (thanks to Hans H�bner)
-Support for MP-less CMUCL (thanks to Hans H�bner)
+Removed FORCE-OUTPUT* and thus the ACL-COMPAT dependency (thanks to Hans Hübner)
+Support for MP-less CMUCL (thanks to Hans Hübner)
 
 Version 0.15.4
 2008-03-27
@@ -159,7 +163,7 @@ Added support for CLISP (thanks to Anton Vodonosov)
 
 Version 0.14.7
 2007-11-15
-Replace ENOUGH-NAMESTRING with ENOUGH-URL (patch by Kilian Sprotte and Hans H�bner)
+Replace ENOUGH-NAMESTRING with ENOUGH-URL (patch by Kilian Sprotte and Hans Hübner)
 
 Version 0.14.6
 2007-11-08
