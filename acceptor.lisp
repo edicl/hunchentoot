@@ -284,12 +284,12 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 
 (defmethod stop ((acceptor acceptor) &key soft)
   (setf (acceptor-shutdown-p acceptor) t)
-  (shutdown (acceptor-taskmaster acceptor))
   (when soft
     (with-lock-held ((acceptor-shutdown-lock acceptor))
       (when (plusp (accessor-requests-in-progress acceptor))
         (condition-variable-wait (acceptor-shutdown-queue acceptor)
                                  (acceptor-shutdown-lock acceptor)))))
+  (shutdown (acceptor-taskmaster acceptor))
   #-lispworks
   (usocket:socket-close (acceptor-listen-socket acceptor))
   #-lispworks
