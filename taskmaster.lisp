@@ -108,6 +108,22 @@ This function is called by the acceptor's STOP method."))
     "Default method -- do nothing."
     nil))
 
+(defgeneric start-thread (context thunk &key)
+  (:documentation
+   "Start a name thread in which to call the THUNK, in the given CONTEXT.
+Keyword arguments provide CONTEXT-dependent options.
+Return a thread object.
+
+Hunchentoot taskmaster methods will call it with the taskmaster as the context,
+allowing hunchentoot extensions to define specialized methods that may e.g.
+wrap the thunk within a proper set of bindings and condition handlers.")
+  (:method (context thunk &key name)
+    (declare (ignorable context))
+    #-lispworks
+    (bt:make-thread thunk :name name)
+    #+lispworks
+    (mp:process-run-function name nil thunk)))
+
 
 (defclass single-threaded-taskmaster (taskmaster)
   ()
@@ -130,20 +146,35 @@ PROCESS-CONNECTION."))
 (defvar *default-max-thread-count* 100)
 (defvar *default-max-accept-count* (+ *default-max-thread-count* 20))
 
+
+(defclass multi-threaded-taskmaster (taskmaster)
+  ((acceptor-process
+    :accessor acceptor-process
+    :documentation
+    "A process that accepts incoming connections and hands them off to new processes
+     for request handling."))
+  (:documentation "An abstract class for taskmasters that use multiple threads.
+For a concrete class to instantiate, use one-thread-per-connection-taskmaster."))
+
+(defmethod execute-acceptor ((taskmaster multi-threaded-taskmaster))
+  (setf (acceptor-process taskmaster)
+        (start-thread
+         taskmaster
+         (lambda () (accept-connections (taskmaster-acceptor taskmaster)))
+         :name (format nil "hunchentoot-listener-~A:~A"
+                       (or (acceptor-address (taskmaster-acceptor taskmaster)) "*")
+                       (acceptor-port (taskmaster-acceptor taskmaster))))))
+
+
 ;; You might think it would be nice to provide a taskmaster that takes
 ;; threads out of a thread pool.  There are two things to consider:
 ;;  - On a 2010-ish Linux box, thread creation takes less than 250 microseconds.
 ;;  - Bordeaux Threads doesn't provide a way to "reset" and restart a thread,
 ;;    and it's not clear how many Lisp implementations can do this.
-;; So for now, we leave this out of the mix.
-(defclass one-thread-per-connection-taskmaster (taskmaster)
-  (#-:lispworks
-   (acceptor-process
-    :accessor acceptor-process
-    :documentation
-    "A process that accepts incoming connections and hands them off to new processes
-     for request handling.")
-   ;; Support for bounding the number of threads we'll create
+;; If you're still interested, use the quux-hunchentoot extension to hunchentoot.
+
+(defclass one-thread-per-connection-taskmaster (multi-threaded-taskmaster)
+  (;; Support for bounding the number of threads we'll create
    (max-thread-count
     :type (or integer null)
     :initarg :max-thread-count
@@ -289,6 +320,26 @@ implementations."))
   (acceptor-log-message (taskmaster-acceptor taskmaster)
                         :warning "Can't handle a new request, too many request threads already"))
 
+(defmethod create-request-handler-thread ((taskmaster one-thread-per-connection-taskmaster) socket)
+  "Create a thread for handling a single request"
+  ;; we are handling all conditions here as we want to make sure that
+  ;; the acceptor process never crashes while trying to create a
+  ;; worker thread; one such problem exists in
+  ;; GET-PEER-ADDRESS-AND-PORT which can signal socket conditions on
+  ;; some platforms in certain situations.
+  (handler-case*
+   (start-thread
+    taskmaster
+    (lambda () (handle-incoming-connection% taskmaster socket))
+    :name (format nil (taskmaster-worker-thread-name-format taskmaster) (client-as-string socket)))
+   (error (cond)
+          ;; need to bind *ACCEPTOR* so that LOG-MESSAGE* can do its work.
+          (let ((*acceptor* (taskmaster-acceptor taskmaster)))
+            (ignore-errors
+              (close (make-socket-stream socket *acceptor*) :abort t))
+            (log-message* *lisp-errors-log-level*
+                         "Error while creating worker thread for new incoming connection: ~A" cond)))))
+
 ;;; usocket implementation
 
 #-:lispworks
@@ -303,16 +354,6 @@ implementations."))
      (return))
    (sleep 1))
   taskmaster)
-
-#-:lispworks
-(defmethod execute-acceptor ((taskmaster one-thread-per-connection-taskmaster))
-  (setf (acceptor-process taskmaster)
-        (bt:make-thread
-         (lambda ()
-           (accept-connections (taskmaster-acceptor taskmaster)))
-         :name (format nil "hunchentoot-listener-~A:~A"
-                       (or (acceptor-address (taskmaster-acceptor taskmaster)) "*")
-                       (acceptor-port (taskmaster-acceptor taskmaster))))))
 
 #-:lispworks
 (defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) socket)
@@ -387,27 +428,6 @@ is set up via PROCESS-REQUEST."
               (usocket:vector-quad-to-dotted-quad address)
               port))))
 
-#-:lispworks
-(defmethod create-request-handler-thread ((taskmaster one-thread-per-connection-taskmaster) socket)
-  "Create a thread for handling a single request"
-  ;; we are handling all conditions here as we want to make sure that
-  ;; the acceptor process never crashes while trying to create a
-  ;; worker thread; one such problem exists in
-  ;; GET-PEER-ADDRESS-AND-PORT which can signal socket conditions on
-  ;; some platforms in certain situations.
-  (handler-case*
-   (bt:make-thread
-    (lambda ()
-      (handle-incoming-connection% taskmaster socket))
-    :name (format nil (taskmaster-worker-thread-name-format taskmaster) (client-as-string socket)))
-   (error (cond)
-          ;; need to bind *ACCEPTOR* so that LOG-MESSAGE* can do its work.
-          (let ((*acceptor* (taskmaster-acceptor taskmaster)))
-            (ignore-errors
-              (close (make-socket-stream socket *acceptor*) :abort t))
-            (log-message* *lisp-errors-log-level*
-                         "Error while creating worker thread for new incoming connection: ~A" cond)))))
-
 ;; LispWorks implementation
 
 #+:lispworks
@@ -417,10 +437,6 @@ is set up via PROCESS-REQUEST."
     ;; COMM:START-UP-SERVER
     (mp:process-kill process))
   taskmaster)
-
-#+:lispworks
-(defmethod execute-acceptor ((taskmaster one-thread-per-connection-taskmaster))
-  (accept-connections (taskmaster-acceptor taskmaster)))
 
 #+:lispworks
 (defmethod handle-incoming-connection ((taskmaster one-thread-per-connection-taskmaster) socket)
@@ -458,10 +474,3 @@ is set up via PROCESS-REQUEST."
            ;; We're within both limits, just start a taskmaster
            (process-connection% (taskmaster-acceptor taskmaster) socket)))))
 
-#+:lispworks
-(defmethod create-request-handler-thread ((taskmaster one-thread-per-connection-taskmaster) socket)
-  (mp:process-run-function (format nil "hunchentoot-worker~{-~A:~A~})"
-                                   (multiple-value-list (get-peer-address-and-port socket)))
-                           nil
-                           (lambda ()
-                             (handle-incoming-connection% taskmaster socket))))
