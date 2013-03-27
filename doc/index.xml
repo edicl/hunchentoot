@@ -989,6 +989,19 @@
         </clix:description>
       </clix:class>
 
+      <clix:class name='multi-threaded-taskmaster'>
+        <clix:description>
+          This is an abstract class for taskmasters that use multiple threads;
+          it is not a concrete class and you should not instantiate it with
+          <code>MAKE-INSTANCE</code>.
+          Instead, you should instantiate its subclass
+          <clix:ref>ONE-THREAD-PER-CONNECTION-TASKMASTER</clix:ref> described above.
+          <clix:ref>MULTI-THREADED-TASKMASTER</clix:ref>
+          is intended to be inherited from by extensions to Hunchentoot,
+          such as quux-hunchentoot's <code>THREAD-POOLING-TASKMASTER</code>.
+        </clix:description>
+      </clix:class>
+
       <clix:function generic='true' name='execute-acceptor'>
         <clix:lambda-list>taskmaster
         </clix:lambda-list>
@@ -1023,6 +1036,26 @@
           <clix:ref>+HTTP-SERVICE-UNAVAILABLE+</clix:ref> error
           if there are too many request threads or it might block waiting for a
           request thread to finish.
+              </clix:description>
+            </clix:function>
+
+            <clix:function generic='true' name='start-thread'>
+            <clix:lambda-list>taskmaster thunk &key
+            </clix:lambda-list>
+            <clix:returns>thread
+            </clix:returns>
+              <clix:description>This function is a call-back that
+                starts a new thread that will execute the given <clix:arg>thunk</clix:arg>
+                in the context of the proper <clix:arg>taskmaster</clix:arg>,
+                with appropriate context-dependent keyword arguments.
+                <clix:ref>ONE-THREAD-PER-CONNECTION-TASKMASTER</clix:ref> notably uses it in
+                <clix:ref>EXECUTE-ACCEPTOR</clix:ref>
+                and <clix:ref>CREATE-REQUEST-HANDLER-THREAD</clix:ref>,
+                but specialized taskmasters may define more functions that use it.
+                By default, it just creates a thread calling the thunk
+                with a specified <clix:arg>name</clix:arg> keyword argument.
+                Specialized taskmasters may wrap special bindings and condition handlers
+                around the thunk call, register the thread in a management table, etc.
               </clix:description>
             </clix:function>
 

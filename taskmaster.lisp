@@ -108,17 +108,17 @@ This function is called by the acceptor's STOP method."))
     "Default method -- do nothing."
     nil))
 
-(defgeneric start-thread (context thunk &key)
+(defgeneric start-thread (taskmaster thunk &key)
   (:documentation
-   "Start a name thread in which to call the THUNK, in the given CONTEXT.
-Keyword arguments provide CONTEXT-dependent options.
+   "Start a name thread in which to call the THUNK, in the context of the given TASKMASTER.
+Keyword arguments provide TASKMASTER-dependent options.
 Return a thread object.
 
 Hunchentoot taskmaster methods will call it with the taskmaster as the context,
 allowing hunchentoot extensions to define specialized methods that may e.g.
 wrap the thunk within a proper set of bindings and condition handlers.")
-  (:method (context thunk &key name)
-    (declare (ignorable context))
+  (:method (taskmaster thunk &key name)
+    (declare (ignorable taskmaster))
     #-lispworks
     (bt:make-thread thunk :name name)
     #+lispworks
