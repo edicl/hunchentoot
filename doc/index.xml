@@ -998,7 +998,12 @@
           <clix:ref>ONE-THREAD-PER-CONNECTION-TASKMASTER</clix:ref> described above.
           <clix:ref>MULTI-THREADED-TASKMASTER</clix:ref>
           is intended to be inherited from by extensions to Hunchentoot,
-          such as quux-hunchentoot's <code>THREAD-POOLING-TASKMASTER</code>.
+          such as <a href="http://common-lisp.net/project/qitab/">quux-hunchentoot</a>'s
+          <code>THREAD-POOLING-TASKMASTER</code>,
+          though at the moment, doing so only inherits one slot and one method,
+          on <clix:ref>EXECUTE-ACCEPTOR</clix:ref>,
+          to have it start a new thread for the acceptor,
+          then saved in said slot.
         </clix:description>
       </clix:class>
 
@@ -1040,15 +1045,15 @@
             </clix:function>
 
             <clix:function generic='true' name='start-thread'>
-            <clix:lambda-list>taskmaster thunk &key
+            <clix:lambda-list>taskmaster thunk &amp;key
             </clix:lambda-list>
             <clix:returns>thread
             </clix:returns>
-              <clix:description>This function is a call-back that
-                starts a new thread that will execute the given <clix:arg>thunk</clix:arg>
+              <clix:description>This function is a callback that
+                starts a new thread that will call the given <clix:arg>thunk</clix:arg>
                 in the context of the proper <clix:arg>taskmaster</clix:arg>,
                 with appropriate context-dependent keyword arguments.
-                <clix:ref>ONE-THREAD-PER-CONNECTION-TASKMASTER</clix:ref> notably uses it in
+                <clix:ref>ONE-THREAD-PER-CONNECTION-TASKMASTER</clix:ref> uses it in
                 <clix:ref>EXECUTE-ACCEPTOR</clix:ref>
                 and <clix:ref>CREATE-REQUEST-HANDLER-THREAD</clix:ref>,
                 but specialized taskmasters may define more functions that use it.
