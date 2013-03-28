@@ -198,6 +198,7 @@
            #:log-message*
            #:maybe-invoke-debugger
            #:mime-type
+           #:multi-threaded-taskmaster
            #:next-session-id
            #:no-cache
            #:one-thread-per-connection-taskmaster
@@ -271,6 +272,7 @@
            #:start
            #:start-listening
            #:start-session
+           #:start-thread
            #:stop
            #:taskmaster
            #:taskmaster-acceptor
