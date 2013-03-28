@@ -117,8 +117,7 @@ Return a thread object.
 Hunchentoot taskmaster methods will call it with the taskmaster as the context,
 allowing hunchentoot extensions to define specialized methods that may e.g.
 wrap the thunk within a proper set of bindings and condition handlers.")
-  (:method (taskmaster thunk &key name)
-    (declare (ignorable taskmaster))
+  (:method ((taskmaster t) thunk &key name)
     #-lispworks
     (bt:make-thread thunk :name name)
     #+lispworks
