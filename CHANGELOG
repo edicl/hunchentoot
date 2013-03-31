@@ -1,3 +1,7 @@
+Version 1.2.16
+2013-03-31
+Fix bug that caused error when requesting nonexistent page.
+
 Version 1.2.15
 2013-03-17
 Fix race condition in acceptor shutdown (Faré Rideau)
