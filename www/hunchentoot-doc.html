@@ -174,7 +174,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.16.
+      The current version is 1.2.17.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -978,6 +978,24 @@
           <code><a href="#handle-incoming-connection">HANDLE-INCOMING-CONNECTION</a></code> calls <code><a href="#process-connection">PROCESS-CONNECTION</a></code>.
         </clix:description></blockquote></p>
 
+      <p xmlns=""><a class="none" name="multi-threaded-taskmaster"></a>
+      [Standard class]
+      <br><b>multi-threaded-taskmaster</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          This is an abstract class for taskmasters that use multiple threads;
+          it is not a concrete class and you should not instantiate it with
+          <code xmlns="http://www.w3.org/1999/xhtml">MAKE-INSTANCE</code>.
+          Instead, you should instantiate its subclass
+          <code><a href="#one-thread-per-connection-taskmaster">ONE-THREAD-PER-CONNECTION-TASKMASTER</a></code> described above.
+          <code><a href="#multi-threaded-taskmaster">MULTI-THREADED-TASKMASTER</a></code>
+          is intended to be inherited from by extensions to Hunchentoot,
+          such as <a xmlns="http://www.w3.org/1999/xhtml" href="http://common-lisp.net/project/qitab/">quux-hunchentoot</a>'s
+          <code xmlns="http://www.w3.org/1999/xhtml">THREAD-POOLING-TASKMASTER</code>,
+          though at the moment, doing so only inherits one slot and one method,
+          on <code><a href="#execute-acceptor">EXECUTE-ACCEPTOR</a></code>,
+          to have it start a new thread for the acceptor,
+          then saved in said slot.
+        </clix:description></blockquote></p>
+
       <p xmlns=""><a class="none" name="execute-acceptor"></a>
           [Generic function]
           <br><b>execute-acceptor</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster
@@ -1013,6 +1031,26 @@
           <code><a href="#+http-service-unavailable+">+HTTP-SERVICE-UNAVAILABLE+</a></code> error
           if there are too many request threads or it might block waiting for a
           request thread to finish.
+              </clix:description></blockquote></p>
+
+            <p xmlns=""><a class="none" name="start-thread"></a>
+          [Generic function]
+          <br><b>start-thread</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">taskmaster thunk &amp;key
+            </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">thread
+            </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This function is a callback that
+                starts a new thread that will call the given <code><i>thunk</i></code>
+                in the context of the proper <code><i>taskmaster</i></code>,
+                with appropriate context-dependent keyword arguments.
+                <code><a href="#one-thread-per-connection-taskmaster">ONE-THREAD-PER-CONNECTION-TASKMASTER</a></code> uses it in
+                <code><a href="#execute-acceptor">EXECUTE-ACCEPTOR</a></code>
+                and <code><a href="#create-request-handler-thread">CREATE-REQUEST-HANDLER-THREAD</a></code>,
+                but specialized taskmasters may define more functions that use it.
+                By default, it just creates a thread calling the thunk
+                with a specified <code><i>name</i></code> keyword argument.
+                Specialized taskmasters may wrap special bindings and condition handlers
+                around the thunk call, register the thread in a management table, etc.
               </clix:description></blockquote></p>
 
             <p xmlns=""><a class="none" name="create-request-handler-thread"></a>
@@ -3927,6 +3965,9 @@ start and test an https server instead.)
 <code><a href="#mime-type">mime-type</a></code><span class="entry-type">Function</span>
 </li>
 <li>
+<code><a href="#multi-threaded-taskmaster">multi-threaded-taskmaster</a></code><span class="entry-type">Standard class</span>
+</li>
+<li>
 <code><a href="#next-session-id">next-session-id</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
@@ -4129,6 +4170,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#start-session">start-session</a></code><span class="entry-type">Function</span>
+</li>
+<li>
+<code><a href="#start-thread">start-thread</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#stop">stop</a></code><span class="entry-type">Generic function</span>
