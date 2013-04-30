@@ -400,7 +400,7 @@ the 'AUTHORIZATION' header.  Returns NIL if there is no such header."
                      (scan "\\S" authorization :start 5))))
     (when start
       (destructuring-bind (&optional user password)
-          (split ":" (base64:base64-string-to-string (subseq authorization start)))
+          (split ":" (base64:base64-string-to-string (subseq authorization start)) :limit 2)
         (values user password)))))
 
 (defun remote-addr* (&optional (request *request*))
