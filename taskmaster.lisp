@@ -416,15 +416,22 @@ is set up via PROCESS-REQUEST."
         (ignore-errors*
           (close *hunchentoot-stream* :abort t))))))
 
-#-:lispworks
 (defun client-as-string (socket)
   "A helper function which returns the client's address and port as a
    string and tries to act robustly in the presence of network problems."
+  #-:lispworks
   (let ((address (usocket:get-peer-address socket))
         (port (usocket:get-peer-port socket)))
     (when (and address port)
       (format nil "~A:~A"
               (usocket:vector-quad-to-dotted-quad address)
+              port)))
+  #+:lispworks
+  (multiple-value-bind (address port)
+      (comm:get-socket-peer-address socket)
+    (when (and address port)
+      (format nil "~A:~A"
+              (comm:ip-address-string address)
               port))))
 
 ;; LispWorks implementation
