@@ -633,7 +633,7 @@
       <clix:function generic='true' name='acceptor-remove-session'>
         <clix:lambda-list>acceptor session
         </clix:lambda-list>
-        <clix:returns>generalized-boolean
+        <clix:returns>nil
         </clix:returns>
         <clix:description>
           This function is called whenever a session in
