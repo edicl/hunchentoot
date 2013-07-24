@@ -703,7 +703,7 @@ handler."
 (defmethod acceptor-remove-session ((acceptor acceptor) (session t))
   "Default implementation for the session removal hook function.  This
 function is called whenever a session is destroyed."
-  )
+  (values))
 
 (defgeneric acceptor-server-name (acceptor)
   (:documentation "Returns a string which can be used for 'Server' headers.")
