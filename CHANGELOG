@@ -1,3 +1,7 @@
+Version 1.2.19
+2013-07-28
+Fix ACCEPTOR-REMOVE-SESSION default implementation (Stas Boukarev, Mathieu Lemoine)
+
 Version 1.2.18
 2013-05-03
 Prevent errors when basic auth user or password contains colon
