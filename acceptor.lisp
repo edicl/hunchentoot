@@ -30,7 +30,14 @@
 
 (eval-when (:load-toplevel :compile-toplevel :execute)
   (defun default-document-directory (&optional sub-directory)
-    (asdf:system-relative-pathname :hunchentoot (format nil "www/~@[~A~]" sub-directory))))
+    (let ((source-directory #.(or *compile-file-truename* *load-truename*)))
+      (merge-pathnames (make-pathname :directory (append (pathname-directory source-directory)
+                                                         (list "www")
+                                                         (when sub-directory
+                                                           (list sub-directory)))
+                                      :name nil
+                                      :type nil
+                                      :defaults source-directory)))))
 
 (defclass acceptor ()
   ((port :initarg :port
