@@ -2958,6 +2958,10 @@
             :initform nil
             :accessor <a class="noborder" name="cookie-expires">cookie-expires</a>
             :documentation "The time (a universal time) when the cookie expires (or NIL).")
+   (max-age :initarg :max-age
+            :initform nil
+            :accessor <a class="noborder" name="cookie-max-age">cookie-max-age</a>
+            :documentation "The time delta (in seconds) after which the cookie expires (or NIL).")
    (path :initarg :path
          :initform nil
          :accessor <a class="noborder" name="cookie-path">cookie-path</a>
@@ -2979,7 +2983,7 @@
       The <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_r.htm#reader">reader</a>
       <clix:ref>COOKIE-NAME</clix:ref> and
       the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_a.htm#accessor">accessors</a>
-      <clix:ref>COOKIE-VALUE</clix:ref>, <clix:ref>COOKIE-EXPIRES</clix:ref>,
+      <clix:ref>COOKIE-VALUE</clix:ref>, <clix:ref>COOKIE-EXPIRES</clix:ref>, <clix:ref>COOKIE-MAX-AGE</clix:ref>,
       <clix:ref>COOKIE-PATH</clix:ref>, <clix:ref>COOKIE-DOMAIN</clix:ref>, <clix:ref>COOKIE-SECURE</clix:ref>,
       and <clix:ref>COOKIE-HTTP-ONLY</clix:ref> are all exported from
       the <code>HUNCHENTOOT</code> package.  For now, the class name itself is <em>not</em> exported.

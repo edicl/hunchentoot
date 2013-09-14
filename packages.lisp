@@ -150,6 +150,7 @@
            #:cookie-expires
            #:cookie-http-only
            #:cookie-in
+           #:cookie-max-age
            #:cookie-name
            #:cookie-out
            #:cookie-path
