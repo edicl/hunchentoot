@@ -43,6 +43,11 @@ when sent to the browser.")
             :accessor cookie-expires
             :documentation "The time \(a universal time) when the
 cookie expires \(or NIL).")
+   (max-age :initarg :max-age
+            :initform nil
+            :accessor cookie-max-age
+            :documentation "The time delta \(in seconds) after which the
+cookie expires \(or NIL).")
    (path :initarg :path
          :initform nil
          :accessor cookie-path
@@ -86,7 +91,7 @@ REPLY object REPLY. If a cookie with the same name
         (push (cons name cookie) (cookies-out reply))
         cookie))))
 
-(defun set-cookie (name &key (value "") expires path domain secure http-only (reply *reply*))
+(defun set-cookie (name &key (value "") expires max-age path domain secure http-only (reply *reply*))
   "Creates a cookie object from the parameters provided and adds
 it to the outgoing cookies of the REPLY object REPLY. If a cookie
 with the name NAME \(case-sensitive) already exists, it is
@@ -95,6 +100,7 @@ replaced."
                               :name name
                               :value value
                               :expires expires
+                              :max-age max-age
                               :path path
                               :domain domain
                               :secure secure
@@ -110,11 +116,12 @@ replaced."
   "Converts the COOKIE object COOKIE to a string suitable for a
 'Set-Cookie' header to be sent to the client."
   (format nil
-          "~A=~A~:[~;~:*; expires=~A~]~:[~;~:*; path=~A~]~:[~;~:*; domain=~A~]~:[~;; secure~]~:[~;; HttpOnly~]"
+          "~A=~A~@[; Expires=~A~]~@[; Max-Age=~A~]~@[; Domain=~A~]~@[; Path=~A~]~:[~;; Secure~]~:[~;; HttpOnly~]"
           (cookie-name cookie)
           (cookie-value cookie)
           (cookie-date (cookie-expires cookie))
-          (cookie-path cookie)
+          (cookie-max-age cookie)
           (cookie-domain cookie)
+          (cookie-path cookie)
           (cookie-secure cookie)
           (cookie-http-only cookie)))
