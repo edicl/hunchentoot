@@ -334,6 +334,7 @@
                                  ("video/quicktime" "qt" "mov")
                                  ("video/vnd.mpegurl" "mxu")
                                  ("video/x-la-asf" "lsf" "lsx")
+                                 ("video/x-m4v" "m4v")
                                  ("video/x-mng" "mng")
                                  ("video/x-ms-asf" "asf" "asx")
                                  ("video/x-ms-wm" "wm")
