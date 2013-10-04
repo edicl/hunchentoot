@@ -1,3 +1,8 @@
+Version 1.2.20
+2013-10-04
+Don't rely on asdf to find default document directory
+Add m4v mime type (Wes Henderson)
+
 Version 1.2.19
 2013-07-28
 Fix ACCEPTOR-REMOVE-SESSION default implementation (Stas Boukarev, Mathieu Lemoine)
