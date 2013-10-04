@@ -2,7 +2,7 @@
 <?xml-stylesheet type="text/xsl" href="clixdoc.xsl" ?>
 
 <clix:documentation xmlns='http://www.w3.org/1999/xhtml' xmlns:clix='http://bknr.net/clixdoc'>
-  <clix:title>HUNCHENTOOT - The Common Lisp web server formerly known as TBNL</clix:title>
+  <clix:title>Hunchentoot - The Common Lisp web server formerly known as TBNL</clix:title>
   <clix:short-description>
     A full-featured web server written in Common Lisp offering things
     like HTTP/1.1 chunking, persistent connections, and SSL.  Includes
@@ -15,7 +15,7 @@
        class="noborder">
       <img align="top" width="93" height="45" border="0" src="hunchentoot.gif" />
     </a>
-    HUNCHENTOOT - The Common Lisp web server formerly known as TBNL
+    Hunchentoot - The Common Lisp web server formerly known as TBNL
   </h2>
 
   <blockquote>
