@@ -187,7 +187,7 @@ acceptor-dispatch-request method handles the request."))
    :access-log-destination *error-output*
    :message-log-destination *error-output*
    :document-root (load-time-value (default-document-directory))
-   :error-template-directory (load-time-value (default-document-directory "errors/")))
+   :error-template-directory (load-time-value (default-document-directory "errors")))
   (:documentation "To create a Hunchentoot webserver, you make an
 instance of this class and use the generic function START to start it
 \(and STOP to stop it).  Use the :PORT initarg if you don't want to
