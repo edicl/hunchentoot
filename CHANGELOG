@@ -1,3 +1,8 @@
+Version 1.2.22
+2013-12-09
+Print header value (if number) in base 10 (Chaitanya Gupta)
+Fix for CLISP compilation (Anton Vodonosov)
+
 Version 1.2.21
 2013-10-04
 Fix capitalization inconsistencies in docs (reported by Stas Boukarev)
