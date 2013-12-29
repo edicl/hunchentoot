@@ -674,6 +674,8 @@ handler."
                                      :lisp-implementation-version ,(lisp-implementation-version)
                                      :hunchentoot-version ,*hunchentoot-version*)
                                    properties)))
+           (unless *show-lisp-backtraces-p*
+             (setf (getf properties :backtrace) nil))
            (cl-ppcre:regex-replace-all "(?i)\\$\\{([a-z0-9-_]+)\\}"
                                        string
                                        (lambda (target-string start end match-start match-end reg-starts reg-ends)
@@ -697,9 +699,10 @@ handler."
                  (setf (content-type*) "text/html")
                  (substitute-request-context-variables (file-contents file))))))))
     (or (unless (< 300 http-status-code)
-          (call-next-method))           ; don't ever try template for positive return codes
-        (error-contents-from-template)  ; try template
-        (call-next-method))))           ; fall back to cooked message
+          (call-next-method))              ; don't ever try template for positive return codes
+        (when *show-lisp-errors-p*
+          (error-contents-from-template))  ; try template
+        (call-next-method))))              ; fall back to cooked message
 
 (defgeneric acceptor-remove-session (acceptor session)
   (:documentation
