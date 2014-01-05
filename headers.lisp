@@ -110,7 +110,8 @@ Returns the stream that is connected to the client."
                (setf (header-out :connection) "Keep-Alive"
                      (header-out :keep-alive)
                      (format nil "timeout=~D" (acceptor-read-timeout *acceptor*)))))
-            (t (setf (header-out :connection) "Close"))))
+            ((not (header-out-set-p :connection))
+             (setf (header-out :connection) "Close"))))
     (unless (and (header-out-set-p :server)
                  (null (header-out :server)))
       (setf (header-out :server) (or (header-out :server)
