@@ -303,3 +303,5 @@ performing a cleanup run.")
   (defun hyperdoc-lookup (symbol type)
     (declare (ignore type))
     (cdr (assoc symbol exported-symbols-alist :test #'eq))))
+
+(defparameter hunchentoot:*hunchentoot-version* #.(asdf:component-version (asdf:find-system :hunchentoot)))

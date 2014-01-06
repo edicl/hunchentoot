@@ -286,6 +286,3 @@
            #:user-agent
            #:within-request-p))
 
-;; see asdf system definition
-(defparameter hunchentoot:*hunchentoot-version*
-  #.hunchentoot-asd::*hunchentoot-version*)

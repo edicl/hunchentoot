@@ -33,15 +33,9 @@
 
 (in-package :hunchentoot-asd)
 
-(defvar *hunchentoot-version* "1.2.23"
-  "A string denoting the current version of Hunchentoot.  Used
-for diagnostic output.")
-
-(export '*hunchentoot-version*)
-
 (defsystem :hunchentoot
   :serial t
-  :version #.*hunchentoot-version*
+  :version "1.2.23"
   :description "Hunchentoot is a HTTP server based on USOCKET and
   BORDEAUX-THREADS.  It supports HTTP 1.1, serves static files, has a
   simple framework for user-defined handlers and can be extended
