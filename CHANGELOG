@@ -1,3 +1,7 @@
+Version 1.2.24
+2014-01-07
+Use version number from ASDF system definition, not special var (Hans Huebner)
+
 Version 1.2.23
 2014-01-05
 Don't set the Connection header to Close if it's already set (AndrejSuc/Stas Boukarev)
