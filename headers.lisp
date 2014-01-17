@@ -107,8 +107,9 @@ Returns the stream that is connected to the client."
                ;; persistent connections are implicitly assumed for
                ;; HTTP/1.1, but we return a 'Keep-Alive' header if the
                ;; client has explicitly asked for one
-               (setf (header-out :connection) "Keep-Alive"
-                     (header-out :keep-alive)
+               (unless (header-out :connection) ; allowing for handler overriding
+                 (setf (header-out :connection) "Keep-Alive"))
+               (setf (header-out :keep-alive)
                      (format nil "timeout=~D" (acceptor-read-timeout *acceptor*)))))
             ((not (header-out-set-p :connection))
              (setf (header-out :connection) "Close"))))
@@ -236,7 +237,7 @@ not want to wait for another request any longer."
 
 (defun printable-ascii-char-p (char)
   (<= 32 (char-code char) 126))
-  
+
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
 multiple values the headers as an alist, the method, the URI, and the
