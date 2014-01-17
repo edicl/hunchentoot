@@ -1,3 +1,7 @@
+Version 1.2.25
+2014-01-17
+allow for handler setting of the "connection" header (William Halliburton)
+
 Version 1.2.24
 2014-01-07
 Use version number from ASDF system definition, not special var (Hans Huebner)
