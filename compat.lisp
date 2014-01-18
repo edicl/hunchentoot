@@ -95,15 +95,16 @@ are discarded \(that is, the body is an implicit PROGN)."
   "Returns the peer address and port of the socket SOCKET as two
 values.  The address is returned as a string in dotted IP address
 notation."
-  (values (usocket:vector-quad-to-dotted-quad (usocket:get-peer-address socket))
-          (usocket:get-peer-port socket)))
+  (multiple-value-bind (address port) (usocket:get-peer-name socket)
+    (values (usocket:vector-quad-to-dotted-quad address) port)))
 
 (defun get-local-address-and-port (socket)
   "Returns the local address and port of the socket SOCKET as two
 values.  The address is returned as a string in dotted IP address
 notation."
-  (values (usocket:vector-quad-to-dotted-quad (usocket:get-local-address socket))
-          (usocket:get-local-port socket)))
+  (multiple-value-bind (address port) (usocket:get-local-name socket)
+    (values (usocket:vector-quad-to-dotted-quad address)
+            port)))
 
 (defun make-socket-stream (socket acceptor)
   "Returns a stream for the socket SOCKET.  The ACCEPTOR argument is
