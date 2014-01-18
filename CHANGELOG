@@ -1,3 +1,8 @@
+Version 1.2.26
+2014-01-18
+Optimize get-peer/local-address-and-port. (Stas Boukarev)
+Close SSL streams after processing connection. (Stas Boukarev)
+
 Version 1.2.25
 2014-01-17
 allow for handler setting of the "connection" header (William Halliburton)
