@@ -204,6 +204,14 @@ same time."))
     (format stream "\(host ~A, port ~A)"
             (or (acceptor-address acceptor) "*") (acceptor-port acceptor))))
 
+(defmethod initialize-instance :after ((acceptor acceptor) &key)
+  (with-accessors ((document-root acceptor-document-root)
+                   (error-template-directory acceptor-error-template-directory)) acceptor
+    (when document-root
+      (setf document-root (translate-logical-pathname document-root)))
+    (when error-template-directory
+      (setf error-template-directory (translate-logical-pathname error-template-directory)))))
+
 (defgeneric start (acceptor)
   (:documentation "Starts the ACCEPTOR so that it begins accepting
 connections.  Returns the acceptor."))

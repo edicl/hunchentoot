@@ -231,7 +231,11 @@
       <clix:ref>ACCEPTOR</clix:ref> instance by the way of the
       <clix:ref>ACCEPTOR-DOCUMENT-ROOT</clix:ref>.  Likewise, the
       location of the error template directory can be specified by the
-      <clix:ref>ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</clix:ref>.
+      <clix:ref>ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</clix:ref>.  Both
+      <clix:ref>ACCEPTOR-DOCUMENT-ROOT</clix:ref> and
+      <clix:ref>ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</clix:ref> can be
+      specified using a logical pathname, which will be translated
+      once when the <clix:ref>ACCEPTOR</clix:ref> is instantiated.
     </p>
 
     <p>
