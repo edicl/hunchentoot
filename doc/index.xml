@@ -135,9 +135,8 @@
       href="http://www.quicklisp.org/">Quicklisp</a> system a try.
     </p>
     <p>
-      Hunchentoot and its dependencies can also be installed with <a
-      href="http://common-lisp.net/project/asdf-install/">ASDF-INSTALL</a>,
-      <a href="http://common-lisp.net/project/clbuild/">clbuild</a>,
+      Hunchentoot and its dependencies can also be installed with
+      <a href="http://common-lisp.net/project/clbuild/">clbuild</a>
       or my own <a href="http://weitz.de/starter-pack/">Starter
       Pack</a>.  There's also a port for <a
       href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
@@ -147,12 +146,6 @@
       The current development version of Hunchentoot can be found
       at <a href="https://github.com/edicl/hunchentoot">https://github.com/edicl/hunchentoot</a>.
       If you want to send patches, please fork the github repository and send pull requests.
-    </p>
-    <p>
-      Luís Oliveira maintains an
-      unofficial <a href="http://darcs.net/">darcs</a> repository of
-      Hunchentoot at
-      <a href="http://common-lisp.net/~loliveira/ediware/">http://common-lisp.net/~loliveira/ediware/</a>.
     </p>
 
     <clix:subchapter name="port80" title="Running Hunchentoot on port 80">
