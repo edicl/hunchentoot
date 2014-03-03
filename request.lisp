@@ -143,10 +143,7 @@ supposed to be of content type 'multipart/form-data'."
                         (let ((contents (rfc2388:mime-part-contents part)))
                           (if (pathnamep contents)
                             (list contents
-                                  ; Edit by muyinliu 20140303
-                                  ;(rfc2388:get-file-name headers) 
                                   (convert-hack (rfc2388:get-file-name headers) external-format)
-
                                   (rfc2388:content-type part :as-string t))
                             (convert-hack contents external-format)))))))
 
