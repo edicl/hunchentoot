@@ -190,16 +190,12 @@
   <clix:chapter name="mail" title="Support and mailing lists">
 
     For questions, bug reports, feature requests, improvements, or
-    patches please use the
-    <a href="http://common-lisp.net/mailman/listinfo/tbnl-devel">tbnl-devel
-      mailing list</a>. If you want to be notified about future
-      releases subscribe to the
-    <a href="http://common-lisp.net/mailman/listinfo/tbnl-announce">tbnl-announce
-      mailing list</a>. These mailing lists were made available thanks
-    to the services of
-    <a href="http://common-lisp.net/">common-lisp.net</a>.  You can
-    <b>search</b> the devel mailing list
-    <a href="http://google.com/coop/cse?cx=002927904911724867201%3A0l5rif_cxj0">here</a>
+    patches please use the <a
+    href="http://common-lisp.net/mailman/listinfo/tbnl-devel">tbnl-devel
+    mailing list</a>. The mailing list is made available thanks to the
+    services of <a href="http://common-lisp.net/">common-lisp.net</a>.
+    You can <b>search</b> the devel mailing list <a
+    href="http://google.com/coop/cse?cx=002927904911724867201%3A0l5rif_cxj0">here</a>
     (thanks to Tiarnán Ó Corráin).
     <p>
       If you want to send patches, please
