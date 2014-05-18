@@ -143,7 +143,7 @@ supposed to be of content type 'multipart/form-data'."
                         (let ((contents (rfc2388:mime-part-contents part)))
                           (if (pathnamep contents)
                             (list contents
-                                  (rfc2388:get-file-name headers)
+                                  (convert-hack (rfc2388:get-file-name headers) external-format)
                                   (rfc2388:content-type part :as-string t))
                             (convert-hack contents external-format)))))))
 
@@ -239,7 +239,7 @@ slot values are computed in this :AFTER method."
                      (catch 'handler-done
                        (handle-request *acceptor* *request*)))
                  (when error
-                   ;; error occured in request handler
+                   ;; error occurred in request handler
                    (report-error-to-client error backtrace))
                  (unless *headers-sent*
                    (handler-case
@@ -249,7 +249,7 @@ slot values are computed in this :AFTER method."
                                            (acceptor-status-message *acceptor*
                                                                     (return-code *reply*)))))
                      (error (e)
-                       ;; error occured while writing to the client.  attempt to report.
+                       ;; error occurred while writing to the client.  attempt to report.
                        (report-error-to-client e)))))))
         (dolist (path *tmp-files*)
           (when (and (pathnamep path) (probe-file path))
