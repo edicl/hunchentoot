@@ -108,7 +108,7 @@ This function is called by the acceptor's STOP method."))
     "Default method -- do nothing."
     nil))
 
-(defgeneric start-thread (taskmaster thunk &key)
+(defgeneric start-thread (taskmaster thunk &key name)
   (:documentation
    "Start a name thread in which to call the THUNK, in the context of the given TASKMASTER.
 Keyword arguments provide TASKMASTER-dependent options.
