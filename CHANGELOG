@@ -1,3 +1,14 @@
+Version 1.2.27
+2014-05-18
+fix warning about missing NAME keyword arg at start-thread (Mark H. David)
+remove tbnl-announce list (Hans Huebner)
+correct speling eror (Hans Huebner)
+Update request.lisp (muyinliu)
+file upload file name encoding error fixed (muyinliu)
+support use of logical file names for document-root and error-template-directory (Hans Huebner)
+Generate www/hunchentoot-doc.html. (Stas Boukarev)
+Remove mentions of asdf-install and the darcs mirror from docs. (Stas Boukarev)
+
 Version 1.2.26
 2014-01-18
 Optimize get-peer/local-address-and-port. (Stas Boukarev)

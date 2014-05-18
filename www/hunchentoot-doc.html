@@ -174,7 +174,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.26.
+      The current version is 1.2.27.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -235,16 +235,10 @@
   <h3 xmlns=""><a class="none" name="mail">Support and mailing lists</a></h3>
 
     For questions, bug reports, feature requests, improvements, or
-    patches please use the
-    <a href="http://common-lisp.net/mailman/listinfo/tbnl-devel">tbnl-devel
-      mailing list</a>. If you want to be notified about future
-      releases subscribe to the
-    <a href="http://common-lisp.net/mailman/listinfo/tbnl-announce">tbnl-announce
-      mailing list</a>. These mailing lists were made available thanks
-    to the services of
-    <a href="http://common-lisp.net/">common-lisp.net</a>.  You can
-    <b>search</b> the devel mailing list
-    <a href="http://google.com/coop/cse?cx=002927904911724867201%3A0l5rif_cxj0">here</a>
+    patches please use the <a href="http://common-lisp.net/mailman/listinfo/tbnl-devel">tbnl-devel
+    mailing list</a>. The mailing list is made available thanks to the
+    services of <a href="http://common-lisp.net/">common-lisp.net</a>.
+    You can <b>search</b> the devel mailing list <a href="http://google.com/coop/cse?cx=002927904911724867201%3A0l5rif_cxj0">here</a>
     (thanks to Tiarnán Ó Corráin).
     <p>
       If you want to send patches, please
@@ -269,7 +263,11 @@
       <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> instance by the way of the
       <code xmlns=""><a href="#acceptor-document-root">ACCEPTOR-DOCUMENT-ROOT</a></code>.  Likewise, the
       location of the error template directory can be specified by the
-      <code xmlns=""><a href="#acceptor-error-template-directory">ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</a></code>.
+      <code xmlns=""><a href="#acceptor-error-template-directory">ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</a></code>.  Both
+      <code xmlns=""><a href="#acceptor-document-root">ACCEPTOR-DOCUMENT-ROOT</a></code> and
+      <code xmlns=""><a href="#acceptor-error-template-directory">ACCEPTOR-ERROR-TEMPLATE-DIRECTORY</a></code> can be
+      specified using a logical pathname, which will be translated
+      once when the <code xmlns=""><a href="#acceptor">ACCEPTOR</a></code> is instantiated.
     </p>
 
     <p>
