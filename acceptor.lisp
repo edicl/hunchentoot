@@ -381,13 +381,14 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let* ((socket-stream (make-socket-stream socket *acceptor*))
-         (*hunchentoot-stream* (initialize-connection-stream *acceptor* socket-stream)))
+         (*hunchentoot-stream* (initialize-connection-stream *acceptor* socket-stream))
+         (*close-hunchentoot-stream* t))
     (unwind-protect
          ;; process requests until either the acceptor is shut down,
          ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
          ;; handler, or the peer fails to send a request
          (loop
-          (let ((*close-hunchentoot-stream* t))
+          (let ((*finish-processing-socket* t))
             (when (acceptor-shutdown-p *acceptor*)
               (return))
             (multiple-value-bind (headers-in method url-string protocol)
@@ -419,9 +420,10 @@ chunked encoding, but acceptor is configured to not use it.")))))
                                                           :server-protocol protocol))))
               (finish-output *hunchentoot-stream*)
               (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
-              (when *close-hunchentoot-stream*
+              (when *finish-processing-socket*
                 (return)))))
-      (unless (eql socket-stream *hunchentoot-stream*)
+      (when (and (not (eql socket-stream *hunchentoot-stream*))
+                 *close-hunchentoot-stream*)
         ;; as we are at the end of the request here, we ignore all
         ;; errors that may occur while flushing and/or closing the
         ;; stream.
@@ -429,7 +431,8 @@ chunked encoding, but acceptor is configured to not use it.")))))
           (finish-output *hunchentoot-stream*))
         (ignore-errors*
           (close *hunchentoot-stream* :abort t)))
-      (when socket-stream
+      (when (and socket-stream
+                 *close-hunchentoot-stream*)
         ;; as we are at the end of the request here, we ignore all
         ;; errors that may occur while flushing and/or closing the
         ;; stream.
@@ -594,7 +597,7 @@ handler."
                     ;; happened within the body and we have to close
                     ;; the stream
                     (when *headers-sent*
-                      (setq *close-hunchentoot-stream* t))
+                      (setq *finish-processing-socket* t))
                     (throw 'handler-done
                       (values nil cond (get-backtrace)))))
                  (warning

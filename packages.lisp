@@ -284,5 +284,6 @@
            #:url-decode
            #:url-encode
            #:user-agent
-           #:within-request-p))
+           #:within-request-p
+           #:*close-hunchentoot-stream*))
 
