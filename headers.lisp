@@ -100,7 +100,7 @@ Returns the stream that is connected to the client."
       (when chunkedp
         (setf (header-out :transfer-encoding) "chunked"))
       (cond (keep-alive-p
-             (setf *close-hunchentoot-stream* nil)
+             (setf *finish-processing-socket* nil)
              (when (and (acceptor-read-timeout *acceptor*)
                         (or (not (eq (server-protocol *request*) :http/1.1))
                             keep-alive-requested-p))
