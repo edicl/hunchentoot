@@ -274,6 +274,7 @@
            #:start-listening
            #:start-session
            #:start-thread
+           #:started-p
            #:stop
            #:taskmaster
            #:taskmaster-acceptor

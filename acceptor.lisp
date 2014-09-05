@@ -223,6 +223,17 @@ wait until all requests are fully processed, but meanwhile do not
 accept new requests.  Note that SOFT must not be set when calling
 STOP from within a request handler, as that will deadlock."))
 
+(defgeneric started-p (acceptor)
+  (:documentation "Tells if ACCEPTOR has been started.
+The default implementation simply queries ACCEPTOR for its listening
+status, so if T is returned to the calling thread, then some thread
+has called START or some thread's call to STOP hasn't finished. If NIL
+is returned either some thread has called STOP, or some thread's call
+to START hasn't finished or START was never called at all for
+ACCEPTOR.")
+  (:method (acceptor)
+    (and (acceptor-listen-socket acceptor) t)))
+
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
 enables it to listen to incoming connections.  This function is called
