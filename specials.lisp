@@ -136,11 +136,11 @@ yourself before starting acceptors.")
 (defvar-unbound *hunchentoot-stream*
   "The stream representing the socket Hunchentoot is listening on.")
 
-(defvar *finish-processing-socket* nil
+(defvar-unbound *finish-processing-socket*
   "Will be set to T if PROCESS-CONNECTION is to stop processing more
   requests on the current socket connection.")
 
-(defvar *close-hunchentoot-stream* nil
+(defvar-unbound *close-hunchentoot-stream*
   "This variable is set to NIL during the processing of a handler to
 tell the acceptor not to close the connection after it is done.")
 
