@@ -136,9 +136,13 @@ yourself before starting acceptors.")
 (defvar-unbound *hunchentoot-stream*
   "The stream representing the socket Hunchentoot is listening on.")
 
-(defvar *close-hunchentoot-stream* nil
+(defvar *finish-processing-socket* nil
   "Will be set to T if the Hunchentoot socket stream has to be
 closed at the end of the request.")
+
+(defvar *close-hunchentoot-stream* nil
+  "This variable can be set to NIL during the processing of a handler
+to tell the acceptor not to close the connection after it's done.")
 
 (defvar *headers-sent* nil
   "Used internally to check whether the reply headers have
