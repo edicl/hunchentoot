@@ -327,7 +327,7 @@ unknown character set ~A in request content type."
         ;; that we aren't finished reading from the request stream and
         ;; can't send a reply - to be revisited
         (setf (return-code*) +http-bad-request+
-              *finish-processing-socket* t)
+              *close-hunchentoot-stream* t)
         (abort-request-handler)))))
 
 (defun recompute-request-parameters (&key (request *request*)
