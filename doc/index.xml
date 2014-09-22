@@ -715,6 +715,38 @@
           until a connection timeout occurs.  It is probably not a
           good idea to re-implement this method until you really,
           really know what you're doing.
+          <p>
+            Handlers may call to the
+            <clix:ref>DETACH-SOCKET</clix:ref> generic function to
+            indicate that no further requests should be handled on
+            the connection by Hunchentoot, and that responsibility for
+            the socket is assumed by third-party software.  This can
+            be used by specialized handlers that wish to hand over
+            connection polling or processing to functions outside of
+            Hunchentoot, i.e. for connection multiplexing or
+            implementing specialized client protocols.  Hunchentoot
+            will finish processing the request and the
+            <clix:ref>PROCESS-CONNECTION</clix:ref> function will
+            return without closing the connection.  At that point,
+            the acceptor may interact with the socket in whatever
+            fashion required.
+          </p>
+        </clix:description>
+      </clix:function>
+
+      <clix:function generic='true' name='detach-socket'>
+        <clix:lambda-list>acceptor
+        </clix:lambda-list>
+        <clix:returns>stream
+        </clix:returns>
+        <clix:description>
+          Indicate to Hunchentoot that it should stop serving requests
+          on the current request's socket.  Hunchentoot will finish
+          processing the current request and then return from
+          <clix:ref>PROCESS-CONNECTION</clix:ref> without closing the
+          connection to the client.
+          <clix:ref>DETACH-SOCKET</clix:ref> can only be called from
+          within a request handler function.
         </clix:description>
       </clix:function>
 
@@ -2220,10 +2252,24 @@
         <clix:returns>string
         </clix:returns>
         <clix:description>
-          <clix:ref>HEADER-OUT</clix:ref> returns the outgoing http header named by the keyword <clix:arg>name</clix:arg> if there is one, otherwise <code>NIL</code>. <code>SETF</code> of <clix:ref>HEADER-OUT</clix:ref> changes the current value of the header named <clix:arg>name</clix:arg>. If no header named <clix:arg>name</clix:arg> exists, it is created. For backwards compatibility, <clix:arg>name</clix:arg> can also be a string in which case the association between a header and its name is case-insensitive.
+          <clix:ref>HEADER-OUT</clix:ref> returns the outgoing http
+          header named by the keyword <clix:arg>name</clix:arg> if
+          there is one, otherwise <code>NIL</code>. <code>SETF</code>
+          of <clix:ref>HEADER-OUT</clix:ref> changes the current value
+          of the header named <clix:arg>name</clix:arg>. If no header
+          named <clix:arg>name</clix:arg> exists, it is created. For
+          backwards compatibility, <clix:arg>name</clix:arg> can also
+          be a string in which case the association between a header
+          and its name is case-insensitive.
           <p>
-            Note that the header 'Set-Cookie' cannot be queried by <clix:ref>HEADER-OUT</clix:ref> and must not be set by <code>SETF</code> of <clix:ref>HEADER-OUT</clix:ref>.
-            See also <clix:ref>HEADERS-OUT*</clix:ref>, <clix:ref>CONTENT-TYPE*</clix:ref>, <clix:ref>CONTENT-LENGTH*</clix:ref>, <clix:ref>COOKIES-OUT*</clix:ref>, and <clix:ref>COOKIE-OUT</clix:ref>.
+            Note that the header 'Set-Cookie' cannot be queried by
+            <clix:ref>HEADER-OUT</clix:ref> and must not be set by
+            <code>SETF</code> of <clix:ref>HEADER-OUT</clix:ref>.  See
+            also <clix:ref>HEADERS-OUT*</clix:ref>,
+            <clix:ref>CONTENT-TYPE*</clix:ref>,
+            <clix:ref>CONTENT-LENGTH*</clix:ref>,
+            <clix:ref>COOKIES-OUT*</clix:ref>, and
+            <clix:ref>COOKIE-OUT</clix:ref>.
           </p>
         </clix:description>
       </clix:accessor>

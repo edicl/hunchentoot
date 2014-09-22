@@ -223,6 +223,17 @@ wait until all requests are fully processed, but meanwhile do not
 accept new requests.  Note that SOFT must not be set when calling
 STOP from within a request handler, as that will deadlock."))
 
+(defgeneric started-p (acceptor)
+  (:documentation "Tells if ACCEPTOR has been started.
+The default implementation simply queries ACCEPTOR for its listening
+status, so if T is returned to the calling thread, then some thread
+has called START or some thread's call to STOP hasn't finished. If NIL
+is returned either some thread has called STOP, or some thread's call
+to START hasn't finished or START was never called at all for
+ACCEPTOR.")
+  (:method (acceptor)
+    (and (acceptor-listen-socket acceptor) t)))
+
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
 enables it to listen to incoming connections.  This function is called
@@ -379,15 +390,29 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
                      :uri uri
                      :server-protocol server-protocol))))
 
+(defgeneric detach-socket (acceptor)
+  (:documentation "Indicate to Hunchentoot that it should stop serving
+                   requests on the current request's socket.
+                   Hunchentoot will finish processing the current
+                   request and then return from PROCESS-CONNECTION
+                   without closing the connection to the client.
+                   DETACH-SOCKET can only be called from within a
+                   request handler function."))
+
+(defmethod detach-socket ((acceptor acceptor))
+  (setf *finish-processing-socket* t
+        *close-hunchentoot-stream* nil))
+
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let* ((socket-stream (make-socket-stream socket *acceptor*))
-         (*hunchentoot-stream* (initialize-connection-stream *acceptor* socket-stream)))
+         (*hunchentoot-stream* (initialize-connection-stream *acceptor* socket-stream))
+         (*close-hunchentoot-stream* t))
     (unwind-protect
          ;; process requests until either the acceptor is shut down,
          ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
          ;; handler, or the peer fails to send a request
          (loop
-          (let ((*close-hunchentoot-stream* t))
+          (let ((*finish-processing-socket* t))
             (when (acceptor-shutdown-p *acceptor*)
               (return))
             (multiple-value-bind (headers-in method url-string protocol)
@@ -419,24 +444,20 @@ chunked encoding, but acceptor is configured to not use it.")))))
                                                           :server-protocol protocol))))
               (finish-output *hunchentoot-stream*)
               (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
-              (when *close-hunchentoot-stream*
-                (return)))))
-      (unless (eql socket-stream *hunchentoot-stream*)
-        ;; as we are at the end of the request here, we ignore all
-        ;; errors that may occur while flushing and/or closing the
-        ;; stream.
-        (ignore-errors*
-          (finish-output *hunchentoot-stream*))
-        (ignore-errors*
-          (close *hunchentoot-stream* :abort t)))
-      (when socket-stream
-        ;; as we are at the end of the request here, we ignore all
-        ;; errors that may occur while flushing and/or closing the
-        ;; stream.
-        (ignore-errors*
-          (finish-output socket-stream))
-        (ignore-errors*
-          (close socket-stream :abort t))))))
+              (when *finish-processing-socket*
+                (return))))))
+      (when *close-hunchentoot-stream*
+        (flet ((close-stream (stream)
+                 ;; as we are at the end of the request here, we ignore all
+                 ;; errors that may occur while flushing and/or closing the
+                 ;; stream.
+                 (ignore-errors*
+                   (finish-output stream))
+                 (ignore-errors*
+                   (close stream :abort t))))
+          (unless (eql socket-stream *hunchentoot-stream*)
+            (close-stream *hunchentoot-stream*))
+          (close-stream socket-stream)))))
 
 (defmethod acceptor-ssl-p ((acceptor t))
   ;; the default is to always answer "no"
@@ -594,7 +615,7 @@ handler."
                     ;; happened within the body and we have to close
                     ;; the stream
                     (when *headers-sent*
-                      (setq *close-hunchentoot-stream* t))
+                      (setq *finish-processing-socket* t))
                     (throw 'handler-done
                       (values nil cond (get-backtrace))))))
     (with-debugger

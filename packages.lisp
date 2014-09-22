@@ -274,6 +274,7 @@
            #:start-listening
            #:start-session
            #:start-thread
+           #:started-p
            #:stop
            #:taskmaster
            #:taskmaster-acceptor
@@ -284,5 +285,5 @@
            #:url-decode
            #:url-encode
            #:user-agent
-           #:within-request-p))
-
+           #:within-request-p
+           #:detach-socket))

@@ -32,6 +32,13 @@
   ()
   (:documentation "Superclass for all conditions related to Hunchentoot."))
 
+(define-condition detach-socket (hunchentoot-condition)
+  ()
+  (:documentation "When this condition is signalled,
+  PROCESS-CONNECTION detaches from the connection socket after
+  processing the current request, leaving it up to other software to
+  deal with."))
+
 (define-condition hunchentoot-error (hunchentoot-condition error)
   ()
   (:documentation "Superclass for all errors related to Hunchentoot."))
