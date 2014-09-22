@@ -361,6 +361,7 @@ stopped right away so no other part of the software is impacted by them."
           (warning
            ;; log all warnings which aren't caught inside
            (lambda (cond)
-             (log-message* *lisp-warnings-log-level*
-                           "Warning while processing connection: ~A" cond))))
+             (when *log-lisp-warnings-p*
+               (log-message* *lisp-warnings-log-level*
+                             "Warning while processing connection: ~A" cond)))))
        ,@body)))
