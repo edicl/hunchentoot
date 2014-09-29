@@ -96,14 +96,19 @@ are discarded \(that is, the body is an implicit PROGN)."
 values.  The address is returned as a string in dotted IP address
 notation."
   (multiple-value-bind (address port) (usocket:get-peer-name socket)
-    (values (usocket:vector-quad-to-dotted-quad address) port)))
+    (values (ecase (length address)
+              (4 (usocket:vector-quad-to-dotted-quad address))
+              (16 (usocket:vector-to-ipv6-host address)))
+            port)))
 
 (defun get-local-address-and-port (socket)
   "Returns the local address and port of the socket SOCKET as two
 values.  The address is returned as a string in dotted IP address
 notation."
   (multiple-value-bind (address port) (usocket:get-local-name socket)
-    (values (usocket:vector-quad-to-dotted-quad address)
+    (values (ecase (length address)
+              (4 (usocket:vector-quad-to-dotted-quad address))
+              (16 (usocket:vector-to-ipv6-host address)))
             port)))
 
 (defun make-socket-stream (socket acceptor)

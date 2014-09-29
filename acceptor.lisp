@@ -529,8 +529,7 @@ catches during request processing."
   (when (acceptor-listen-socket acceptor)
     (hunchentoot-error "acceptor ~A is already listening" acceptor))
   (setf (acceptor-listen-socket acceptor)
-        (usocket:socket-listen (or (acceptor-address acceptor)
-                                   usocket:*wildcard-host*)
+        (usocket:socket-listen (acceptor-address acceptor)
                                (acceptor-port acceptor)
                                :reuseaddress t
 			       :backlog (acceptor-listen-backlog acceptor)
