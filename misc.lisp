@@ -99,7 +99,7 @@ true.  See the docs for URL-REWRITE:REWRITE-URLS."
 function denoted by HANDLER if the file name of the current request
 starts with the string PREFIX."
   (lambda (request)
-    (let ((mismatch (mismatch (script-name request) prefix
+    (let ((mismatch (mismatch (url-decode (script-name request)) prefix
                               :test #'char=)))
       (and (or (null mismatch)
                (>= mismatch (length prefix)))
@@ -111,7 +111,7 @@ function denoted by HANDLER if the file name of the current request
 matches the CL-PPCRE regular expression REGEX."
   (let ((scanner (create-scanner regex)))
     (lambda (request)
-      (and (scan scanner (script-name request))
+      (and (scan scanner (url-decode (script-name request)))
            handler))))
 
 (defun abort-request-handler (&optional result)
@@ -193,7 +193,7 @@ the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
 determine the content type via the file's suffix."
   ;; the dispatcher
   (lambda (request)
-    (when (equal (script-name request) uri)
+    (when (string= (url-decode (script-name request)) uri)
       ;; the handler
       (lambda ()
         (handle-static-file path content-type)))))
