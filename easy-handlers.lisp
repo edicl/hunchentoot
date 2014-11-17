@@ -323,7 +323,7 @@ defined with DEFINE-EASY-HANDLER, if there is one."
         when (and (or (eq acceptor-names t)
                       (find (acceptor-name *acceptor*) acceptor-names :test #'eq))
                   (cond ((stringp uri)
-                         (string= (script-name request) uri))
+                         (string= (url-decode (script-name request)) uri))
                         (t (funcall uri request))))
         do (return easy-handler)))
 
