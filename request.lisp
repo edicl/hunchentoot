@@ -189,31 +189,32 @@ slot values are computed in this :AFTER method."
   (with-slots (headers-in cookies-in get-parameters script-name query-string session)
       request
     (handler-case*
-        (progn
-          (let* ((uri (request-uri request))
-                 (match-start (position #\? uri)))
-            (cond
-             (match-start
-              (setq script-name (subseq uri 0 match-start)
-                    query-string (subseq uri (1+ match-start))))
-             (t (setq script-name uri))))
-          ;; some clients (e.g. ASDF-INSTALL) send requests like
-          ;; "GET http://server/foo.html HTTP/1.0"...
-          (setq script-name (regex-replace "^https?://[^/]+" script-name ""))
-          ;; compute GET parameters from query string and cookies from
-          ;; the incoming 'Cookie' header
-          (setq get-parameters
-                (let ((*substitution-char* #\?))
-                  (form-url-encoded-list-to-alist (split "&" query-string)))
-                cookies-in
-                (cookies-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
-                                                                    :test #'eq))))
-                session (session-verify request)
-                *session* session))
-      (error (condition)
-        (log-message* :error "Error when creating REQUEST object: ~A" condition)
-        ;; we assume it's not our fault...
-        (setf (return-code*) +http-bad-request+)))))
+     (let* ((uri (request-uri request))
+            (match-start (position #\? uri))
+            (external-format (or (external-format-from-content-type (cdr (assoc* :content-type headers-in)))
+                                 +utf-8+)))
+       (cond
+        (match-start
+         (setq script-name (url-decode (subseq uri 0 match-start) external-format)
+               query-string (subseq uri (1+ match-start))))
+        (t (setq script-name (url-decode uri external-format))))
+       ;; some clients (e.g. ASDF-INSTALL) send requests like
+       ;; "GET http://server/foo.html HTTP/1.0"...
+       (setq script-name (regex-replace "^https?://[^/]+" script-name ""))
+       ;; compute GET parameters from query string and cookies from
+       ;; the incoming 'Cookie' header
+       (setq get-parameters
+             (let ((*substitution-char* #\?))
+               (form-url-encoded-list-to-alist (split "&" query-string) external-format))
+             cookies-in
+             (cookies-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
+                                                                 :test #'eq))))
+             session (session-verify request)
+             *session* session))
+     (error (condition)
+            (log-message* :error "Error when creating REQUEST object: ~A" condition)
+            ;; we assume it's not our fault...
+            (setf (return-code*) +http-bad-request+)))))
 
 (defmethod process-request (request)
   "Standard implementation for processing a request."
