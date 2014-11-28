@@ -1,3 +1,14 @@
+Version 1.2.28
+2014-11-28
+Remove dead links and update support information (Hans Huebner)
+restore listening to usocket:*wildcard-host* (Hans Huebner)
+deal with IPv6 addresses from usocket (Hans Huebner)
+eliminate duplicate logging of warnings (reported by loke) (Hans Huebner)
+add DETACH-SOCKET function (Hans Huebner)
+Add the ability to prevent the sockets from being closed after a request has been processed. (Elias Mårtenson)
+document *FINISH-PROCESSING-SOCKET* (Hans Huebner)
+Make check for stream timeouts more robust (Raymond Wiker)
+
 Version 1.2.27
 2014-05-18
 fix warning about missing NAME keyword arg at start-thread (Mark H. David)
