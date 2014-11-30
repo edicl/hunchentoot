@@ -73,14 +73,8 @@
       <p>
         Hunchentoot is (or was) for example used by
         <a href="http://quickhoney.com/">QuickHoney</a>,
-        <a href="http://postabon.com/">Postabon</a>,
         <a href="http://www.city-farming.de/">City Farming</a>,
-        <a href="http://www.thoughtcrime.us/tp/">Trip Planner</a>,
-        <a href="http://www.jalat.com/">Jalat</a>,
-        <a href="http://heikestephan.de/">Heike Stephan</a>,
-        <a href="http://www.memetrics.com/">xOs</a>, and
-        <a href="http://syseng.nist.gov/moss">the</a>
-        <a href="http://syseng.nist.gov/se-interop">NIST</a>.
+        <a href="http://heikestephan.de/">Heike Stephan</a>.
       </p>
       <p>
         <font color="red">Download shortcut:</font>
@@ -99,9 +93,9 @@
 <li><a href="#proxy">Hunchentoot behind a proxy</a></li>
 </ol>
 </li>
-<li><a href="#mail">Support and mailing lists</a></li>
+<li><a href="#support">Support</a></li>
 <li><a href="#start">Your own webserver (the easy teen-age New York version)</a></li>
-<li><a href="#tutorials">Tutorials and add-ons</a></li>
+<li><a href="#extras">Third party documentation and add-ons</a></li>
 <li>
 <a href="#reference">Function and variable reference</a><ol>
 <li><a href="#acceptors">Acceptors</a></li>
@@ -164,7 +158,7 @@
       Hunchentoot will only work with Lisps where
       the <a href="http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_c.htm#character_code">character
       codes</a> of
-      all <a href="http://en.wikipedia.org/wiki/ISO_8859-1">Latin-1</a>
+      all <a href="http://en.wikipedia.org/wiki/ISO/IEC_8859-1">Latin-1</a>
       characters coincide with their
       Unicode <a href="http://en.wikipedia.org/wiki/Code_point">code
       points</a> (which is the case for all current implementations I
@@ -174,7 +168,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.27.
+      The current version is 1.2.28.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -182,10 +176,8 @@
       Zach Beane's excellent <a href="http://www.quicklisp.org/">Quicklisp</a> system a try.
     </p>
     <p>
-      Hunchentoot and its dependencies can also be installed with
-      <a href="http://common-lisp.net/project/clbuild/">clbuild</a>
-      or my own <a href="http://weitz.de/starter-pack/">Starter
-      Pack</a>.  There's also a port for <a href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
+      Hunchentoot and its dependencies can also be installed with <a href="http://common-lisp.net/project/clbuild/">clbuild</a>.
+      There's also a port for <a href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
       Linux</a> thanks to Matthew Kennedy.
     </p>
     <p>
@@ -213,11 +205,11 @@
       website, you can hide it behind a
       <a href="http://en.wikipedia.org/wiki/Proxy_server">proxy server</a>.
       One approach that I have used several times is to employ Apache's
-      <a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html">mod_proxy</a>
+      <a href="http://httpd.apache.org/docs/current/mod/mod_proxy.html">mod_proxy</a>
       module with a configuration that looks like this:
 
-<pre><a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html#proxypass" class="noborder">ProxyPass</a> /hunchentoot http://127.0.0.1:3000/hunchentoot
-<a href="http://httpd.apache.org/docs/2.0/mod/mod_proxy.html#proxypassreverse" class="noborder">ProxyPassReverse</a> /hunchentoot http://127.0.0.1:3000/hunchentoot</pre>
+<pre><a href="http://httpd.apache.org/docs/current/mod/mod_proxy.html#proxypass" class="noborder">ProxyPass</a> /hunchentoot http://127.0.0.1:3000/hunchentoot
+<a href="http://httpd.apache.org/docs/current/mod/mod_proxy.html#proxypassreverse" class="noborder">ProxyPassReverse</a> /hunchentoot http://127.0.0.1:3000/hunchentoot</pre>
 
       This will tunnel all requests where the URI path begins with
       <code>"/hunchentoot"</code> to a (Hunchentoot) server listening on
@@ -232,17 +224,13 @@
     
   
 
-  <h3 xmlns=""><a class="none" name="mail">Support and mailing lists</a></h3>
-
-    For questions, bug reports, feature requests, improvements, or
-    patches please use the <a href="http://common-lisp.net/mailman/listinfo/tbnl-devel">tbnl-devel
-    mailing list</a>. The mailing list is made available thanks to the
-    services of <a href="http://common-lisp.net/">common-lisp.net</a>.
-    You can <b>search</b> the devel mailing list <a href="http://google.com/coop/cse?cx=002927904911724867201%3A0l5rif_cxj0">here</a>
-    (thanks to Tiarnán Ó Corráin).
+  <h3 xmlns=""><a class="none" name="support">Support</a></h3>
     <p>
-      If you want to send patches, please
-      <a href="http://weitz.de/patches.html">read this first</a>.
+      The development version of Hunchentoot can be found <a href="https://github.com/edicl/hunchentoot" target="_new">on
+      github</a>.  Please use the github issue tracking system to
+      submit bug reports.  Patches are welcome, please use <a href="https://github.com/edicl/hunchentoot/pulls">GitHub pull
+      requests</a>.  If you want to make a change, please <a href="http://weitz.de/patches.html" target="_new">read this
+      first</a>.
     </p>
   
 
@@ -310,101 +298,24 @@
     </p>
   
 
-  <h3 xmlns=""><a class="none" name="tutorials">Tutorials and add-ons</a></h3>
+  <h3 xmlns=""><a class="none" name="extras">Third party documentation and add-ons</a></h3>
     <p>
-      Here are some Hunchentoot tutorials done by others:
+      Adam Petersen has written a book called <a href="http://www.adampetersen.se/articles/lispweb.htm">"Lisp for
+      the Web"</a> which explains how Hunchentoot and some other
+      libraries can be used to build web sites.
     </p>
-    <ul>
-      <li>
-        <a href="http://www.adampetersen.se/articles/lispweb.htm">"Lisp for the Web"</a> by Adam Petersen.
-      </li>
-      <li>
-        Two <a href="http://myblog.rsynnott.com/2007/09/getting-started-with-hunchento.html">getting</a>
-        <a href="http://myblog.rsynnott.com/2007/10/doing-more-with-hunchentoot-cl-server.html">started</a>
-        articles by Robert Synnott.
-      </li>
-      <li>
-        <a href="http://newartisans.com/2007/11/running-common-lisp-behind-apache/">Running Common Lisp
-          behind Apache</a> by John Wiegley.  (And there's a
-        <a href="http://newartisans.com/2007/11/a-quick-hunchentoot-primer/">second part</a>.)
-      </li>
-      <li>
-        A <a href="http://www.lispcast.com/index.php/2007/10/lispcast-writing-a-simple-reddit-clone-in-common-lisp/">"LispCast"</a>
-        by Eric Normand about writing a <a href="http://reddit.com/">Reddit</a> clone using
-        Hunchentoot.  Apparently the first part of a
-        <a href="http://bc.tech.coop/blog/071028.html">series</a>.
-      </li>
-      <li>
-        A <a href="http://roeim.net/vetle/docs/cl-webapp-intro/">tutorial</a> about
-        implementing a blog in Common Lisp by Vetle Roeim.
-      </li>
-      <li>
-        A <a href="http://www.jalat.com/blogs/lisp?id=3">tutorial</a> for (an older version of)
-        Hunchentoot by Asbjørn Bjørnstad.
-      </li>
-      <li>
-        A <a href="http://www.frank-buss.de/lisp/tbnl.html">TBNL tutorial</a> from Frank Buss.
-        (Hunchentoot is not <a href="http://weitz.de/tbnl/">TBNL</a>, but the two are similar enough
-        to make the tutorial worthwhile.)
-      </li>
-      <li>
-        For Win32, Bill
-        Clementson <a href="http://bc.tech.coop/blog/041105.html">explains</a>
-        how to set up Hunchentoot's
-        predecessor <a href="http://weitz.de/tbnl/">TBNL</a> with
-        Apache/mod_lisp.  See
-        also <a href="http://bc.tech.coop/blog/061013.html">http://bc.tech.coop/blog/061013.html</a>.
-      </li>
-    </ul>
-
-    Check the dates of these tutorials!  Many of them might not be a
-    perfect fit with the latest release of Hunchentoot as there have
-    been several changes to its API recently, especially in 2009.
-    Also, the fact that these tutorials are listed here doesn't
-    necessarily mean that I endorse them or think that they show
-    idiomatic Lisp code.  You'll have to decide yourself if they're
-    helpful to you or not.
-
     <p>
       Here is some software which extends Hunchentoot or is based on it:
     </p>
     <ul>
-      <li>Tomo Matsumoto's web application
-      framework <a href="http://web4r.org/en/">web4r</a>.
+      <li>
+        <a href="http://weblocks-framework.info/">Weblocks</a> by
+        Slava Akhmechet is a "continuations-based web framework" which
+        is based on Hunchentoot.
       </li>
       <li>
-        <a href="http://common-lisp.net/project/cl-weblocks/">Weblocks</a>
-        by Slava Akhmechet is a "continuations-based web framework" which is
-        based on Hunchentoot.
-      </li>
-      <li>
-        <a href="http://common-lisp.net/project/ht-ajax/ht-ajax.html">HT-AJAX</a> is
-        an <a href="http://en.wikipedia.org/wiki/Ajax_%28programming%29">Ajax</a>
-        framework for Hunchentoot by Ury Marshak.
-      </li>
-      <li>
-        <a href="http://martin-loetzsch.de/ht-simple-ajax/">HT-SIMPLE-AJAX</a>
-        is a simplified version of HT-AJAX.
-      </li>
-      <li>
-        Mac Chan
-        <a href="http://common-lisp.net/pipermail/tbnl-devel/2007-May/001324.html">has
-          ported <a href="http://lemonodor.com/">John Wiseman</a>'s
-          <a href="http://www.lemonodor.com/archives/000128.html">Lisp
-            Server Pages</a> to Hunchentoot.</a>
-      </li>
-      <li>
-        <a href="http://site.znain.com/dl/lisp/hunchentoot-dir-lister/">hunchentoot-dir-lister</a>
-        is a directory listing addition for Hunchentoot by Dimitre Liotev.
-      </li>
-      <li>
-        Cyrus Harmon's
-        <a href="http://cyrusharmon.org/blog/display?id=64">nuclblog</a> is a
-        <a href="http://en.wikipedia.org/wiki/Blog">blog</a> engine which uses Hunchentoot.
-      </li>
-      <li>
-        <a href="http://cyrusharmon.org/projects?project=hunchentoot-cgi">hunchentoot-cgi</a>
-        (also by Cyrus Harmon) provides
+        <a href="https://github.com/slyrus/hunchentoot-cgi">hunchentoot-cgi</a>
+        (by Cyrus Harmon) provides
         <a href="http://en.wikipedia.org/wiki/Common_Gateway_Interface">CGI</a>
         handlers for Hunchentoot.
       </li>
@@ -710,6 +621,38 @@
           until a connection timeout occurs.  It is probably not a
           good idea to re-implement this method until you really,
           really know what you're doing.
+          <p xmlns="http://www.w3.org/1999/xhtml">
+            Handlers may call to the
+            <code xmlns=""><a href="#detach-socket">DETACH-SOCKET</a></code> generic function to
+            indicate that no further requests should be handled on
+            the connection by Hunchentoot, and that responsibility for
+            the socket is assumed by third-party software.  This can
+            be used by specialized handlers that wish to hand over
+            connection polling or processing to functions outside of
+            Hunchentoot, i.e. for connection multiplexing or
+            implementing specialized client protocols.  Hunchentoot
+            will finish processing the request and the
+            <code xmlns=""><a href="#process-connection">PROCESS-CONNECTION</a></code> function will
+            return without closing the connection.  At that point,
+            the acceptor may interact with the socket in whatever
+            fashion required.
+          </p>
+        </clix:description></blockquote></p>
+
+      <p xmlns=""><a class="none" name="detach-socket"></a>
+          [Generic function]
+          <br><b>detach-socket</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">stream
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Indicate to Hunchentoot that it should stop serving requests
+          on the current request's socket.  Hunchentoot will finish
+          processing the current request and then return from
+          <code><a href="#process-connection">PROCESS-CONNECTION</a></code> without closing the
+          connection to the client.
+          <code><a href="#detach-socket">DETACH-SOCKET</a></code> can only be called from
+          within a request handler function.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="initialize-connection-stream"></a>
@@ -2164,10 +2107,24 @@
         <tt>&amp;optional
         </tt> reply
         </clix:lambda-list></i><tt>) <i>new-value</i>)</tt><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-          <code><a href="#header-out">HEADER-OUT</a></code> returns the outgoing http header named by the keyword <code><i>name</i></code> if there is one, otherwise <code xmlns="http://www.w3.org/1999/xhtml">NIL</code>. <code xmlns="http://www.w3.org/1999/xhtml">SETF</code> of <code><a href="#header-out">HEADER-OUT</a></code> changes the current value of the header named <code><i>name</i></code>. If no header named <code><i>name</i></code> exists, it is created. For backwards compatibility, <code><i>name</i></code> can also be a string in which case the association between a header and its name is case-insensitive.
+          <code><a href="#header-out">HEADER-OUT</a></code> returns the outgoing http
+          header named by the keyword <code><i>name</i></code> if
+          there is one, otherwise <code xmlns="http://www.w3.org/1999/xhtml">NIL</code>. <code xmlns="http://www.w3.org/1999/xhtml">SETF</code>
+          of <code><a href="#header-out">HEADER-OUT</a></code> changes the current value
+          of the header named <code><i>name</i></code>. If no header
+          named <code><i>name</i></code> exists, it is created. For
+          backwards compatibility, <code><i>name</i></code> can also
+          be a string in which case the association between a header
+          and its name is case-insensitive.
           <p xmlns="http://www.w3.org/1999/xhtml">
-            Note that the header 'Set-Cookie' cannot be queried by <code xmlns=""><a href="#header-out">HEADER-OUT</a></code> and must not be set by <code>SETF</code> of <code xmlns=""><a href="#header-out">HEADER-OUT</a></code>.
-            See also <code xmlns=""><a href="#headers-out*">HEADERS-OUT*</a></code>, <code xmlns=""><a href="#content-type*">CONTENT-TYPE*</a></code>, <code xmlns=""><a href="#content-length*">CONTENT-LENGTH*</a></code>, <code xmlns=""><a href="#cookies-out*">COOKIES-OUT*</a></code>, and <code xmlns=""><a href="#cookie-out">COOKIE-OUT</a></code>.
+            Note that the header 'Set-Cookie' cannot be queried by
+            <code xmlns=""><a href="#header-out">HEADER-OUT</a></code> and must not be set by
+            <code>SETF</code> of <code xmlns=""><a href="#header-out">HEADER-OUT</a></code>.  See
+            also <code xmlns=""><a href="#headers-out*">HEADERS-OUT*</a></code>,
+            <code xmlns=""><a href="#content-type*">CONTENT-TYPE*</a></code>,
+            <code xmlns=""><a href="#content-length*">CONTENT-LENGTH*</a></code>,
+            <code xmlns=""><a href="#cookies-out*">COOKIES-OUT*</a></code>, and
+            <code xmlns=""><a href="#cookie-out">COOKIE-OUT</a></code>.
           </p>
         </clix:description></blockquote></p>
 
@@ -3860,6 +3817,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#delete-session-value">delete-session-value</a></code><span class="entry-type">Function</span>
+</li>
+<li>
+<code><a href="#detach-socket">detach-socket</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#dispatch-easy-handlers">dispatch-easy-handlers</a></code><span class="entry-type">Function</span>
