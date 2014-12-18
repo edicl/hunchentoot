@@ -41,14 +41,14 @@
         Hunchentoot talks with its front-end or with the client over
         TCP/IP sockets and optionally uses multiprocessing to handle
         several requests at the same time.  Therefore, it cannot be
-        implemented completely in
-        <a href="http://www.lispworks.com/documentation/HyperSpec/Front/index.htm">portable
-        Common Lisp</a>.  It currently works "natively" with
-        <a href="http://www.lispworks.com/">LispWorks</a> (which is the
-        main development and testing platform), and additionally on all
-        Lisps which are supported by the compatibility
-        layers <a href="http://common-lisp.net/project/usocket/">usocket</a>
-        and <a href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
+        implemented completely in <a
+        href="http://www.lispworks.com/documentation/HyperSpec/Front/index.htm">portable
+        Common Lisp</a>.  It currently works with <a
+        href="http://www.lispworks.com/">LispWorks</a> and all Lisps
+        which are supported by the compatibility layers <a
+        href="http://common-lisp.net/project/usocket/">usocket</a> and
+        <a
+        href="http://common-lisp.net/project/bordeaux-threads/">Bordeaux
         Threads</a>.
       </p>
       <p>
