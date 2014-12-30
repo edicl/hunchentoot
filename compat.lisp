@@ -98,7 +98,7 @@ notation."
   (multiple-value-bind (address port) (usocket:get-peer-name socket)
     (values (ecase (length address)
               (4 (usocket:vector-quad-to-dotted-quad address))
-              (16 (usocket:vector-to-ipv6-host address)))
+              #+(or) (16 (usocket:vector-to-ipv6-host address)))
             port)))
 
 (defun get-local-address-and-port (socket)
@@ -108,7 +108,7 @@ notation."
   (multiple-value-bind (address port) (usocket:get-local-name socket)
     (values (ecase (length address)
               (4 (usocket:vector-quad-to-dotted-quad address))
-              (16 (usocket:vector-to-ipv6-host address)))
+              #+(or) (16 (usocket:vector-to-ipv6-host address)))
             port)))
 
 (defun make-socket-stream (socket acceptor)
