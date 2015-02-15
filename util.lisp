@@ -182,6 +182,17 @@ The macro also uses SETQ to store the new vector in VECTOR."
                                                `(aref ,vector i)))
                finally (return new-vector))))
 
+(defun ensure-parse-integer (string &key (start 0) end (radix 10))
+  (let ((end (or end (length string))))
+    (if (or (>= start (length string))
+            (> end (length string)))
+        (error 'bad-request)
+        (multiple-value-bind (integer stopped)
+            (parse-integer string :start start :end end :radix radix :junk-allowed t)
+          (if (/= stopped end)
+              (error 'bad-request)
+              integer)))))
+
 (defun url-decode (string &optional (external-format *hunchentoot-default-external-format*))
   "Decodes a URL-encoded string which is assumed to be encoded using the
 external format EXTERNAL-FORMAT, i.e. this is the inverse of
@@ -198,13 +209,14 @@ the value of *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
         (return))
       (let ((char (aref string i)))
        (labels ((decode-hex (length)
-                  (prog1
-                      (parse-integer string :start i :end (+ i length) :radix 16)
-                    (incf i length)))
+                  (ensure-parse-integer string :start i :end (incf i length)
+                                               :radix 16))
                 (push-integer (integer)
                   (vector-push integer vector))
                 (peek ()
-                  (aref string i))
+                  (if (array-in-bounds-p string i)
+                      (aref string i)
+                      (error 'bad-request)))
                 (advance ()
                   (setq char (peek))
                   (incf i)))

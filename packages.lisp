@@ -286,4 +286,5 @@
            #:url-encode
            #:user-agent
            #:within-request-p
-           #:detach-socket))
+           #:detach-socket
+           #:bad-request))

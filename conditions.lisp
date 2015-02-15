@@ -89,6 +89,11 @@ SETUID for example) is not implemented for a specific Lisp."))
   "Used to signal an error if an operation named NAME is not implemented."
   (error 'operation-not-implemented :operation name))
 
+(define-condition bad-request (hunchentoot-error)
+  ())
+
+;;;
+
 (defgeneric maybe-invoke-debugger (condition)
   (:documentation "This generic function is called whenever a
 condition CONDITION is signaled in Hunchentoot.  You might want to
@@ -102,7 +107,11 @@ specialize it on specific condition classes for debugging purposes.")
 (defmacro with-debugger (&body body)
   "Executes BODY and invokes the debugger if an error is signaled and
 *CATCH-ERRORS-P* is NIL."
-  `(handler-bind ((error #'maybe-invoke-debugger))
+  `(handler-bind ((bad-request (lambda (c)
+                                 (declare (ignore c))
+                                 (setf (return-code *reply*) +http-bad-request+)
+                                 (abort-request-handler)))
+                  (error #'maybe-invoke-debugger))
      ,@body))
 
 (defmacro ignore-errors* (&body body)
