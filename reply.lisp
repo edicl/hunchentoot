@@ -137,13 +137,14 @@ NAME. Search is case-sensitive."
 header named NAME \(a keyword or a string).  If a header with this
 name doesn't exist, it is created.")
   (:method (new-value (name symbol) &optional (reply *reply*))
-   ;; the default method
-   (let ((entry (assoc name (headers-out reply))))
-     (if entry
-       (setf (cdr entry) new-value)
-       (setf (slot-value reply 'headers-out)
-             (acons name new-value (headers-out reply))))
-     new-value))
+    (if new-value
+        (let ((entry (assoc name (headers-out reply))))
+          (if entry
+              (setf (cdr entry) new-value)
+              (setf (slot-value reply 'headers-out)
+                    (acons name new-value (headers-out reply)))))
+        (setf (slot-value reply 'headers-out) (remove name (slot-value reply 'headers-out) :key #'car)))
+    new-value)
   (:method (new-value (name string) &optional (reply *reply*))
    "If NAME is a string, it is converted to a keyword first."
    (setf (header-out (as-keyword name :destructivep nil) reply) new-value))
