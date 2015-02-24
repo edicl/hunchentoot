@@ -136,6 +136,9 @@ Returns the stream that is connected to the client."
       ;; the Content-Length header properly; maybe the user specified
       ;; a different content length, but that will wrong anyway
       (setf (header-out :content-length) (length content)))
+    (when (eql (return-code*) +http-not-modified+)
+      (setf content nil
+            (header-out :content-length) nil))
     ;; send headers only once
     (when *headers-sent*
       (return-from start-output))
