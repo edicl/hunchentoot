@@ -486,8 +486,7 @@ TIME."
     (when (and if-modified-since
                (equal if-modified-since time-string))
       (setf (slot-value *reply* 'content-length) nil
-	    (slot-value *reply* 'headers-out)
-	    (remove :content-length (headers-out*) :key #'car)
+	    (slot-value *reply* 'headers-out) (remove :content-length (headers-out*) :key #'car)
 	    (return-code*) +http-not-modified+)
       (abort-request-handler))
     (values)))
