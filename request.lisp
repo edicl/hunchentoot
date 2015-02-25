@@ -485,7 +485,10 @@ TIME."
     ;; simple string comparison is sufficient; see RFC 2616 14.25
     (when (and if-modified-since
                (equal if-modified-since time-string))
-      (setf (return-code*) +http-not-modified+)
+      (setf (slot-value *reply* 'content-length) nil
+	    (slot-value *reply* 'headers-out)
+	    (remove :content-length (headers-out*) :key #'car)
+	    (return-code*) +http-not-modified+)
       (abort-request-handler))
     (values)))
 
