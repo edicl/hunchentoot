@@ -1,3 +1,7 @@
+Version 1.2.31
+2015-03-06
+Adds HttpOnly and remove cookie on remove-session (Florian MARGAINE)
+
 Version 1.2.30
 2015-02-25
 Clear content-length before emitting 304 (Jason Miller)
