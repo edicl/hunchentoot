@@ -258,13 +258,18 @@ case the function will also send a session cookie to the browser."
             (acons (session-id session) session (session-db *acceptor*))))
     (set-cookie (session-cookie-name *acceptor*)
                 :value (session-cookie-value session)
-                :path "/")
+                :path "/"
+                :http-only t)
     (session-created *acceptor* session)
     (setq *session* session)))
 
 (defun remove-session (session)
   "Completely removes the SESSION object SESSION from Hunchentoot's
 internal session database."
+  (set-cookie (session-cookie-name *acceptor*)
+              :value "deleted"
+              :path "/"
+              :expires 0)
   (with-session-lock-held ((session-db-lock *acceptor*))
     (acceptor-remove-session *acceptor* session)
     (setf (session-db *acceptor*)
