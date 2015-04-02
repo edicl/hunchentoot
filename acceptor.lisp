@@ -405,59 +405,62 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let* ((socket-stream (make-socket-stream socket *acceptor*))
-         (*hunchentoot-stream* (initialize-connection-stream *acceptor* socket-stream))
+         (*hunchentoot-stream*)
          (*close-hunchentoot-stream* t))
     (unwind-protect
          ;; process requests until either the acceptor is shut down,
          ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
          ;; handler, or the peer fails to send a request
-         (loop
-          (let ((*finish-processing-socket* t))
-            (when (acceptor-shutdown-p *acceptor*)
-              (return))
-            (multiple-value-bind (headers-in method url-string protocol)
-                (get-request-data *hunchentoot-stream*)
-              ;; check if there was a request at all
-              (unless method
-                (return))
-              ;; bind per-request special variables, then process the
-              ;; request - note that *ACCEPTOR* was bound above already
-              (let ((*reply* (make-instance (acceptor-reply-class *acceptor*)))
-                    (*session* nil)
-                    (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
-                (when transfer-encodings
-                  (setq transfer-encodings
-                        (split "\\s*,\\s*" transfer-encodings))
-                  (when (member "chunked" transfer-encodings :test #'equalp)
-                    (cond ((acceptor-input-chunking-p *acceptor*)
-                           ;; turn chunking on before we read the request body
-                           (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
-                                 (chunked-stream-input-chunking-p *hunchentoot-stream*) t))
-                          (t (hunchentoot-error "Client tried to use ~
+         (progn
+           (setq *hunchentoot-stream* (initialize-connection-stream *acceptor* socket-stream))
+           (loop
+              (let ((*finish-processing-socket* t))
+                (when (acceptor-shutdown-p *acceptor*)
+                  (return))
+                (multiple-value-bind (headers-in method url-string protocol)
+                    (get-request-data *hunchentoot-stream*)
+                  ;; check if there was a request at all
+                  (unless method
+                    (return))
+                  ;; bind per-request special variables, then process the
+                  ;; request - note that *ACCEPTOR* was bound above already
+                  (let ((*reply* (make-instance (acceptor-reply-class *acceptor*)))
+                        (*session* nil)
+                        (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
+                    (when transfer-encodings
+                      (setq transfer-encodings
+                            (split "\\s*,\\s*" transfer-encodings))
+                      (when (member "chunked" transfer-encodings :test #'equalp)
+                        (cond ((acceptor-input-chunking-p *acceptor*)
+                               ;; turn chunking on before we read the request body
+                               (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
+                                     (chunked-stream-input-chunking-p *hunchentoot-stream*) t))
+                              (t (hunchentoot-error "Client tried to use ~
 chunked encoding, but acceptor is configured to not use it.")))))
-                (with-acceptor-request-count-incremented (*acceptor*)
-                  (process-request (acceptor-make-request *acceptor* socket
-                                                          :headers-in headers-in
-                                                          :content-stream *hunchentoot-stream*
-                                                          :method method
-                                                          :uri url-string
-                                                          :server-protocol protocol))))
-              (finish-output *hunchentoot-stream*)
-              (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
-              (when *finish-processing-socket*
-                (return))))))
+                    (with-acceptor-request-count-incremented (*acceptor*)
+                      (process-request (acceptor-make-request *acceptor* socket
+                                                              :headers-in headers-in
+                                                              :content-stream *hunchentoot-stream*
+                                                              :method method
+                                                              :uri url-string
+                                                              :server-protocol protocol))))
+                  (finish-output *hunchentoot-stream*)
+                  (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
+                  (when *finish-processing-socket*
+                    (return))))))
       (when *close-hunchentoot-stream*
         (flet ((close-stream (stream)
                  ;; as we are at the end of the request here, we ignore all
                  ;; errors that may occur while flushing and/or closing the
                  ;; stream.
                  (ignore-errors*
-                   (finish-output stream))
+                  (finish-output stream))
                  (ignore-errors*
-                   (close stream :abort t))))
-          (unless (eql socket-stream *hunchentoot-stream*)
+                  (close stream :abort t))))
+          (unless (or (not *hunchentoot-stream*)
+                      (eql socket-stream *hunchentoot-stream*))
             (close-stream *hunchentoot-stream*))
-          (close-stream socket-stream)))))
+          (close-stream socket-stream))))))
 
 (defmethod acceptor-ssl-p ((acceptor t))
   ;; the default is to always answer "no"
