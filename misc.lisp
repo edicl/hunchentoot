@@ -65,7 +65,7 @@ are replaced with '&amp;'. The resulting URL is returned."
     (setq url (regex-replace-all (scanner-for-get-param cookie-name) url "\\1"))
     (when value
       (setq url (format nil "~A~:[?~;&~]~A=~A"
-                        url 
+                        url
                         (find #\? url)
                         cookie-name
                         (url-encode value))))
@@ -132,8 +132,8 @@ had returned RESULT.  See the source code of REDIRECT for an example."
         ("^bytes=(\\d+)-(\\d*)$" (header-in* :range) :sharedp t)
       ;; body won't be executed if regular expression does not match
       (setf start (parse-integer start))
-      (setf end (if (> (length end) 0) 
-                    (parse-integer end) 
+      (setf end (if (> (length end) 0)
+                    (parse-integer end)
                     (1- (file-length file))))
       (when (or (< start 0)
                 (>= end (file-length file)))
@@ -161,9 +161,11 @@ via the file's suffix."
     (abort-request-handler))
   (let ((time (or (file-write-date pathname)
                   (get-universal-time)))
+        (cont-type (or content-type
+                       (mime-type pathname)))
         bytes-to-send)
-    (setf (content-type*) (or content-type
-                              (mime-type pathname)
+    (setf (content-type*) (or (and cont-type
+                                   (maybe-add-charset-to-content-type-header cont-type (reply-external-format*)))
                               "application/octet-stream")
           (header-out :last-modified) (rfc-1123-date time)
           (header-out :accept-ranges) "bytes")
@@ -252,7 +254,7 @@ redirection code, it will be sent as status code."
                        (ecase protocol
                          ((:http) "http")
                          ((:https) "https"))
-                       (if port                         
+                       (if port
                          (first (ppcre:split ":" (or host "")))
                          host)
                        port target))))
