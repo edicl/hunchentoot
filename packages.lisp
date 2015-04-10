@@ -88,6 +88,7 @@
            #:+http-moved-temporarily+
            #:+http-multi-status+
            #:+http-multiple-choices+
+           #:+http-network-authentication-required+
            #:+http-no-content+
            #:+http-non-authoritative-information+
            #:+http-not-acceptable+
@@ -98,8 +99,10 @@
            #:+http-partial-content+
            #:+http-payment-required+
            #:+http-precondition-failed+
+           #:+http-precondition-required+
            #:+http-proxy-authentication-required+
            #:+http-request-entity-too-large+
+           #:+http-request-header-fields-too-large+
            #:+http-request-time-out+
            #:+http-request-uri-too-large+
            #:+http-requested-range-not-satisfiable+
@@ -108,6 +111,7 @@
            #:+http-service-unavailable+
            #:+http-switching-protocols+
            #:+http-temporary-redirect+
+           #:+http-too-many-requests+
            #:+http-unsupported-media-type+
            #:+http-use-proxy+
            #:+http-version-not-supported+
