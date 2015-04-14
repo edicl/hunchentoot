@@ -206,7 +206,12 @@ same time."))
 
 (defmethod initialize-instance :after ((acceptor acceptor) &key)
   (with-accessors ((document-root acceptor-document-root)
+                   (persistent-connections-p acceptor-persistent-connections-p)
+                   (taskmaster acceptor-taskmaster)
                    (error-template-directory acceptor-error-template-directory)) acceptor
+    (when (typep acceptor-taskmaster
+                 'single-threaded-taskmaster)
+      (setf acceptor-persistent-connections-p nil))
     (when document-root
       (setf document-root (translate-logical-pathname document-root)))
     (when error-template-directory
