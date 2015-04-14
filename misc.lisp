@@ -159,13 +159,13 @@ via the file's suffix."
     ;; file does not exist
     (setf (return-code*) +http-not-found+)
     (abort-request-handler))
+  (unless content-type
+    (setf content-type (mime-type pathname)))
   (let ((time (or (file-write-date pathname)
                   (get-universal-time)))
-        (cont-type (or content-type
-                       (mime-type pathname)))
         bytes-to-send)
-    (setf (content-type*) (or (and cont-type
-                                   (maybe-add-charset-to-content-type-header cont-type (reply-external-format*)))
+    (setf (content-type*) (or (and content-type
+                                   (maybe-add-charset-to-content-type-header content-type (reply-external-format*)))
                               "application/octet-stream")
           (header-out :last-modified) (rfc-1123-date time)
           (header-out :accept-ranges) "bytes")
