@@ -122,8 +122,8 @@ process different from the one where START was called.")
 connections.")
    #-:lispworks
    (listen-backlog :initarg :listen-backlog
-		   :reader acceptor-listen-backlog
-		   :documentation "Number of pending connections
+                   :reader acceptor-listen-backlog
+                   :documentation "Number of pending connections
           allowed in the listen socket before the kernel rejects
           further incoming connections.")
    (acceptor-shutdown-p :initform t
@@ -209,9 +209,9 @@ same time."))
                    (persistent-connections-p acceptor-persistent-connections-p)
                    (taskmaster acceptor-taskmaster)
                    (error-template-directory acceptor-error-template-directory)) acceptor
-    (when (typep acceptor-taskmaster
+    (when (typep taskmaster
                  'single-threaded-taskmaster)
-      (setf acceptor-persistent-connections-p nil))
+      (setf persistent-connections-p nil))
     (when document-root
       (setf document-root (translate-logical-pathname document-root)))
     (when error-template-directory
@@ -541,7 +541,7 @@ catches during request processing."
                                    usocket:*wildcard-host*)
                                (acceptor-port acceptor)
                                :reuseaddress t
-			       :backlog (acceptor-listen-backlog acceptor)
+                               :backlog (acceptor-listen-backlog acceptor)
                                :element-type '(unsigned-byte 8)))
   (values))
 
