@@ -2357,6 +2357,12 @@
         not <a href="#session-too-old-p">too old</a>.  Old sessions
         are <a href="#session-gc">automatically removed</a>.
       </p>
+      <p>
+        Hunchentoot also provides a <code xmlns=""><a href="#session-regenerate-cookie-value">SESSION-REGENERATE-COOKIE-VALUE</a></code>
+        generic function that creates a new cookie value. This helps to prevent
+        against <a href="https://www.owasp.org/index.php/Session_fixation">session fixation
+        attacks</a>, and should be used when a user logs in according to the application.
+      </p>
 
       <p xmlns=""><a class="none" name="session"></a>
       [Standard class]
@@ -2587,6 +2593,16 @@
           The time this session was started.
         </clix:description></blockquote></p>
 
+      <p xmlns=""><a class="none" name="session-regenerate-cookie-value"></a>
+          [Generic function]
+          <br><b>session-regenerate-cookie-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookie
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Regenerates the session cookie value. Because of technical limitations,
+          this function should not be called twice in the same second.
+        </clix:description></blockquote></p>
 
     
 
@@ -4077,6 +4093,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#session-max-time">session-max-time</a></code><span class="entry-type">Generic accessor</span>
+</li>
+<li>
+<code><a href="#session-regenerate-cookie-value">session-regenerate-cookie-value</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#session-remote-addr">session-remote-addr</a></code><span class="entry-type">Generic function</span>

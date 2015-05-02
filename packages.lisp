@@ -268,6 +268,7 @@
            #:session-user-agent
            #:session-value
            #:session-verify
+           #:session-regenerate-cookie-value
            #:set-cookie
            #:set-cookie*
            #:shutdown
