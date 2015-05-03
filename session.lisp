@@ -297,6 +297,22 @@ will not create a new one."
       (setq session nil))
     session))
 
+(defun regenerate-session-cookie-value (session)
+  "Regenerates the cookie value. This should be used
+when a user logs in according to the application to prevent against
+session fixation attacks. The cookie value being dependent on ID,
+USER-AGENT, REMOTE-ADDR, START, and *SESSION-SECRET*, the only value
+we can change is START to regenerate a new value. Since we're
+generating a new cookie, it makes sense to have the session being
+restarted, in time. That said, because of this fact, calling this
+function twice in the same second will regenerate twice the same value."
+  (setf (slot-value session 'session-start) (get-universal-time)
+        (slot-value session 'session-string) (stringify-session session))
+  (set-cookie (session-cookie-name *acceptor*)
+              :value (session-cookie-value session)
+              :path "/"
+              :http-only t))
+
 (defgeneric session-verify (request)
   (:documentation "Tries to get a session identifier from the cookies
 \(or alternatively from the GET parameters) sent by the client (see

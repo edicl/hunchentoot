@@ -2357,6 +2357,12 @@
         not <a href="#session-too-old-p">too old</a>.  Old sessions
         are <a href="#session-gc">automatically removed</a>.
       </p>
+      <p>
+        Hunchentoot also provides a <code xmlns=""><a href="#session-regenerate-cookie-value">SESSION-REGENERATE-COOKIE-VALUE</a></code>
+        function that creates a new cookie value. This helps to prevent against
+        <a href="https://www.owasp.org/index.php/Session_fixation">session fixation
+        attacks</a>, and should be used when a user logs in according to the application.
+      </p>
 
       <p xmlns=""><a class="none" name="session"></a>
       [Standard class]
@@ -2459,6 +2465,25 @@
           <code><i>acceptor</i></code>.  The default for
           <code><i>acceptor</i></code> is
           <code><a href="#*acceptor*">*ACCEPTOR*</a></code>.
+        </clix:description></blockquote></p>
+
+      <p xmlns=""><a class="none" name="regenerate-session-cookie-value"></a>
+          [Function]
+          <br><b>regenerate-session-cookie-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookie
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Regenerates the session cookie value. This should be used
+          when a user logs in according to the application to prevent
+          against session fixation attacks. The cookie value being
+          dependent on ID, USER-AGENT, REMOTE-ADDR, START, and
+          *SESSION-SECRET*, the only value we can change is START to
+          regenerate a new value. Since we're generating a new cookie,
+          it makes sense to have the session being restarted, in
+          time. That said, because of this fact, calling this function
+          twice in the same second will regenerate twice the same
+          value.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="*rewrite-for-session-urls*"></a>
@@ -2586,7 +2611,6 @@
         </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           The time this session was started.
         </clix:description></blockquote></p>
-
 
     
 
@@ -3972,6 +3996,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#referer">referer</a></code><span class="entry-type">Function</span>
+</li>
+<li>
+<code><a href="#regenerate-session-cookie-value">regenerate-session-cookie-value</a></code><span class="entry-type">Function</span>
 </li>
 <li>
 <code><a href="#remote-addr">remote-addr</a></code><span class="entry-type">Generic reader</span>

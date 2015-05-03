@@ -222,6 +222,7 @@
            #:recompute-request-parameters
            #:redirect
            #:referer
+           #:regenerate-session-cookie-value
            #:remote-addr
            #:remote-addr*
            #:remote-port
