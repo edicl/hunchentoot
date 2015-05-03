@@ -2474,7 +2474,16 @@
             =&gt;
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookie
         </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-          Regenerates the session cookie value.
+          Regenerates the session cookie value. This should be used
+          when a user logs in according to the application to prevent
+          against session fixation attacks. The cookie value being
+          dependent on ID, USER-AGENT, REMOTE-ADDR, START, and
+          *SESSION-SECRET*, the only value we can change is START to
+          regenerate a new value. Since we're generating a new cookie,
+          it makes sense to have the session being restarted, in
+          time. That said, because of this fact, calling this function
+          twice in the same second will regenerate twice the same
+          value.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="*rewrite-for-session-urls*"></a>
