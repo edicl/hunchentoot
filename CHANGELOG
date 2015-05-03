@@ -1,3 +1,15 @@
+Version 1.2.32
+2015-05-03
+Adds the session-regenerate-cookie-value function (Florian Margaine)
+Bugfix: using variables within with-accessors (Dmitry Igrishin)
+Added Gitter link (The Gitter Badger)
+Add "charset" property to Content-Type HTTP header (Dmitry Igrishin)
+"Connection: close" on unthreaded builds (Philipp Marek)
+Make the RFC 6585 status constants external (Grim Schjetne)
+Add HTTP status codes described in RFC 6585 (Grim Schjetne)
+Add charset to Content-Type when serving static (Dmitry Igrishin)
+Fix to PROCESS-CONNECTION leaking socket fds (Jussi Lahdenniemi)
+
 Version 1.2.31
 2015-03-06
 Adds HttpOnly and remove cookie on remove-session (Florian MARGAINE)
