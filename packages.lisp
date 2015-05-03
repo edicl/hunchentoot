@@ -222,6 +222,7 @@
            #:recompute-request-parameters
            #:redirect
            #:referer
+           #:regenerate-session-cookie-value
            #:remote-addr
            #:remote-addr*
            #:remote-port
@@ -268,7 +269,6 @@
            #:session-user-agent
            #:session-value
            #:session-verify
-           #:session-regenerate-cookie-value
            #:set-cookie
            #:set-cookie*
            #:shutdown

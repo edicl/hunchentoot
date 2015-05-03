@@ -2467,6 +2467,16 @@
           <code><a href="#*acceptor*">*ACCEPTOR*</a></code>.
         </clix:description></blockquote></p>
 
+      <p xmlns=""><a class="none" name="regenerate-session-cookie-value"></a>
+          [Function]
+          <br><b>regenerate-session-cookie-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookie
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Regenerates the session cookie value.
+        </clix:description></blockquote></p>
+
       <p xmlns=""><a class="none" name="*rewrite-for-session-urls*"></a>
       [Special variable]
       <br><b>*rewrite-for-session-urls*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
@@ -2591,17 +2601,6 @@
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">universal-time
         </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           The time this session was started.
-        </clix:description></blockquote></p>
-
-      <p xmlns=""><a class="none" name="session-regenerate-cookie-value"></a>
-          [Generic function]
-          <br><b>session-regenerate-cookie-value</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">session
-        </clix:lambda-list></i>
-            =&gt;
-            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">cookie
-        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-          Regenerates the session cookie value. Because of technical limitations,
-          this function should not be called twice in the same second.
         </clix:description></blockquote></p>
 
     
@@ -3990,6 +3989,9 @@ start and test an https server instead.)
 <code><a href="#referer">referer</a></code><span class="entry-type">Function</span>
 </li>
 <li>
+<code><a href="#regenerate-session-cookie-value">regenerate-session-cookie-value</a></code><span class="entry-type">Function</span>
+</li>
+<li>
 <code><a href="#remote-addr">remote-addr</a></code><span class="entry-type">Generic reader</span>
 </li>
 <li>
@@ -4093,9 +4095,6 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#session-max-time">session-max-time</a></code><span class="entry-type">Generic accessor</span>
-</li>
-<li>
-<code><a href="#session-regenerate-cookie-value">session-regenerate-cookie-value</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#session-remote-addr">session-remote-addr</a></code><span class="entry-type">Generic function</span>

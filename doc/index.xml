@@ -2573,6 +2573,16 @@
         </clix:description>
       </clix:function>
 
+      <clix:function name='regenerate-session-cookie-value'>
+        <clix:lambda-list>session
+        </clix:lambda-list>
+        <clix:returns>cookie
+        </clix:returns>
+        <clix:description>
+          Regenerates the session cookie value.
+        </clix:description>
+      </clix:function>
+
       <clix:special-variable name='*rewrite-for-session-urls*'>
         <clix:description>
           Whether HTML pages should possibly be rewritten for cookie-less
@@ -2695,17 +2705,6 @@
         </clix:returns>
         <clix:description>
           The time this session was started.
-        </clix:description>
-      </clix:function>
-
-      <clix:function generic='true' name='session-regenerate-cookie-value'>
-        <clix:lambda-list>session
-        </clix:lambda-list>
-        <clix:returns>cookie
-        </clix:returns>
-        <clix:description>
-          Regenerates the session cookie value. Because of technical limitations,
-          this function should not be called twice in the same second.
         </clix:description>
       </clix:function>
 
