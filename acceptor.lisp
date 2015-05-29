@@ -237,7 +237,9 @@ is returned either some thread has called STOP, or some thread's call
 to START hasn't finished or START was never called at all for
 ACCEPTOR.")
   (:method (acceptor)
-    (and (acceptor-listen-socket acceptor) t)))
+    #-lispworks (and (acceptor-listen-socket acceptor) t)
+    #+lispworks (not (acceptor-shutdown-p acceptor))
+    ))
 
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
