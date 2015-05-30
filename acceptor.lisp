@@ -238,8 +238,7 @@ to START hasn't finished or START was never called at all for
 ACCEPTOR.")
   (:method (acceptor)
     #-lispworks (and (acceptor-listen-socket acceptor) t)
-    #+lispworks (not (acceptor-shutdown-p acceptor))
-    ))
+    #+lispworks (not (acceptor-shutdown-p acceptor))))
 
 (defgeneric start-listening (acceptor)
   (:documentation "Sets up a listen socket for the given ACCEPTOR and
