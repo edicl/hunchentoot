@@ -278,6 +278,15 @@ alist or NIL if there was no data or the data could not be parsed."
       (log-message* :error "While parsing multipart/form-data parameters: ~A" condition)
       nil)))
 
+(defun valid-external-format-name-p (name)
+  "Check that NAME matches a symbol that
+`flexi-streams:make-external-format' will accept, and return this
+symbol as a generalized boolean."
+  (or (cdr (find name flex::+name-map+ :test (lambda (item pair)
+                                               (or (string-equal item (cdr pair))
+                                                   (string-equal item (car pair))))))
+      (car (assoc name flex::+shortcut-map+ :test #'string-equal))))
+
 (defun maybe-read-post-parameters (&key (request *request*) force external-format)
   "Make surce that any POST parameters in the REQUEST are parsed.  The
 body of the request must be either application/x-www-form-urlencoded
@@ -305,7 +314,8 @@ no Content-Length header and input chunking is off.")
           (let ((external-format (or external-format
                                      (when charset
                                        (handler-case
-                                           (make-external-format charset :eol-style :lf)
+                                           (make-external-format (valid-external-format-name-p charset)
+                                                                 :eol-style :lf)
                                          (error ()
                                            (hunchentoot-warn "Ignoring ~
 unknown character set ~A in request content type."
