@@ -332,42 +332,44 @@ if you want to maintain your own sessions."))
                  (stringp session-identifier)
                  (plusp (length session-identifier)))
       (return-from session-verify nil))
-    (destructuring-bind (id-string session-string)
-        (split ":" session-identifier :limit 2)
-      (let* ((id (parse-integer id-string))
-             (session (get-stored-session id))
-             (user-agent (user-agent request))
-             (remote-addr (remote-addr request)))
-        (cond
-         ((and session
-               (string= session-string
-                        (session-string session))
-               (string= session-string
-                        (encode-session-string id
-                                               user-agent
-                                               (real-remote-addr request)
-                                               (session-start session))))
-          ;; the session key presented by the client is valid
-          (setf (slot-value session 'last-click) (get-universal-time))
-          session)
-         (session
-          ;; the session ID pointed to an existing session, but the
-          ;; session string did not match the expected session string
-          (log-message* :warning
-                        "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                        session-identifier user-agent remote-addr)
-          ;; remove the session to make sure that it can't be used
-          ;; again; the original legitimate user will be required to
-          ;; log in again
-          (remove-session session)
-          nil)
-         (t
-          ;; no session was found under the ID given, presumably
-          ;; because it has expired.
-          (log-message* :info
-                        "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
-                        session-identifier user-agent remote-addr)
-          nil))))))
+    (multiple-value-bind (well-formed parts)
+        (scan-to-strings "^([0-9]+):([0-9a-fA-F]+)$" session-identifier)
+      (when well-formed
+        (let* ((id (parse-integer (aref parts 0)))
+               (session-string (aref parts 1))
+               (session (get-stored-session id))
+               (user-agent (user-agent request))
+               (remote-addr (remote-addr request)))
+          (cond
+            ((and session
+                  (string= session-string
+                           (session-string session))
+                  (string= session-string
+                           (encode-session-string id
+                                                  user-agent
+                                                  (real-remote-addr request)
+                                                  (session-start session))))
+             ;; the session key presented by the client is valid
+             (setf (slot-value session 'last-click) (get-universal-time))
+             session)
+            (session
+             ;; the session ID pointed to an existing session, but the
+             ;; session string did not match the expected session string
+             (log-message* :warning
+                           "Fake session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                           session-identifier user-agent remote-addr)
+             ;; remove the session to make sure that it can't be used
+             ;; again; the original legitimate user will be required to
+             ;; log in again
+             (remove-session session)
+             nil)
+            (t
+             ;; no session was found under the ID given, presumably
+             ;; because it has expired.
+             (log-message* :info
+                           "No session for session identifier '~A' (User-Agent: '~A', IP: '~A')"
+                           session-identifier user-agent remote-addr)
+             nil)))))))
 
 (defun reset-session-secret ()
   "Sets *SESSION-SECRET* to a new random value. All old sessions will
