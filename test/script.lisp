@@ -71,11 +71,12 @@ expecting certain responses."
       (http-assert-body "(?i)\(HUNCHENTOOT-TEST::BAR . &quot;DEF&quot;\)"))
 
     (say "Test malformed session cookie validation")
-    (http-request "session.html"
-                  :additional-headers '(("Cookie" . "hunchentoot-session=malformed:session-id")))
-    (http-assert 'status-code 200)
-    ;; session is empty
-    (http-assert-body "(?i)\(HUNCHENTOOT-TEST::FOO\)")
+    (dolist (session-id '("" "invalid-session-id" ":invalid-session-id" "invalid:session-id"))
+      (http-request "session.html"
+                    :additional-headers (acons "Cookie" (format nil "hunchentoot-session=~A" session-id) nil))
+      (http-assert 'status-code 200)
+      ;; session is empty
+      (http-assert-body "(?i)\(HUNCHENTOOT-TEST::FOO\)"))
 
     (say "Test GET parameters with foreign characters (Latin-1)")
     (http-request "parameter_latin1_get.html"
