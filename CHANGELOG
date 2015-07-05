@@ -1,3 +1,9 @@
+Version 1.2.33
+2015-07-05
+Ignore malformed session IDs (Hans Huebner)
+prevent failures when session cookie is malformed (Andrey Kutejko)
+correct started-p for lispworks (LinkFly)
+
 Version 1.2.32
 2015-05-03
 Adds the session-regenerate-cookie-value function (Florian Margaine)
