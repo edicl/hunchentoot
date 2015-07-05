@@ -72,7 +72,7 @@ expecting certain responses."
 
     (say "Test malformed session cookie validation")
     (http-request "session.html"
-                  :additional-headers '(("Cookie" . "hunchentoot-session=malformed-session-id")))
+                  :additional-headers '(("Cookie" . "hunchentoot-session=malformed:session-id")))
     (http-assert 'status-code 200)
     ;; session is empty
     (http-assert-body "(?i)\(HUNCHENTOOT-TEST::FOO\)")
