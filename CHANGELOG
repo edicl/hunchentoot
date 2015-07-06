@@ -1,3 +1,7 @@
+Version 1.2.34
+2015-07-06
+decode URL considering content-type's charset (Tim Richardt)
+
 Version 1.2.33
 2015-07-05
 Ignore malformed session IDs (Hans Huebner)
