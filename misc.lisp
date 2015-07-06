@@ -195,7 +195,7 @@ the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
 determine the content type via the file's suffix."
   ;; the dispatcher
   (lambda (request)
-    (when (equal (script-name request) uri)
+    (when (string= (script-name request) uri)
       ;; the handler
       (lambda ()
         (handle-static-file path content-type)))))
