@@ -120,7 +120,7 @@ WRITE-THROUGH is true.  On EOF the string read so far is returned."
                                   ;; OFFSETS
                                   do (push (cons (char string (- mismatch i))
                                                  (1+ (- mismatch i)))
-                                           (svref offsets i))
+                                           (svref offsets mismatch))
                                   finally (return offsets))))))
          (collector (or skip
                         (make-array 0
