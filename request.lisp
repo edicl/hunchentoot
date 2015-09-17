@@ -139,7 +139,7 @@ supposed to be of content type 'multipart/form-data'."
                            "NAME"
                            (rfc2388:header-parameters content-disposition-header)))
           when name
-          collect (cons name
+          collect (cons (convert-hack name external-format)
                         (let ((contents (rfc2388:mime-part-contents part)))
                           (if (pathnamep contents)
                             (list contents
