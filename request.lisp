@@ -603,7 +603,7 @@ REQUEST."
 If DROP-PREFIX is given, pathname construction starts at the first path
 segment after the prefix.
 "
-  (let ((path (url-decode (script-name request))))
+  (let ((path (script-name request)))
     (if drop-prefix
         (when (starts-with-p path drop-prefix)
           (parse-path (subseq path (length drop-prefix))))
