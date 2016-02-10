@@ -1,3 +1,9 @@
+Version 1.2.35
+2016-02-10
+Avoid double URL decoding, reported by muyinliu (Hans Huebner)
+Remove a duplicate word in the documentation (William Halliburton)
+Call convert-hack in name also (José Ronquillo Rivera)
+
 Version 1.2.34
 2015-07-06
 decode URL considering content-type's charset (Tim Richardt)
