@@ -93,7 +93,7 @@
         <a href="http://weitz.de/chunga/">Chunga</a> (1.0.0 or
         higher), and <a href="http://weitz.de/cl-ppcre/">
         CL-PPCRE</a> (plus
-        <a href="http://weitz.de/cl-who/">CL-WHO</a> for the <a href="#start">example code</a>
+        <a href="http://weitz.de/cl-who/">CL-WHO</a> for the <a href="#teen-age">example code</a>
         and <a href="http://weitz.de/drakma/">Drakma</a> for the <a href="#testing">tests</a>).
       </li>
     </ul>
@@ -193,9 +193,9 @@
     </p>
   </clix:chapter>
 
-  <clix:chapter name="start" title="Your own webserver (the easy teen-age New York version)">
+  <clix:chapter name="teen-age" title="Your own webserver (the easy teen-age New York version)">
     Starting your own web server is pretty easy.  Do something like this:
-<pre>(hunchentoot:<a class="noborder" href="#start">start</a> (make-instance 'hunchentoot:<a class="noborder" href="#acceptor">easy-acceptor</a> :port 4242))</pre>
+<pre>(hunchentoot:<a class="noborder" href="#teen-age">start</a> (make-instance 'hunchentoot:<a class="noborder" href="#acceptor">easy-acceptor</a> :port 4242))</pre>
     That's it.  Now you should be able to enter the address
     "<a href='http://127.0.0.1:4242/'><code>http://127.0.0.1:4242/</code></a>" in
     your browser and see something, albeit nothing very interesting
@@ -296,7 +296,7 @@
     <clix:subchapter name="acceptors" title="Acceptors">
 
       If you want Hunchentoot to actually do something, you have to create and
-      <a href="#start">start</a> an <a href="#acceptor">acceptor</a>.
+      <a href="#teen-age">start</a> an <a href="#acceptor">acceptor</a>.
       You can also run several acceptors in one image, each one
       listening on a different different port.
 
@@ -3471,7 +3471,7 @@
     machines in order to verify a new Hunchentoot (or, for that matter
     Drakma) port.
     <p>
-      To run the confidence test, <a href="#start">start
+      To run the confidence test, <a href="#teen-age">start
       the example web server</a>.  Then, in your Lisp
       listener, type
 <pre>(<a class="noborder" href="hunchentoot-test:test-hunchentoot">hunchentoot-test:test-hunchentoot</a> "http://localhost:4242")</pre>
