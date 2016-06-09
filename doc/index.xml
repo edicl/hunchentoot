@@ -1106,14 +1106,17 @@
         functions accepts the request object as its only argument and
         either returns a request handler to handle the request or
         <code>NIL</code> which means that the next dispatcher in the
-        list will be tried.  If all dispatch functions return
+        list will be tried. A <em>request handler</em> is a function
+        of zero arguments which relies on the special variable
+        <clix:ref>*REQUEST*</clix:ref> to access the request instance
+        being serviced. If all dispatch functions return
         <code>NIL</code>, the next
         <clix:ref>ACCEPTOR-DISPATCH-REQUEST</clix:ref> will be called.
       </p>
       <p>
-        All functions and variables in this section are related to the
-        easy request dispatch mechanism and are meaningless if you're
-        using your own request dispatcher.
+        <strong>N.B.</strong> All functions and variables in this
+        section are related to the easy request dispatch mechanism and
+        are meaningless if you're using your own request dispatcher.
       </p>
 
       <clix:class name='easy-acceptor'>
