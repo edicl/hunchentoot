@@ -58,7 +58,11 @@ NIL unconditionally."
                     (char argument 0)))
     (integer (ignore-errors* (parse-integer argument :junk-allowed t)))
     (keyword (as-keyword argument :destructivep nil))
-    (boolean t)
+    (boolean (if (or (equal argument "1")
+                     (string-equal argument "true")
+                     (string-equal argument "t"))
+                  t
+                  nil))
     (otherwise (funcall type argument))))
 
 (defun compute-simple-parameter (parameter-name type parameter-reader)
