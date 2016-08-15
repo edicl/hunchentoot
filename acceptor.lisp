@@ -335,7 +335,8 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 
 #-lispworks
 (defun wake-acceptor-for-shutdown (acceptor)
-  "Dials into the accept loop to wake it from select."
+  "Creates a dummy connection to the acceptor, waking ACCEPT-CONNECTIONS while it is waiting.
+This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
   (handler-case
       (multiple-value-bind (address port) (usocket:get-local-name (acceptor-listen-socket acceptor))
         (let ((conn (usocket:socket-connect address port)))
