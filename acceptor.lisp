@@ -315,7 +315,10 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   acceptor)
 
 (defmethod stop ((acceptor acceptor) &key soft)
-  (setf (acceptor-shutdown-p acceptor) t)
+  (with-lock-held ((acceptor-shutdown-lock acceptor))
+    (setf (acceptor-shutdown-p acceptor) t))
+  #-lispworks
+  (wake-acceptor-for-shutdown acceptor)
   (when soft
     (with-lock-held ((acceptor-shutdown-lock acceptor))
       (when (plusp (accessor-requests-in-progress acceptor))
@@ -329,6 +332,17 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   #+lispworks
   (mp:process-kill (acceptor-process acceptor))
   acceptor)
+
+#-lispworks
+(defun wake-acceptor-for-shutdown (acceptor)
+  "Creates a dummy connection to the acceptor, waking ACCEPT-CONNECTIONS while it is waiting.
+This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
+  (handler-case
+      (multiple-value-bind (address port) (usocket:get-local-name (acceptor-listen-socket acceptor))
+        (let ((conn (usocket:socket-connect address port)))
+          (usocket:socket-close conn)))
+    (error (e)
+      (acceptor-log-message acceptor :error "Wake-for-shutdown connect failed: ~A" e))))
 
 (defmethod initialize-connection-stream ((acceptor acceptor) stream)
  ;; default method does nothing
@@ -550,9 +564,10 @@ catches during request processing."
 (defmethod accept-connections ((acceptor acceptor))
   (usocket:with-server-socket (listener (acceptor-listen-socket acceptor))
     (loop
-     (when (acceptor-shutdown-p acceptor)
-       (return))
-     (when (usocket:wait-for-input listener :ready-only t :timeout +new-connection-wait-time+)
+      (with-lock-held ((acceptor-shutdown-lock acceptor))
+        (when (acceptor-shutdown-p acceptor)
+          (return)))
+      (when (usocket:wait-for-input listener :ready-only t)
        (when-let (client-connection
                   (handler-case (usocket:socket-accept listener)
                     ;; ignore condition

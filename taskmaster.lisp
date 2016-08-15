@@ -348,10 +348,7 @@ implementations."))
 #-:lispworks
 (defmethod shutdown ((taskmaster one-thread-per-connection-taskmaster))
   ;; just wait until the acceptor process has finished, then return
-  (loop
-   (unless (bt:thread-alive-p (acceptor-process taskmaster))
-     (return))
-   (sleep 1))
+  (bt:join-thread (acceptor-process taskmaster))
   taskmaster)
 
 #-:lispworks
