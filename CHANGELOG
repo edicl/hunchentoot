@@ -1,3 +1,10 @@
+Version 1.2.36
+2016-12-08
+Compare on the path-string. (matthieupeeters)
+speed up shutdown and avoid timeout on the listening socket (Felix Lange)
+clarify definition of handler function (Robert Smith)
+[doc] fix ID clash in index.xml (Alex Dunn)
+
 Version 1.2.35
 2016-02-10
 Avoid double URL decoding, reported by muyinliu (Hans Huebner)

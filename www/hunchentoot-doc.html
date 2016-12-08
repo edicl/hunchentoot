@@ -164,7 +164,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.35.
+      The current version is 1.2.36.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -1089,14 +1089,17 @@
         functions accepts the request object as its only argument and
         either returns a request handler to handle the request or
         <code>NIL</code> which means that the next dispatcher in the
-        list will be tried.  If all dispatch functions return
+        list will be tried. A <em>request handler</em> is a function
+        of zero arguments which relies on the special variable
+        <code xmlns=""><a href="#*request*">*REQUEST*</a></code> to access the request instance
+        being serviced. If all dispatch functions return
         <code>NIL</code>, the next
         <code xmlns=""><a href="#acceptor-dispatch-request">ACCEPTOR-DISPATCH-REQUEST</a></code> will be called.
       </p>
       <p>
-        All functions and variables in this section are related to the
-        easy request dispatch mechanism and are meaningless if you're
-        using your own request dispatcher.
+        <strong>N.B.</strong> All functions and variables in this
+        section are related to the easy request dispatch mechanism and
+        are meaningless if you're using your own request dispatcher.
       </p>
 
       <p xmlns=""><a class="none" name="easy-acceptor"></a>
