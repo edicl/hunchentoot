@@ -44,7 +44,9 @@
          :reader acceptor-port
          :documentation "The port the acceptor is listening on.  The
 default is 80.  Note that depending on your operating system you might
-need special privileges to listen on port 80.")
+need special privileges to listen on port 80.
+
+A random free port may be selected using port 0.")
    (address :initarg :address
             :reader acceptor-address
             :documentation "The address the acceptor is listening on.
@@ -561,6 +563,11 @@ catches during request processing."
   (values))
 
 #-:lispworks
+(defmethod start-listening :after ((acceptor acceptor))
+  (when (zerop (acceptor-port acceptor))
+    (setf (slot-value acceptor 'port) (usocket:get-local-port (acceptor-listen-socket acceptor)))))
+
+#-:lispworks
 (defmethod accept-connections ((acceptor acceptor))
   (usocket:with-server-socket (listener (acceptor-listen-socket acceptor))
     (loop
@@ -589,11 +596,16 @@ catches during request processing."
                                                   (or (acceptor-address acceptor) "*")
                                                   (acceptor-port acceptor))
                             ;; this function is called once on startup - we
-                            ;; use it to check for errors
+                            ;; use it to check for errors and random port
                             :announce (lambda (socket &optional condition)
-                                        (declare (ignore socket))
                                         (when condition
-                                          (error condition)))
+                                          (error condition))
+                                        (when (or (null (acceptor-port acceptor))
+                                                  (zerop (acceptor-port acceptor)))
+                                          (multiple-value-bind (address port)
+                                              (comm:get-socket-address socket)
+                                            (declare (ignore address))
+                                            (setf (slot-value acceptor 'port) port))))
                             ;; this function is called whenever a connection
                             ;; is made
                             :function (lambda (handle)
