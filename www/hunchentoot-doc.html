@@ -164,7 +164,7 @@
       Hunchentoot itself together with this documentation can be
       downloaded from
       <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      The current version is 1.2.36.
+      The current version is 1.2.37.
     </p>
     <p>
       The preferred method to compile and load Hunchentoot is via <a href="http://www.cliki.net/asdf">ASDF</a>.  If you want to avoid
@@ -343,10 +343,17 @@
           function <code><a href="#start">START</a></code> to start it (and
           <code><a href="#stop">STOP</a></code> to stop it).  Use the
           <code xmlns="http://www.w3.org/1999/xhtml">:port</code> initarg if you don't want to listen
-          on the default http port 80.  There are other initargs most
-          of which you probably won't need very often.  They are
-          explained in detail in the docstrings of the slot
-          definitions for this class.
+          on the default http port 80.  If 0 is specified for the
+          port, the system chooses a random port to listen on.  The
+          port number choosen can be retrieved using the
+          <code><a href="#acceptor-port">ACCEPTOR-PORT</a></code> accessor.  The port
+          number chosen is retained across stopping and starting the
+          acceptor.
+          <p xmlns="http://www.w3.org/1999/xhtml">
+            There are other initargs most of which you probably
+            won't need very often.  They are explained in detail
+            in the docstrings of the slot definitions.
+          </p>
           <p xmlns="http://www.w3.org/1999/xhtml">
             Unless you are in a Lisp without MP capabilities, you can
             have several active instances of
