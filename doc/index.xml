@@ -307,10 +307,17 @@
           function <clix:ref>START</clix:ref> to start it (and
           <clix:ref>STOP</clix:ref> to stop it).  Use the
           <code>:port</code> initarg if you don&#039;t want to listen
-          on the default http port 80.  There are other initargs most
-          of which you probably won&#039;t need very often.  They are
-          explained in detail in the docstrings of the slot
-          definitions for this class.
+          on the default http port 80.  If 0 is specified for the
+          port, the system chooses a random port to listen on.  The
+          port number choosen can be retrieved using the
+          <clix:ref>ACCEPTOR-PORT</clix:ref> accessor.  The port
+          number chosen is retained across stopping and starting the
+          acceptor.
+          <p>
+            There are other initargs most of which you probably
+            won&#039;t need very often.  They are explained in detail
+            in the docstrings of the slot definitions.
+          </p>
           <p>
             Unless you are in a Lisp without MP capabilities, you can
             have several active instances of
