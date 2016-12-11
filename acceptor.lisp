@@ -44,9 +44,8 @@
          :reader acceptor-port
          :documentation "The port the acceptor is listening on.  The
 default is 80.  Note that depending on your operating system you might
-need special privileges to listen on port 80.
-
-A random free port may be selected using port 0.")
+need special privileges to listen on port 80.  When 0, the port will be
+chosen by the system the first time the acceptor is started.")
    (address :initarg :address
             :reader acceptor-address
             :documentation "The address the acceptor is listening on.
