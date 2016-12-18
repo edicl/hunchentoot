@@ -153,47 +153,46 @@ had returned RESULT.  See the source code of REDIRECT for an example."
 denoted by PATHNAME.  Sends a content type header corresponding to
 CONTENT-TYPE or \(if that is NIL) tries to determine the content type
 via the file's suffix."
-  (flet ((abort-request-with-error (http-status)
+  (flet ((abort-request (http-status)
            (setf (return-code*) http-status)
            (abort-request-handler)))
-    (handler-case
-        (let ((time (or (file-write-date pathname)
-                        (get-universal-time))))
-          (unless content-type
-            (setf content-type (or (mime-type pathname)
-                                   "application/octet-stream")))
+    (let ((time (or (handler-case (file-write-date pathname)
+                      (file-error ()
+                        (abort-request +http-not-found+)))
+                    (get-universal-time))))
+      (unless content-type
+        (setf content-type (or (mime-type pathname)
+                               "application/octet-stream")))
 
-          (setf (content-type*)
-                (maybe-add-charset-to-content-type-header content-type
-                                                          (reply-external-format*))
-                (header-out :last-modified) (rfc-1123-date time)
-                (header-out :accept-ranges) "bytes")
+      (setf (content-type*)
+            (maybe-add-charset-to-content-type-header content-type
+                                                      (reply-external-format*))
+            (header-out :last-modified) (rfc-1123-date time)
+            (header-out :accept-ranges) "bytes")
+      ;; If file does not modified since "time",
+      ;; short-circuit the send of file content.
+      (handle-if-modified-since time)
+      ;; Otherwise tries truly send the file.
+      (with-open-file (file pathname
+                            :element-type 'octet
+                            :if-does-not-exist nil)
+        (unless file
+          (abort-request +http-not-found+))
 
-          ;; If static file does not modified since "time",
-          ;; short-circuit the send of file content.
-          (handle-if-modified-since time)
+        (let ((out (send-headers))
+              (bytes-to-send (maybe-handle-range-header file)))
+          (setf (content-length*) bytes-to-send)
 
-          (with-open-file (file pathname :element-type 'octet)
-            (let ((out (send-headers))
-                  (bytes-to-send (maybe-handle-range-header file)))
-              (setf (content-length*) bytes-to-send)
-
-              (loop
-                 with buf = (make-array +buffer-length+ :element-type 'octet)
-                 until (zerop bytes-to-send)
-                 do
-                   (let* ((chunk-size (min +buffer-length+ bytes-to-send))
-                          (position (read-sequence buf file :end chunk-size)))
-                     (assert (= position chunk-size))
-                     (write-sequence buf out :end chunk-size)
-                     (decf bytes-to-send chunk-size))
-                 finally (finish-output out)))))
-
-      (file-error ()
-        ;; Handler for FILE-WRITE-DATE, WITH-OPEN-FILE.
-        (abort-request-with-error +http-not-found+))
-      (condition ()
-        (abort-request-with-error +http-internal-server-error+)))))
+          (loop
+             with buf = (make-array +buffer-length+ :element-type 'octet)
+             until (zerop bytes-to-send)
+             do
+               (let* ((chunk-size (min +buffer-length+ bytes-to-send))
+                      (position (read-sequence buf file :end chunk-size)))
+                 (assert (= position chunk-size))
+                 (write-sequence buf out :end chunk-size)
+                 (decf bytes-to-send chunk-size))
+             finally (finish-output out)))))))
 
 (defun create-static-file-dispatcher-and-handler (uri path &optional content-type)
   "Creates and returns a request dispatch function which will dispatch
