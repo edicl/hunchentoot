@@ -156,11 +156,11 @@ via the file's suffix."
   (flet ((abort-request (http-status)
            (setf (return-code*) http-status)
            (abort-request-handler)))
-    (unless (probe-file pathname)
-      (abort-request +http-not-found+))
-    ;; If pathname has wildcard components FILE-WRITE-DATE signals
+    ;; If pathname has wildcard components PROBE-FILE signals
     ;; the FILE-ERROR. Thus, it's considered as a kind of HTTP
     ;; "Internal Server Error", rather than HTTP "Not Found".
+    (unless (probe-file pathname)
+      (abort-request +http-not-found+))
     (let ((time (or (file-write-date pathname)
                     (get-universal-time))))
       (unless content-type
