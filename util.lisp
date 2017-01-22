@@ -149,6 +149,23 @@ called from the RFC2388 library when a file is uploaded."
         (funcall *file-upload-hook* tmp-file-name))
       tmp-file-name)))
 
+(defun make-upload-filename-generator ()
+  "Based on the value of *upload-filename-generator*, arrange
+for a suitable filename generator to be used by RFC2388 library
+when a file is being uploaded."
+  (etypecase *upload-filename-generator* 
+    ;; the old behaviour.
+    (null (lambda (&rest args)
+            (declare (ignore args))
+            (funcall #'make-tmp-file-name)))
+    ;; the new additional behaviour.
+    ((or symbol function) 
+     (lambda (&rest args)
+       (let ((filename (apply *upload-filename-generator* args :allow-other-keys t)))
+         (when *file-upload-hook*
+           (funcall *file-upload-hook* filename))
+         filename)))))
+
 (defun quote-string (string)
   "Quotes string according to RFC 2616's definition of `quoted-string'."
   (with-output-to-string (out)

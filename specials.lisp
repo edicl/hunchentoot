@@ -262,6 +262,15 @@ the debugger).")
 (defvar *tmp-files* nil
   "A list of temporary files created while a request was handled.")
 
+(defparameter *upload-filename-generator* nil
+  "This is used to control how filename generation for the files
+being uploaded. It defaults to NIL in which case the internal
+filename generator will be used. It can also be a SYMBOL (designating
+a function) or a Function, in both cases the function should have
+signature of (&key file-name field-name content-type), and should
+return a filename to be used by the server to which uploaded content
+is written.")
+
 (defconstant +latin-1+
   (make-external-format :latin1 :eol-style :lf)
   "A FLEXI-STREAMS external format used for `faithful' input and
