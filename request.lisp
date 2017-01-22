@@ -306,7 +306,9 @@ no Content-Length header and input chunking is off.")
           (let ((external-format (or external-format
                                      (when charset
                                        (handler-case
-                                           (make-external-format charset :eol-style :lf)
+                                           (make-external-format
+                                            (intern (string-upcase charset) :keyword)
+                                            :eol-style :lf)
                                          (error ()
                                            (hunchentoot-warn "Ignoring ~
 unknown character set ~A in request content type."
@@ -340,7 +342,7 @@ during the request."
   (setf (slot-value request 'get-parameters)
         (form-url-encoded-list-to-alist (split "&" (query-string request)) external-format))
   (values))
-                                                
+
 (defun script-name* (&optional (request *request*))
   "Returns the file name of the REQUEST object REQUEST. That's the
 requested URI without the query string \(i.e the GET parameters)."
