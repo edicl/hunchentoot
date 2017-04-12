@@ -239,7 +239,7 @@ it'll be the content type used for all files in the folder."
                              (add-session-id (not (or host-provided-p
                                                       (starts-with-scheme-p target)
                                                       (cookie-in (session-cookie-name *acceptor*)))))
-                             (code +http-moved-temporarily+))
+                             code)
   "Redirects the browser to TARGET which should be a string.  If
 TARGET is a full URL starting with a scheme, HOST, PORT and PROTOCOL
 are ignored.  Otherwise, TARGET should denote the path part of a URL,
@@ -247,8 +247,9 @@ PROTOCOL must be one of the keywords :HTTP or :HTTPS, and the URL to
 redirect to will be constructed from HOST, PORT, PROTOCOL, and TARGET.
 Adds a session ID if ADD-SESSION-ID is true.  If CODE is a 3xx
 redirection code, it will be sent as status code."
-  (check-type code (integer 300 399))
-  (let ((url (if (starts-with-scheme-p target)
+  (check-type code (or null (integer 300 399)))
+  (let* ((code (or code +http-moved-temporarily+))
+         (url (if (starts-with-scheme-p target)
                target
                (format nil "~A://~A~@[:~A~]~A"
                        (ecase protocol
