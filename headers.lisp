@@ -256,16 +256,15 @@ protocol of the request."
          (when *header-stream*
            (format *header-stream* "~A~%" first-line))
          (let ((headers (and protocol (read-http-headers stream *header-stream*))))
-           (unless protocol (setq protocol "HTTP/0.9"))
            ;; maybe handle 'Expect: 100-continue' header
            (when-let (expectations (cdr (assoc* :expect headers)))
              (when (member "100-continue" (split "\\s*,\\s*" expectations) :test #'equalp)
                ;; according to 14.20 in the RFC - we should actually
                ;; check if we have to respond with 417 here
                (let ((continue-line
-                      (format nil "HTTP/1.1 ~D ~A"
-                              +http-continue+
-                              (reason-phrase +http-continue+))))
+                       (format nil "HTTP/1.1 ~D ~A"
+                               +http-continue+
+                               (reason-phrase +http-continue+))))
                  (write-sequence (map 'list #'char-code continue-line) stream)
                  (write-sequence +crlf+ stream)
                  (write-sequence +crlf+ stream)
@@ -275,4 +274,6 @@ protocol of the request."
            (values headers
                    (as-keyword method)
                    url-string
-                   (as-keyword (trim-whitespace protocol)))))))))
+                   (if protocol
+                       (as-keyword (trim-whitespace protocol))
+                       :http/0.9))))))))
