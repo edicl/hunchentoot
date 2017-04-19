@@ -256,7 +256,9 @@ protocol of the request."
          (when *header-stream*
            (format *header-stream* "~A~%" first-line))
          (let ((headers (and protocol (read-http-headers stream *header-stream*))))
-           (unless protocol (setq protocol "HTTP/0.9"))
+           ;; the call to as-keyword below mutates this string,
+           ;; so we call format to get a mutable string in clisp
+           (unless protocol (setq protocol (format nil "HTTP/0.9")))
            ;; maybe handle 'Expect: 100-continue' header
            (when-let (expectations (cdr (assoc* :expect headers)))
              (when (member "100-continue" (split "\\s*,\\s*" expectations) :test #'equalp)
