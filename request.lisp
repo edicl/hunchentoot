@@ -587,7 +587,7 @@ REQUEST."
   any directory traversals or explicit device or host fields.  Returns
   NIL if the path is not acceptable."
   (when (every #'graphic-char-p path)
-    (let* ((pathname (make-pathname :name (remove #\\ (regex-replace "^/*" path ""))))
+    (let* ((pathname (pathname (remove #\\ (regex-replace "^/*" path ""))))
            (directory (pathname-directory pathname)))
       (when (and (or (null (pathname-host pathname))
                      (equal (pathname-host pathname) (pathname-host *default-pathname-defaults*)))
