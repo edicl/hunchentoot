@@ -153,39 +153,46 @@ had returned RESULT.  See the source code of REDIRECT for an example."
 denoted by PATHNAME.  Sends a content type header corresponding to
 CONTENT-TYPE or \(if that is NIL) tries to determine the content type
 via the file's suffix."
-  (when (or (wild-pathname-p pathname)
-            (not (fad:file-exists-p pathname))
-            (fad:directory-exists-p pathname))
-    ;; file does not exist
-    (setf (return-code*) +http-not-found+)
-    (abort-request-handler))
-  (unless content-type
-    (setf content-type (mime-type pathname)))
-  (let ((time (or (file-write-date pathname)
-                  (get-universal-time)))
-        bytes-to-send)
-    (setf (content-type*) (or (and content-type
-                                   (maybe-add-charset-to-content-type-header content-type (reply-external-format*)))
-                              "application/octet-stream")
-          (header-out :last-modified) (rfc-1123-date time)
-          (header-out :accept-ranges) "bytes")
-    (handle-if-modified-since time)
-    (with-open-file (file pathname
-                          :direction :input
-                          :element-type 'octet)
-      (setf bytes-to-send (maybe-handle-range-header file)
-            (content-length*) bytes-to-send)
-      (let ((out (send-headers))
-            (buf (make-array +buffer-length+ :element-type 'octet)))
-        (loop
-           (when (zerop bytes-to-send)
-             (return))
-           (let* ((chunk-size (min +buffer-length+ bytes-to-send)))
-             (unless (eql chunk-size (read-sequence buf file :end chunk-size))
-               (error "can't read from input file"))
-             (write-sequence buf out :end chunk-size)
-             (decf bytes-to-send chunk-size)))
-        (finish-output out)))))
+  (flet ((abort-request (http-status)
+           (setf (return-code*) http-status)
+           (abort-request-handler)))
+    ;; If pathname has wildcard components PROBE-FILE signals
+    ;; the FILE-ERROR. Thus, it's considered as a kind of HTTP
+    ;; "Internal Server Error", rather than HTTP "Not Found".
+    (unless (probe-file pathname)
+      (abort-request +http-not-found+))
+    (let ((time (or (file-write-date pathname)
+                    (get-universal-time))))
+      (unless content-type
+        (setf content-type (or (mime-type pathname)
+                               "application/octet-stream")))
+      (setf (content-type*)
+            (maybe-add-charset-to-content-type-header content-type
+                                                      (reply-external-format*))
+            (header-out :last-modified) (rfc-1123-date time)
+            (header-out :accept-ranges) "bytes")
+      ;; If file does not modified since "time",
+      ;; short-circuit the send of file content;
+      (handle-if-modified-since time)
+      ;; otherwise tries truly send the file.
+      (with-open-file (file pathname
+                            :element-type 'octet
+                            :if-does-not-exist nil)
+        (unless file
+          (abort-request +http-not-found+))
+        (let ((out (send-headers))
+              (bytes-to-send (maybe-handle-range-header file)))
+          (setf (content-length*) bytes-to-send)
+          (loop
+             with buf = (make-array +buffer-length+ :element-type 'octet)
+             until (zerop bytes-to-send)
+             do
+               (let* ((chunk-size (min +buffer-length+ bytes-to-send))
+                      (position (read-sequence buf file :end chunk-size)))
+                 (assert (= position chunk-size))
+                 (write-sequence buf out :end chunk-size)
+                 (decf bytes-to-send chunk-size))
+             finally (finish-output out)))))))
 
 (defun create-static-file-dispatcher-and-handler (uri path &optional content-type)
   "Creates and returns a request dispatch function which will dispatch
