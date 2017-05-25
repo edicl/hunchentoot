@@ -587,15 +587,27 @@ REQUEST."
   any directory traversals or explicit device or host fields.  Returns
   NIL if the path is not acceptable."
   (when (every #'graphic-char-p path)
-    (let* ((pathname (pathname (remove #\\ (regex-replace "^/*" path ""))))
+    (let* ((pathname (#+sbcl sb-ext:parse-native-namestring
+                      #+ccl ccl:native-to-pathname
+                      ;; Just disallow anything with :wild components later.
+                      #-(or ccl sbcl) parse-namestring
+                      (remove #\\ (regex-replace "^/*" path ""))))
            (directory (pathname-directory pathname)))
       (when (and (or (null (pathname-host pathname))
-                     (equal (pathname-host pathname) (pathname-host *default-pathname-defaults*)))
+                     (equal (pathname-host pathname)
+                            (pathname-host *default-pathname-defaults*)))
                  (or (null (pathname-device pathname))
-                     (equal (pathname-device pathname) (pathname-device *default-pathname-defaults*)))
+                     (equal (pathname-device pathname)
+                            (pathname-device *default-pathname-defaults*)))
                  (or (null directory)
                      (and (eql (first directory) :relative)
-                          (every #'stringp (rest directory))))) ; only string components, no :UP traversals
+                          ;; only string components, no :UP traversals or :WILD
+                          (every #'stringp (rest directory))))
+                 #-(or sbcl ccl) ;; parse-native-namestring should handle this
+                 (and
+                  (typep (pathname-name pathname) '(or null string)) ; no :WILD
+                  (typep (pathname-type pathname) '(or null string)))
+                 (not (equal (file-namestring pathname) "..")))
         pathname))))
 
 (defun request-pathname (&optional (request *request*) drop-prefix)
