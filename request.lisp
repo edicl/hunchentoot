@@ -587,7 +587,8 @@ REQUEST."
   any directory traversals or explicit device or host fields.  Returns
   NIL if the path is not acceptable."
   (when (every #'graphic-char-p path)
-    (let* ((pathname (pathname (remove #\\ (regex-replace "^/*" path ""))))
+    (let* ((pathname #+sbcl (sb-ext:parse-native-namestring (remove #\\ (regex-replace "^/*" path "")))
+                     #-sbcl (pathname (remove #\\ (regex-replace "^/*" path ""))))
            (directory (pathname-directory pathname)))
       (when (and (or (null (pathname-host pathname))
                      (equal (pathname-host pathname) (pathname-host *default-pathname-defaults*)))
