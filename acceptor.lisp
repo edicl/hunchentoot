@@ -573,7 +573,7 @@ catches during request processing."
       (with-lock-held ((acceptor-shutdown-lock acceptor))
         (when (acceptor-shutdown-p acceptor)
           (return)))
-      (when (usocket:wait-for-input listener :ready-only t)
+      (when (usocket:wait-for-input listener :ready-only t :timeout +new-connection-wait-time+)
        (when-let (client-connection
                   (handler-case (usocket:socket-accept listener)
                     ;; ignore condition
