@@ -72,12 +72,12 @@
                (:file "request")
                (:file "session")
                (:file "misc")
-               (:file "easy-handlers")
                (:file "headers")
                (:file "set-timeouts")
                (:file "taskmaster")
                (:file "acceptor")
-               #-:hunchentoot-no-ssl (:file "ssl")))
+               #-:hunchentoot-no-ssl (:file "ssl")
+               (:file "easy-handlers")))
 
 (defsystem :hunchentoot-test
   :description "Self test functionality for the Hunchentoot HTTP server."
