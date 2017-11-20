@@ -309,9 +309,9 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
 
 (defmethod start ((acceptor acceptor))
   (setf (acceptor-shutdown-p acceptor) nil)
-  (start-listening acceptor)
   (let ((taskmaster (acceptor-taskmaster acceptor)))
     (setf (taskmaster-acceptor taskmaster) acceptor)
+    (start-listening acceptor)
     (execute-acceptor taskmaster))
   acceptor)
 
