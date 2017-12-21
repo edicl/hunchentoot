@@ -12,7 +12,8 @@ and without cookies), logging, customizable error handling, and easy
 access to GET and POST parameters sent by the client. It does *not*
 include functionality to programmatically generate HTML output. For
 this task you can use any library you like,
-e.g. [CL-WHO](/edicl/cl-who/) or [HTML-TEMPLATE](/edicl/html-template/).
+e.g. [CL-WHO](https://github.com/edicl/cl-who/) or
+[HTML-TEMPLATE](https://github.com/edicl/html-template/).
 
 Hunchentoot talks with its front-end or with the client over TCP/IP
 sockets and optionally uses multiprocessing to handle several requests
