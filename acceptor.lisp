@@ -391,14 +391,20 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
                                   content-stream
                                   method
                                   uri
+                                  remote
+                                  local
                                   server-protocol)
   "Make a REQUEST instance for the ACCEPTOR, setting up those slots
   that are determined from the SOCKET by calling the appropriate
   socket query functions."
   (multiple-value-bind (remote-addr remote-port)
-      (get-peer-address-and-port socket)
+      (if (remote)
+        (values-list remote)
+        (get-peer-address-and-port socket))
     (multiple-value-bind (local-addr local-port)
-        (get-local-address-and-port socket)
+        (if local
+          (values-list local)
+          (get-local-address-and-port socket))
       (make-instance (acceptor-request-class acceptor)
                      :acceptor acceptor
                      :local-addr local-addr
@@ -427,7 +433,9 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
 (defmethod process-connection ((*acceptor* acceptor) (socket t))
   (let* ((socket-stream (make-socket-stream socket *acceptor*))
          (*hunchentoot-stream*)
-         (*close-hunchentoot-stream* t))
+         (*close-hunchentoot-stream* t)
+         (remote (multiple-value-list (get-peer-address-and-port socket)))
+         (local (multiple-value-list (get-local-address-and-port socket))))
     (unwind-protect
          ;; process requests until either the acceptor is shut down,
          ;; *CLOSE-HUNCHENTOOT-STREAM* has been set to T by the
@@ -464,6 +472,8 @@ chunked encoding, but acceptor is configured to not use it.")))))
                                                               :content-stream *hunchentoot-stream*
                                                               :method method
                                                               :uri url-string
+                                                              :remote remote
+                                                              :local local
                                                               :server-protocol protocol))))
                   (finish-output *hunchentoot-stream*)
                   (setq *hunchentoot-stream* (reset-connection-stream *acceptor* *hunchentoot-stream*))
