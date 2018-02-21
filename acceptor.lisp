@@ -398,13 +398,13 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
   that are determined from the SOCKET by calling the appropriate
   socket query functions."
   (multiple-value-bind (remote-addr remote-port)
-      (if (remote)
-        (values-list remote)
-        (get-peer-address-and-port socket))
+      (if remote
+          (values-list remote)
+          (get-peer-address-and-port socket))
     (multiple-value-bind (local-addr local-port)
         (if local
-          (values-list local)
-          (get-local-address-and-port socket))
+            (values-list local)
+            (get-local-address-and-port socket))
       (make-instance (acceptor-request-class acceptor)
                      :acceptor acceptor
                      :local-addr local-addr
