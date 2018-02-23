@@ -403,6 +403,24 @@
         that will deadlock.
         </clix:description></blockquote></p>
 
+        <p xmlns=""><a class="none" name="started-p"></a>
+          [Generic function]
+          <br><b>started-p</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">acceptor
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean
+            </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">Tells if <code><i>acceptor</i></code> has been started.
+                The default implementation simply queries <code><i>acceptor</i></code>
+                for its listening status, so if T is returned to the calling thread,
+                then some thread has called <code><a href="#start">start</a></code> or
+                some thread's call to <code><a href="#stop">stop</a></code> hasn't
+                finished. If NIL is returned either some thread has called
+                <code><a href="#stop">stop</a></code>, or some thread's call to
+                <code><a href="#start">start</a></code> hasn't finished or
+                <code><a href="#start">start</a></code> was never called at all for
+                <code><i>acceptor</i></code>.
+        </clix:description></blockquote></p>
+
       <p xmlns=""><a class="none" name="*acceptor*"></a>
       [Special variable]
       <br><b>*acceptor*</b><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">The current ACCEPTOR object in the context of a request.

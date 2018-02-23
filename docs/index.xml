@@ -368,6 +368,22 @@
         </clix:description>
       </clix:function>
 
+      <clix:function generic='true' name='started-p'>
+        <clix:lambda-list>acceptor
+        </clix:lambda-list>
+        <clix:returns>generalized-boolean
+        </clix:returns>
+        <clix:description>Tells if <clix:arg>acceptor</clix:arg> has been started.
+        The default implementation simply queries <clix:arg>acceptor</clix:arg>
+        for its listening status, so if T is returned to the calling thread, then
+        some thread has called <clix:ref>start</clix:ref> or some thread's call to
+        <clix:ref>stop</clix:ref> hasn't finished. If NIL is returned either some
+        thread has called <clix:ref>stop</clix:ref>, or some thread's call to
+        <clix:ref>start</clix:ref> hasn't finished or <clix:ref>start</clix:ref>
+        was never called at all for <clix:arg>acceptor</clix:arg>.
+        </clix:description>
+      </clix:function>
+
       <clix:special-variable name='*acceptor*'>
         <clix:description>The current ACCEPTOR object in the context of a request.
         </clix:description>
