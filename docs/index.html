@@ -747,7 +747,7 @@
 (asdf:load-system "drakma")
 
 ;;; Subclass ACCEPTOR
-(defclass vhost (tbnl:acceptor)
+(defclass vhost (hunchentoot:acceptor)
   ;; slots
   ((dispatch-table
     :initform '()
@@ -758,12 +758,12 @@
    :address "127.0.0.1"))               ; because ACCEPTOR uses it
 
 ;;; Specialise ACCEPTOR-DISPATCH-REQUEST for VHOSTs
-(defmethod tbnl:acceptor-dispatch-request ((vhost vhost) request)
+(defmethod hunchentoot:acceptor-dispatch-request ((vhost vhost) request)
   ;; try REQUEST on each dispatcher in turn
   (mapc (lambda (dispatcher)
 	  (let ((handler (funcall dispatcher request)))
 	    (when handler               ; Handler found. FUNCALL it and return result
-	      (return-from tbnl:acceptor-dispatch-request (funcall handler)))))
+	      (return-from hunchentoot:acceptor-dispatch-request (funcall handler)))))
 	(dispatch-table vhost))
   (call-next-method))
 
@@ -776,10 +776,10 @@
 
 ;;; Populate each dispatch table
 (push
- (tbnl:create-prefix-dispatcher "/foo" 'foo1)
+ (hunchentoot:create-prefix-dispatcher "/foo" 'foo1)
  (dispatch-table vhost1))
 (push
- (tbnl:create-prefix-dispatcher "/foo" 'foo2)
+ (hunchentoot:create-prefix-dispatcher "/foo" 'foo2)
  (dispatch-table vhost2))
 
 ;;; Define handlers
@@ -787,8 +787,8 @@
 (defun foo2 () "Goodbye")
 
 ;;; Start VHOSTs
-(tbnl:start vhost1)
-(tbnl:start vhost2)
+(hunchentoot:start vhost1)
+(hunchentoot:start vhost2)
 
 ;;; Make some requests
 (drakma:http-request "http://127.0.0.1:50001/foo")
