@@ -252,7 +252,7 @@ or similar)."))
   (:documentation "In a loop, accepts a connection and hands it over
 to the acceptor's taskmaster for processing using
 HANDLE-INCOMING-CONNECTION.  On LispWorks, this function returns
-immediately, on other Lisps it retusn only once the acceptor has been
+immediately, on other Lisps it returns only once the acceptor has been
 stopped."))
 
 (defgeneric initialize-connection-stream (acceptor stream)
