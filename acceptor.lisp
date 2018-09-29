@@ -132,7 +132,7 @@ connections.")
                         :documentation "A flag that makes the acceptor
 shutdown itself when set to something other than NIL.")
    (requests-in-progress :initform 0
-                         :accessor accessor-requests-in-progress
+                         :accessor acceptor-requests-in-progress
                          :documentation "The number of
 requests currently in progress.")
    (shutdown-queue :initform (make-condition-variable)
@@ -369,11 +369,11 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
 
 (defun do-with-acceptor-request-count-incremented (*acceptor* function)
   (with-lock-held ((acceptor-shutdown-lock *acceptor*))
-    (incf (accessor-requests-in-progress *acceptor*)))
+    (incf (acceptor-requests-in-progress *acceptor*)))
   (unwind-protect
        (funcall function)
     (with-lock-held ((acceptor-shutdown-lock *acceptor*))
-      (decf (accessor-requests-in-progress *acceptor*))
+      (decf (acceptor-requests-in-progress *acceptor*))
       (when (acceptor-shutdown-p *acceptor*)
         (condition-variable-signal (acceptor-shutdown-queue *acceptor*))))))
 
