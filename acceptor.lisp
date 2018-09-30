@@ -322,7 +322,7 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   (wake-acceptor-for-shutdown acceptor)
   (when soft
     (with-lock-held ((acceptor-shutdown-lock acceptor))
-      (when (plusp (accessor-requests-in-progress acceptor))
+      (when (plusp (acceptor-requests-in-progress acceptor))
         (condition-variable-wait (acceptor-shutdown-queue acceptor)
                                  (acceptor-shutdown-lock acceptor)))))
   (shutdown (acceptor-taskmaster acceptor))
