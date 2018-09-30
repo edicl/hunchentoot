@@ -135,6 +135,7 @@
            #:acceptor-remove-session
            #:acceptor-reply-class
            #:acceptor-request-class
+           #:acceptor-requests-in-progress
            #:acceptor-ssl-p
            #-:hunchentoot-no-ssl #:acceptor-ssl-certificate-file               
            #-:hunchentoot-no-ssl #:acceptor-ssl-privatekey-file
