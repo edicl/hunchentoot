@@ -3345,6 +3345,18 @@
         </clix:description>
       </clix:function>
 
+      <clix:function name='ssl-get-peer-certificate'>
+        <clix:lambda-list>
+        </clix:lambda-list>
+        <clix:returns>system-area-pointer
+        </clix:returns>
+        <clix:description>
+		  Returns a SAP to the certificate the peer used to authenticate itself, or NIL.
+		  Can be used with <code>CL+SSL:CERTIFICATE-SUBJECT-COMMON-NAMES</code> and the other certificate functions.
+        </clix:description>
+      </clix:function>
+
+
       <clix:function name='reason-phrase'>
         <clix:lambda-list>return-code
         </clix:lambda-list>
