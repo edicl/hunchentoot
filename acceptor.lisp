@@ -484,9 +484,9 @@ chunked encoding, but acceptor is configured to not use it.")))))
                  ;; as we are at the end of the request here, we ignore all
                  ;; errors that may occur while flushing and/or closing the
                  ;; stream.
-                 (ignore-errors*
+                 (ignore-errors
                   (finish-output stream))
-                 (ignore-errors*
+                 (ignore-errors
                   (close stream :abort t))))
           (unless (or (not *hunchentoot-stream*)
                       (eql socket-stream *hunchentoot-stream*))
