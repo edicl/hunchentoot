@@ -298,7 +298,7 @@
       If you want Hunchentoot to actually do something, you have to create and
       <a href="#teen-age">start</a> an <a href="#acceptor">acceptor</a>.
       You can also run several acceptors in one image, each one
-      listening on a different different port.
+      listening on a different port.
 
       <clix:class name='acceptor'>
         <clix:description>
