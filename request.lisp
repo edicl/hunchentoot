@@ -561,8 +561,8 @@ second return value is true if such a value was found."
   "Sets the value associated with SYMBOL from the request object
 REQUEST \(default is *REQUEST*).  If there is already a value
 associated with SYMBOL it will be replaced."
-  (with-rebinding (symbol)
-    (with-unique-names (place %request)
+  (once-only (symbol)
+    (with-gensyms (place %request)
       `(let* ((,%request (or ,request *request*))
               (,place (assoc ,symbol (aux-data ,%request) :test #'eq)))
          (cond

@@ -293,7 +293,7 @@ argument is provided."
     `(progn
        ,@(when uri
            (list
-            (with-rebinding (uri vhost)
+            (once-only (uri vhost)
               `(progn
                  (setq *easy-handler-alist*
                        (delete-if (lambda (list)

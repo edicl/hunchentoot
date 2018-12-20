@@ -40,10 +40,6 @@ the pathname of a directory which is returned."
       (cond ((find (char string (1- (length string))) "\\/" :test #'char=) string)
             (t (lw:string-append string "/"))))))
 
-(defmacro with-rebinding (bindings &body body)
-  "Renaming LW:REBINDING for better indentation."
-  `(lw:rebinding ,bindings ,@body))
-
 #+(and :lispworks4.4 (or :win32 :linux))
 (let ((id :system-cons-free-chain))
   (unless (scm::patch-id-loaded-p id)

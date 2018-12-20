@@ -48,6 +48,7 @@
                :flexi-streams
                #-(or :lispworks :hunchentoot-no-ssl) :cl+ssl
                :md5
+               :alexandria
                :rfc2388
                :trivial-backtrace
                #-:lispworks :usocket
