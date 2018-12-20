@@ -30,11 +30,9 @@
 
 (defpackage #:hunchentoot
   (:nicknames #:tbnl)
-  (:use :cl :cl-ppcre :chunga :flexi-streams :url-rewrite)
+  (:use :cl :cl-ppcre :chunga :flexi-streams :url-rewrite :alexandria)
   (:shadow #:defconstant
            #:url-encode)
-  #+:lispworks
-  (:import-from :lw #:with-unique-names #:when-let)
   (:export #:*acceptor*
            #:*catch-errors-p*
            #+:lispworks

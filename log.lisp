@@ -44,8 +44,8 @@ for every logging operation, which is overall costly.  Web servers
 with high throughput demands should make use of a specialized logging
 function rather than relying on Hunchentoot's default logging
 facility."
-  (with-unique-names (binary-stream)
-    (with-rebinding (destination)
+  (with-gensyms (binary-stream)
+    (once-only (destination)
       (let ((body body))
         `(when ,destination
            (with-lock-held (,lock)

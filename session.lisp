@@ -48,8 +48,8 @@ threads and NIL otherwise."))
 (defmacro with-session-lock-held ((lock) &body body)
   "This is like WITH-LOCK-HELD except that it will accept NIL as a
 \"lock\" and just execute BODY in this case."
-  (with-unique-names (thunk)
-    (with-rebinding (lock)
+  (with-gensyms (thunk)
+    (once-only (lock)
       `(flet ((,thunk () ,@body))
          (cond (,lock (with-lock-held (,lock) (,thunk)))
                (t (,thunk)))))))
@@ -181,8 +181,8 @@ SESSION \(the default is the current session) if it exists."
 SESSION. If there is already a value associated with SYMBOL it will be
 replaced. Will automatically start a session if none was supplied and
 there's no session for the current request."
-  (with-rebinding (symbol)
-    (with-unique-names (place %session)
+  (once-only (symbol)
+    (with-gensyms (place %session)
       `(let ((,%session (or ,session (start-session))))
          (with-session-lock-held ((session-db-lock *acceptor* :whole-db-p nil))
            (let* ((,place (assoc ,symbol (session-data ,%session) :test #'eq)))
