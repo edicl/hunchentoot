@@ -94,21 +94,17 @@ are discarded \(that is, the body is an implicit PROGN)."
 (defun get-peer-address-and-port (socket)
   "Returns the peer address and port of the socket SOCKET as two
 values.  The address is returned as a string in dotted IP address
-notation."
+notation, resp. IPv6 notation."
   (multiple-value-bind (address port) (usocket:get-peer-name socket)
-    (values (ecase (length address)
-              (4 (usocket:vector-quad-to-dotted-quad address))
-              #+(or) (16 (usocket:vector-to-ipv6-host address)))
+    (values (usocket:host-to-hostname address)
             port)))
 
 (defun get-local-address-and-port (socket)
   "Returns the local address and port of the socket SOCKET as two
 values.  The address is returned as a string in dotted IP address
-notation."
+notation, resp. IPv6 notation."
   (multiple-value-bind (address port) (usocket:get-local-name socket)
-    (values (ecase (length address)
-              (4 (usocket:vector-quad-to-dotted-quad address))
-              #+(or) (16 (usocket:vector-to-ipv6-host address)))
+    (values (usocket:host-to-hostname address)
             port)))
 
 (defun make-socket-stream (socket acceptor)
