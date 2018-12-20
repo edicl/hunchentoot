@@ -32,7 +32,7 @@
   "A global list of dispatch functions.")
 
 (defvar *easy-handler-alist* nil
-  "An alist of \(URI acceptor-names function) lists defined by
+  "An alist of \(URI acceptor-names function host) lists defined by
 DEFINE-EASY-HANDLER.")
 
 (defun compute-real-name (symbol)
@@ -167,7 +167,8 @@ it with a URI so that it will be found by DISPATCH-EASY-HANDLERS.
 DESCRIPTION is either a symbol NAME or a list matching the
 destructuring lambda list
 
-  (name &key uri acceptor-names default-parameter-type default-request-type).
+  (name &key uri acceptor-names host
+        default-parameter-type default-request-type).
 
 LAMBDA-LIST is a list the elements of which are either a symbol
 VAR or a list matching the destructuring lambda list
@@ -187,6 +188,8 @@ the handler will be returned by DISPATCH-EASY-HANDLERS, if URI is a
 string and the script name of a request is URI, or if URI designates a
 function and applying this function to the current request object
 returns a true value.
+HOST, if given, is compared to the given host as well
+(don't forget the port number).
 
 ACCEPTOR-NAMES \(which is evaluated) can be a list of symbols which
 means that the handler will be returned by DISPATCH-EASY-HANDLERS in
@@ -283,24 +286,26 @@ result of evaluating INIT-FORM unless a corresponding keyword
 argument is provided."
   (when (atom description)
     (setq description (list description)))
-  (destructuring-bind (name &key uri (acceptor-names t)
+  (destructuring-bind (name &key uri host (acceptor-names t)
                             (default-parameter-type ''string)
                             (default-request-type :both))
       description
     `(progn
        ,@(when uri
            (list
-            (with-rebinding (uri)
+            (once-only (uri host)
               `(progn
                  (setq *easy-handler-alist*
                        (delete-if (lambda (list)
-                                    (and (or (equal ,uri (first list))
+                                    (and (or (and (equal ,uri (first list))
+                                                  ,(if host
+                                                      `(string= ,host (fourth list))))
                                              (eq ',name (third list)))
                                          (or (eq ,acceptor-names t)
                                              (intersection ,acceptor-names
                                                            (second list)))))
                                   *easy-handler-alist*))
-                 (push (list ,uri ,acceptor-names ',name) *easy-handler-alist*)))))
+                 (push (list ,uri ,acceptor-names ',name ,host) *easy-handler-alist*)))))
        (defun ,name (&key ,@(loop for part in lambda-list
                                   collect (make-defun-parameter part
                                                                 default-parameter-type
@@ -319,11 +324,15 @@ argument is provided."
 (defun dispatch-easy-handlers (request)
   "This is a dispatcher which returns the appropriate handler
 defined with DEFINE-EASY-HANDLER, if there is one."
-  (loop for (uri acceptor-names easy-handler) in *easy-handler-alist*
+  (loop for (uri acceptor-names easy-handler host) in *easy-handler-alist*
         when (and (or (eq acceptor-names t)
                       (find (acceptor-name *acceptor*) acceptor-names :test #'eq))
                   (cond ((stringp uri)
-                         (string= (script-name request) uri))
+                         (and (or (null host)
+                                  (string= (or (host request) "unknown")
+                                           host))
+                              ;; Support RE for matching host names as well (wildcards)?
+                              (string= (script-name request) uri)))
                         (t (funcall uri request))))
         do (return easy-handler)))
 
