@@ -188,7 +188,7 @@ the handler will be returned by DISPATCH-EASY-HANDLERS, if URI is a
 string and the script name of a request is URI, or if URI designates a
 function and applying this function to the current request object
 returns a true value.
-HOST, if given, is compared to the given virtual host as well
+HOST, if given, is compared to the given host as well
 (don't forget the port number).
 
 ACCEPTOR-NAMES \(which is evaluated) can be a list of symbols which
