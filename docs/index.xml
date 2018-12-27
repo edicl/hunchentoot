@@ -1247,7 +1247,7 @@
             <a href="http://www.lispworks.com/documentation/HyperSpec/Body/03_de.htm">destructuring
               lambda list</a>
           </p>
-          <pre>(name &amp;key uri vhost acceptor-names default-parameter-type default-request-type).</pre>
+          <pre>(name &amp;key uri host acceptor-names default-parameter-type default-request-type).</pre>
           <clix:arg>lambda-list</clix:arg> is a list the elements of which
           are either a symbol <clix:arg>var</clix:arg> or a list matching
           the destructuring lambda list
@@ -1277,7 +1277,7 @@
             the <a href="#*request*">current <code>REQUEST</code>
               object</a> returns a true value.
           </p>
-          <p>If <clix:arg>vhost</clix:arg> is passed in, it is compared
+          <p>If <clix:arg>host</clix:arg> is passed in, it is compared
               (via <code>STRING=</code>) to the virtual host of the 
               current request, and acts as another dispatch filter. Please note
               that the HTTP header sent from the browser might include the
