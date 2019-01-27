@@ -195,9 +195,9 @@ slot values are computed in this :AFTER method."
                                  +utf-8+)))
        (cond
         (match-start
-         (setq script-name (url-decode (subseq uri 0 match-start) external-format)
+         (setq script-name (url-decode (subseq uri 0 match-start) external-format nil)
                query-string (subseq uri (1+ match-start))))
-        (t (setq script-name (url-decode uri external-format))))
+        (t (setq script-name (url-decode uri external-format nil))))
        ;; some clients (e.g. ASDF-INSTALL) send requests like
        ;; "GET http://server/foo.html HTTP/1.0"...
        (setq script-name (regex-replace "^https?://[^/]+" script-name ""))

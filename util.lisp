@@ -193,7 +193,8 @@ The macro also uses SETQ to store the new vector in VECTOR."
               (error 'bad-request)
               integer)))))
 
-(defun url-decode (string &optional (external-format *hunchentoot-default-external-format*))
+(defun url-decode (string &optional (external-format *hunchentoot-default-external-format*)
+                                    (decode-plus t))
   "Decodes a URL-encoded string which is assumed to be encoded using the
 external format EXTERNAL-FORMAT, i.e. this is the inverse of
 URL-ENCODE. It is assumed that you'll rarely need this function, if
@@ -234,7 +235,10 @@ the value of *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
              (push-integer (decode-hex 2)))))
           (t
            (push-integer (char-code (case char
-                                      ((#\+) #\Space)
+                                      ((#\+)
+                                       (if decode-plus
+                                           #\Space
+                                           char))
                                       (otherwise char))))
            (advance))))))
     (cond (unicodep
