@@ -3232,18 +3232,6 @@
           Whether the current connection to the client is secure.  See <code><a href="#acceptor-ssl-p">ACCEPTOR-SSL-P</a></code>.
         </clix:description></blockquote></p>
 
-      <p xmlns=""><a class="none" name="ssl-get-peer-certificate"></a>
-          [Function]
-          <br><b>ssl-get-peer-certificate</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
-        </clix:lambda-list></i>
-            =&gt;
-            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">system-area-pointer
-        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
-		  Returns a SAP to the certificate the peer used to authenticate itself, or NIL.
-		  Can be used with <code xmlns="http://www.w3.org/1999/xhtml">CL+SSL:CERTIFICATE-SUBJECT-COMMON-NAMES</code> and the other certificate functions.
-        </clix:description></blockquote></p>
-
-
       <p xmlns=""><a class="none" name="reason-phrase"></a>
           [Function]
           <br><b>reason-phrase</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">return-code
@@ -4170,9 +4158,6 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#ssl-acceptor">ssl-acceptor</a></code><span class="entry-type">Standard class</span>
-</li>
-<li>
-<code><a href="#ssl-get-peer-certificate">ssl-get-peer-certificate</a></code><span class="entry-type">Function</span>
 </li>
 <li>
 <code><a href="#ssl-p">ssl-p</a></code><span class="entry-type">Function</span>

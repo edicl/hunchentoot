@@ -117,7 +117,3 @@ stream."
                                             :certificate-file (acceptor-ssl-certificate-file acceptor)
                                             :privatekey-file (acceptor-ssl-privatekey-file acceptor)
                                             :privatekey-password (acceptor-ssl-privatekey-password acceptor))))
-
-
-(defun ssl-get-peer-certificate ()
-  (cl+ssl:ssl-stream-x509-certificate *hunchentoot-stream*))
