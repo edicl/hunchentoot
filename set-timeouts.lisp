@@ -80,6 +80,8 @@ set."
   #+:abcl
   (when write-timeout
     (warn "Unimplemented."))
-  #-(or :clisp :allegro :openmcl :sbcl :lispworks :cmu :ecl :abcl)
+  #+:clasp
+  (warn "set-timeouts unimplemented.")
+  #-(or :clisp :allegro :openmcl :sbcl :lispworks :cmu :ecl :abcl :clasp)
   (not-implemented 'set-timeouts))
 
