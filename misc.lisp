@@ -148,11 +148,14 @@ had returned RESULT.  See the source code of REDIRECT for an example."
             (header-out :content-range) (format nil "bytes ~D-~D/~D" start end (file-length file))))
     bytes-to-send))
 
-(defun handle-static-file (pathname &optional content-type)
+(defun handle-static-file (pathname &optional content-type callback)
   "A function which acts like a Hunchentoot handler for the file
 denoted by PATHNAME.  Sends a content type header corresponding to
 CONTENT-TYPE or \(if that is NIL) tries to determine the content type
-via the file's suffix."
+via the suffix of the file.
+CALLBACK is run just before sending the file, and can be used
+to set headers or check authorization;
+arguments are the filename and the (guessed) content-type."
   (when (or (wild-pathname-p pathname)
             (not (fad:file-exists-p pathname))
             (fad:directory-exists-p pathname))
@@ -170,6 +173,8 @@ via the file's suffix."
           (header-out :last-modified) (rfc-1123-date time)
           (header-out :accept-ranges) "bytes")
     (handle-if-modified-since time)
+    (unless (null callback)
+      (funcall callback pathname content-type))
     (with-open-file (file pathname
                           :direction :input
                           :element-type 'octet)
@@ -187,26 +192,28 @@ via the file's suffix."
              (decf bytes-to-send chunk-size)))
         (finish-output out)))))
 
-(defun create-static-file-dispatcher-and-handler (uri path &optional content-type)
+(defun create-static-file-dispatcher-and-handler (uri path &optional content-type callback)
   "Creates and returns a request dispatch function which will dispatch
 to a handler function which emits the file denoted by the pathname
 designator PATH with content type CONTENT-TYPE if the SCRIPT-NAME of
 the request matches the string URI.  If CONTENT-TYPE is NIL, tries to
-determine the content type via the file's suffix."
+determine the content type via the file's suffix.
+See HANDLE-STATIC-FILE for CALLBACK."
   ;; the dispatcher
   (lambda (request)
     (when (string= (script-name request) uri)
       ;; the handler
       (lambda ()
-        (handle-static-file path content-type)))))
+        (handle-static-file path content-type callback)))))
 
-(defun create-folder-dispatcher-and-handler (uri-prefix base-path &optional content-type)
+(defun create-folder-dispatcher-and-handler (uri-prefix base-path &optional content-type callback)
   "Creates and returns a dispatch function which will dispatch to a
 handler function which emits the file relative to BASE-PATH that is
 denoted by the URI of the request relative to URI-PREFIX.  URI-PREFIX
 must be a string ending with a slash, BASE-PATH must be a pathname
 designator for an existing directory.  If CONTENT-TYPE is not NIL,
-it'll be the content type used for all files in the folder."
+it'll be the content type used for all files in the folder.
+See HANDLE-STATIC-FILE for CALLBACK."
   (unless (and (stringp uri-prefix)
                (plusp (length uri-prefix))
                (char= (char uri-prefix (1- (length uri-prefix))) #\/))
@@ -218,7 +225,9 @@ it'll be the content type used for all files in the folder."
              (when (null request-path)
                (setf (return-code*) +http-forbidden+)
                (abort-request-handler))
-             (handle-static-file (merge-pathnames request-path base-path) content-type))))
+             (handle-static-file (merge-pathnames request-path base-path)
+                                  content-type
+                                  callback))))
     (create-prefix-dispatcher uri-prefix #'handler)))
 
 (defun no-cache ()

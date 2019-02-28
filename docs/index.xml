@@ -1194,7 +1194,7 @@
       </clix:function>
 
       <clix:function name="create-folder-dispatcher-and-handler">
-        <clix:lambda-list>uri-prefix base-path <clix:lkw>optional</clix:lkw> content-type</clix:lambda-list>
+        <clix:lambda-list>uri-prefix base-path <clix:lkw>optional</clix:lkw> content-type callback</clix:lambda-list>
         <clix:returns>dispatch-fn</clix:returns>
         <clix:description>
           Creates and returns a dispatch function which will dispatch to
@@ -1213,13 +1213,17 @@
             the content type of each file will be
             determined <a href="#handle-static-file">as usual</a>.
           </p>
+          <p>
+            The <clix:arg>callback</clix:arg> is passed on to
+            <clix:ref>HANDLE-STATIC-FILE</clix:ref>.
+          </p>
         </clix:description>
       </clix:function>
 
       <clix:function name='create-static-file-dispatcher-and-handler'>
         <clix:lambda-list>uri path
         <clix:lkw>optional
-        </clix:lkw> content-type
+        </clix:lkw> content-type callback
         </clix:lambda-list>
         <clix:returns>result
         </clix:returns>
@@ -1230,6 +1234,10 @@
           CONTENT-TYPE if the SCRIPT-NAME of the request matches the
           string URI.  If CONTENT-TYPE is NIL, tries to determine the
           content type via the file&#039;s suffix.
+          <p>
+            The <clix:arg>callback</clix:arg> is passed on to
+            <clix:ref>HANDLE-STATIC-FILE</clix:ref>.
+          </p>
         </clix:description>
       </clix:function>
 
@@ -3263,7 +3271,7 @@
       </clix:function>
 
       <clix:function name="handle-static-file">
-        <clix:lambda-list>path <clix:lkw>optional</clix:lkw> content-type</clix:lambda-list>
+        <clix:lambda-list>path <clix:lkw>optional</clix:lkw> content-type callback</clix:lambda-list>
         <clix:returns>nil</clix:returns>
         <clix:description>
           Sends the file denoted by the pathname designator
@@ -3272,10 +3280,15 @@
           necessary handlers.  In particular the function employs
           <clix:ref>HANDLE-IF-MODIFIED-SINCE</clix:ref>.
           <p>
-            If <clix:arg>content-type</clix:arg> is <code>NIL</code> the
+            If <clix:arg>content-type</clix:arg> is <code>NIL</code>, the
             function tries to determine the correct content type from
             the file's suffix or falls back
             to <code>"application/octet-stream"</code> as a last resort.
+          </p>
+          <p>
+            The <clix:arg>callback</clix:arg> is run just before opening
+            the file; it can eg. check authorization or send caching headers.
+            It gets the filename and the (guessed) content-type as arguments.
           </p>
           <p>
             Note that this function
