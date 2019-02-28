@@ -274,6 +274,7 @@
            #:single-threaded-taskmaster
            #-:hunchentoot-no-ssl #:ssl-acceptor
            #:ssl-p
+           #:get-peer-ssl-certificate
            #:start
            #:start-listening
            #:start-session
