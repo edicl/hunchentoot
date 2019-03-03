@@ -293,7 +293,7 @@ argument is provided."
     `(progn
        ,@(when uri
            (list
-            (once-only (uri host)
+            (once-only (uri host acceptor-names)
               `(progn
                  (setq *easy-handler-alist*
                        (delete-if (lambda (list)
@@ -302,6 +302,7 @@ argument is provided."
                                                       `(string= ,host (fourth list))))
                                              (eq ',name (third list)))
                                          (or (eq ,acceptor-names t)
+                                             (eq (second list) t)
                                              (intersection ,acceptor-names
                                                            (second list)))))
                                   *easy-handler-alist*))
