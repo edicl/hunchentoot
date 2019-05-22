@@ -268,7 +268,12 @@ slot values are computed in this :AFTER method."
 content type has already been verified.  Returns the form data as
 alist or NIL if there was no data or the data could not be parsed."
   (handler-case*
-      (let ((content-stream (make-flexi-stream (content-stream request) :external-format +latin-1+)))
+      (let* ((content-length (header-in :content-length request))
+             (content-stream (make-flexi-stream (content-stream request)
+                                               :external-format +latin-1+
+                                               :bound (if content-length 
+                                                        (parse-integer content-length 
+                                                                       :junk-allowed T)))))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type request) external-format)
           (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
@@ -289,20 +294,21 @@ EXTERNAL-FORMAT specifies the external format of the data in the
 request body.  By default, the encoding is determined from the
 Content-Type header of the request or from
 *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT* if none is found."
-  (when (and (header-in :content-type request)
-             (member (request-method request) *methods-for-post-parameters* :test #'eq)
-             (or force
-                 (not (slot-value request 'raw-post-data)))
-	     ;; can't reparse multipart posts, even when FORCEd
-	     (not (eq t (slot-value request 'raw-post-data))))
-    (unless (or (header-in :content-length request)
-                (input-chunking-p))
-      (log-message* :warning "Can't read request body because there's ~
+  (let* ((content-length (header-in :content-length request)))
+    (when (and (header-in :content-type request)
+               (member (request-method request) *methods-for-post-parameters* :test #'eq)
+               (or force
+                   (not (slot-value request 'raw-post-data)))
+               ;; can't reparse multipart posts, even when FORCEd
+               (not (eq t (slot-value request 'raw-post-data))))
+      (unless (or content-length
+                  (input-chunking-p))
+        (log-message* :warning "Can't read request body because there's ~
 no Content-Length header and input chunking is off.")
-      (return-from maybe-read-post-parameters nil))
-    (handler-case*
+        (return-from maybe-read-post-parameters nil))
+      (handler-case*
         (multiple-value-bind (type subtype charset)
-              (parse-content-type (header-in :content-type request))
+            (parse-content-type (header-in :content-type request))
           (let ((external-format (or external-format
                                      (when charset
                                        (handler-case
@@ -311,7 +317,7 @@ no Content-Length header and input chunking is off.")
                                            (hunchentoot-warn "Ignoring ~
 unknown character set ~A in request content type."
                                                  charset))))
-                                     *hunchentoot-default-external-format*)))
+                                       *hunchentoot-default-external-format*)))
             (setf (slot-value request 'post-parameters)
                   (cond ((and (string-equal type "application")
                               (string-equal subtype "x-www-form-urlencoded"))
@@ -319,17 +325,21 @@ unknown character set ~A in request content type."
                           (split "&" (raw-post-data :request request :external-format +latin-1+))
                           external-format))
                         ((and (string-equal type "multipart")
-                              (string-equal subtype "form-data"))
+                              (string-equal subtype "form-data")
+                              (if content-length 
+                                  (plusp (parse-integer content-length 
+                                                    :junk-allowed T))
+                                  T))
                          (prog1 (parse-multipart-form-data request external-format)
                            (setf (slot-value request 'raw-post-data) t)))))))
-      (error (condition)
-        (log-message* :error "Error when reading POST parameters from body: ~A" condition)
-        ;; this is not the right thing to do because it could happen
-        ;; that we aren't finished reading from the request stream and
-        ;; can't send a reply - to be revisited
-        (setf (return-code*) +http-bad-request+
-              *finish-processing-socket* t)
-        (abort-request-handler)))))
+          (error (condition)
+                 (log-message* :error "Error when reading POST parameters from body: ~A" condition)
+                 ;; this is not the right thing to do because it could happen
+                 ;; that we aren't finished reading from the request stream and
+                 ;; can't send a reply - to be revisited
+                 (setf (return-code*) +http-bad-request+
+                       *finish-processing-socket* t)
+                 (abort-request-handler))))))
 
 (defun recompute-request-parameters (&key (request *request*)
                                           (external-format *hunchentoot-default-external-format*))
