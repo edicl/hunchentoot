@@ -268,7 +268,12 @@ slot values are computed in this :AFTER method."
 content type has already been verified.  Returns the form data as
 alist or NIL if there was no data or the data could not be parsed."
   (handler-case*
-      (let ((content-stream (make-flexi-stream (content-stream request) :external-format +latin-1+)))
+      (let* ((content-length (header-in :content-length request))
+             (content-stream (make-flexi-stream (content-stream request)
+                                               :external-format +latin-1+
+                                               :bound (if content-length 
+                                                        (parse-integer content-length 
+                                                                       :junk-allowed T)))))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type request) external-format)
           (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
