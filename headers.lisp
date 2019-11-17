@@ -235,8 +235,20 @@ not want to wait for another request any longer."
                            #\Return #\Linefeed #\Return #\Linefeed #\Return #\Linefeed additional-info #\Return #\Linefeed))
                   stream))
 
+(defun send-unknown-protocol-response (stream &optional additional-info)
+  "Send a ``HTTP Version Not Supported'' response to the client."
+  (write-sequence (flex:string-to-octets
+                   (format nil "HTTP/1.0 ~D ~A~C~CConnection: close~C~C~C~CYour request could not be interpreted by this HTTP server~C~C~@[~A~]~C~C"
+                           +http-version-not-supported+ (reason-phrase +http-version-not-supported+) #\Return #\Linefeed
+                           #\Return #\Linefeed #\Return #\Linefeed #\Return #\Linefeed additional-info #\Return #\Linefeed))
+                  stream))
+
 (defun printable-ascii-char-p (char)
   (<= 32 (char-code char) 126))
+
+(defconstant +valid-request-methods+ (list "GET" "POST" "PUT" "DELETE" "CONNECT" "OPTIONS" "TRACE" "PATCH"))
+
+(defconstant +valid-protocol-versions+ (list "HTTP/1.0" "HTTP/1.1"))
 
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
@@ -250,8 +262,17 @@ protocol of the request."
          (return-from get-request-data nil))
        (destructuring-bind (&optional method url-string protocol)
            (split "\\s+" first-line :limit 3)
+         (unless (member method +valid-request-methods+ :test #'string=)
+           (send-bad-request-response stream)
+           (return-from get-request-data nil))
          (unless url-string
            (send-bad-request-response stream)
+           (return-from get-request-data nil))
+         (unless protocol
+           (send-bad-request-response stream)
+           (return-from get-request-data nil))
+         (unless (member protocol +valid-protocol-versions+ :test #'string=)
+           (send-unknown-protocol-response stream)
            (return-from get-request-data nil))
          (when *header-stream*
            (format *header-stream* "~A~%" first-line))
