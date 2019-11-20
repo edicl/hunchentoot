@@ -272,6 +272,7 @@ protocol of the request."
            ;; HTTP/1.1 specifies that if protocol is not provided
            ;; then assume protocol version to be 1.0
            (setf protocol "HTTP/1.0")
+         (setf protocol (trim-whitespace protocol))
          (unless (member protocol +valid-protocol-versions+ :test #'string=)
            (send-unknown-protocol-response stream)
            (return-from get-request-data nil))
@@ -296,6 +297,4 @@ protocol of the request."
            (values headers
                    (as-keyword method)
                    url-string
-                   (if protocol
-                       (as-keyword (trim-whitespace protocol))
-                       :http/0.9))))))))
+                   (as-keyword protocol))))))))
