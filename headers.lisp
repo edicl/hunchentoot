@@ -269,8 +269,9 @@ protocol of the request."
            (send-bad-request-response stream)
            (return-from get-request-data nil))
          (unless protocol
-           (send-bad-request-response stream)
-           (return-from get-request-data nil))
+           ;; HTTP/1.1 specifies that if protocol is not provided
+           ;; then assume protocol version to be 1.0
+           (setf protocol "HTTP/1.0")
          (unless (member protocol +valid-protocol-versions+ :test #'string=)
            (send-unknown-protocol-response stream)
            (return-from get-request-data nil))
