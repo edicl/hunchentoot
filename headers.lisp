@@ -246,9 +246,9 @@ not want to wait for another request any longer."
 (defun printable-ascii-char-p (char)
   (<= 32 (char-code char) 126))
 
-(defconstant +valid-request-methods+ (list "GET" "POST" "PUT" "DELETE" "CONNECT" "OPTIONS" "TRACE" "PATCH"))
+(defconstant +valid-request-methods+ '(("GET" . #:get) ("POST" . #:post) ("PUT" . #:put) ("DELETE" . #:delete) ("CONNECT" . #:connect) ("OPTIONS" . #:options) ("TRACE" . #:trace) ("PATCH" . #:patch)))
 
-(defconstant +valid-protocol-versions+ (list "HTTP/1.0" "HTTP/1.1"))
+(defconstant +valid-protocol-versions+ '(("HTTP/1.0" . #:http/1.0) ("HTTP/1.1" . #:http/1.1)))
 
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
@@ -262,7 +262,7 @@ protocol of the request."
          (return-from get-request-data nil))
        (destructuring-bind (&optional method url-string protocol)
            (split "\\s+" first-line :limit 3)
-         (unless (member method +valid-request-methods+ :test #'string=)
+         (unless (assoc method +valid-request-methods+ :test #'string=)
            (send-bad-request-response stream)
            (return-from get-request-data nil))
          (unless url-string
@@ -273,7 +273,7 @@ protocol of the request."
            ;; then assume protocol version to be 1.0
            (setf protocol "HTTP/1.0"))
          (setf protocol (trim-whitespace protocol))
-         (unless (member protocol +valid-protocol-versions+ :test #'string=)
+         (unless (assoc protocol +valid-protocol-versions+ :test #'string=)
            (send-unknown-protocol-response stream)
            (return-from get-request-data nil))
          (when *header-stream*
@@ -295,6 +295,6 @@ protocol of the request."
                  (when *header-stream*
                    (format *header-stream* "~A~%" continue-line)))))
            (values headers
-                   (as-keyword method)
+                   (cdr (assoc method +valid-request-methods+ :test #'string=))
                    url-string
-                   (as-keyword protocol))))))))
+                   (cdr (assoc protocol +valid-protocol-versions+ :test #'string=)))))))))
