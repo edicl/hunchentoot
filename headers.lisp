@@ -271,7 +271,7 @@ protocol of the request."
          (unless protocol
            ;; HTTP/1.1 specifies that if protocol is not provided
            ;; then assume protocol version to be 1.0
-           (setf protocol "HTTP/1.0")
+           (setf protocol "HTTP/1.0"))
          (setf protocol (trim-whitespace protocol))
          (unless (member protocol +valid-protocol-versions+ :test #'string=)
            (send-unknown-protocol-response stream)
