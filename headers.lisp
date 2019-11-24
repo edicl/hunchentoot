@@ -246,9 +246,9 @@ not want to wait for another request any longer."
 (defun printable-ascii-char-p (char)
   (<= 32 (char-code char) 126))
 
-(defconstant +valid-request-methods+ '(("GET" . #:get) ("POST" . #:post) ("PUT" . #:put) ("DELETE" . #:delete) ("CONNECT" . #:connect) ("OPTIONS" . #:options) ("TRACE" . #:trace) ("PATCH" . #:patch)))
+(defconstant +valid-request-methods+ '(("GET" . :get) ("POST" . :post) ("PUT" . :put) ("DELETE" . :delete) ("CONNECT" . :connect) ("OPTIONS" . :options) ("TRACE" . :trace) ("PATCH" . :patch)))
 
-(defconstant +valid-protocol-versions+ '(("HTTP/1.0" . #:http/1.0) ("HTTP/1.1" . #:http/1.1)))
+(defconstant +valid-protocol-versions+ '(("HTTP/1.0" . :http/1.0) ("HTTP/1.1" . :http/1.1)))
 
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
