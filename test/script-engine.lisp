@@ -158,7 +158,7 @@ from the expansion environment."
 
 (defun http-request (url
                      &rest args
-                     &key (protocol :http/1.1)
+                     &key (protocol :http/1.0)
                           (method :get)
                           content
                           content-type

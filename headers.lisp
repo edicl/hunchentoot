@@ -235,45 +235,67 @@ not want to wait for another request any longer."
                            #\Return #\Linefeed #\Return #\Linefeed #\Return #\Linefeed additional-info #\Return #\Linefeed))
                   stream))
 
+(defun send-unknown-protocol-response (stream &optional additional-info)
+  "Send a ``HTTP Version Not Supported'' response to the client."
+  (write-sequence (flex:string-to-octets
+                   (format nil "HTTP/1.0 ~D ~A~C~CConnection: close~C~C~C~CYour request could not be interpreted by this HTTP server~C~C~@[~A~]~C~C"
+                           +http-version-not-supported+ (reason-phrase +http-version-not-supported+) #\Return #\Linefeed
+                           #\Return #\Linefeed #\Return #\Linefeed #\Return #\Linefeed additional-info #\Return #\Linefeed))
+                  stream))
+
 (defun printable-ascii-char-p (char)
   (<= 32 (char-code char) 126))
+
+(defconstant +valid-request-methods+
+  #(:get :post :put :delete :connect :options :trace :patch))
+
+(defconstant +valid-protocol-versions+ #(:http/1.0 :http/1.1))
 
 (defun get-request-data (stream)
   "Reads incoming headers from the client via STREAM.  Returns as
 multiple values the headers as an alist, the method, the URI, and the
 protocol of the request."
   (with-character-stream-semantics
-   (let ((first-line (read-initial-request-line stream)))
-     (when first-line
-       (unless (every #'printable-ascii-char-p first-line)
-         (send-bad-request-response stream "Non-ASCII character in request line")
-         (return-from get-request-data nil))
-       (destructuring-bind (&optional method url-string protocol)
-           (split "\\s+" first-line :limit 3)
-         (unless url-string
-           (send-bad-request-response stream)
-           (return-from get-request-data nil))
-         (when *header-stream*
-           (format *header-stream* "~A~%" first-line))
-         (let ((headers (and protocol (read-http-headers stream *header-stream*))))
-           ;; maybe handle 'Expect: 100-continue' header
-           (when-let (expectations (cdr (assoc* :expect headers)))
-             (when (member "100-continue" (split "\\s*,\\s*" expectations) :test #'equalp)
-               ;; according to 14.20 in the RFC - we should actually
-               ;; check if we have to respond with 417 here
-               (let ((continue-line
-                       (format nil "HTTP/1.1 ~D ~A"
-                               +http-continue+
-                               (reason-phrase +http-continue+))))
-                 (write-sequence (map 'list #'char-code continue-line) stream)
-                 (write-sequence +crlf+ stream)
-                 (write-sequence +crlf+ stream)
-                 (force-output stream)
-                 (when *header-stream*
-                   (format *header-stream* "~A~%" continue-line)))))
-           (values headers
-                   (as-keyword method)
-                   url-string
-                   (if protocol
-                       (as-keyword (trim-whitespace protocol))
-                       :http/0.9))))))))
+    (let ((first-line (read-initial-request-line stream)))
+      (when first-line
+        (unless (every #'printable-ascii-char-p first-line)
+          (send-bad-request-response stream "Non-ASCII character in request line")
+          (return-from get-request-data nil))
+        (destructuring-bind (&optional method url-string protocol)
+            (split "\\s+" first-line :limit 3)
+          (cond ((not
+                  (setf method
+                        (find method +valid-request-methods+ :test #'string-equal)))
+                 (send-bad-request-response stream)
+                 (return-from get-request-data nil))
+                ((not url-string)
+                 (send-bad-request-response stream)
+                 (return-from get-request-data nil))
+                ((not protocol)
+                 ;; HTTP/1.1 specifies that if protocol is not provided
+                 ;; then assume protocol version to be 1.0
+                 (setf protocol :http/1.0))
+                ((not
+                  (setf protocol
+                        (find protocol +valid-protocol-versions+ :test #'string-equal)))
+                 (send-unknown-protocol-response stream)
+                 (return-from get-request-data nil)))
+          (when *header-stream*
+            (format *header-stream* "~A~%" first-line))
+          (let ((headers (read-http-headers stream *header-stream*)))
+            ;; maybe handle 'Expect: 100-continue' header
+            (when-let (expectations (cdr (assoc* :expect headers)))
+              (when (member "100-continue" (split "\\s*,\\s*" expectations) :test #'equalp)
+                ;; according to 14.20 in the RFC - we should actually
+                ;; check if we have to respond with 417 here
+                (let ((continue-line
+                        (format nil "HTTP/1.1 ~D ~A"
+                                +http-continue+
+                                (reason-phrase +http-continue+))))
+                  (write-sequence (map 'list #'char-code continue-line) stream)
+                  (write-sequence +crlf+ stream)
+                  (write-sequence +crlf+ stream)
+                  (force-output stream)
+                  (when *header-stream*
+                    (format *header-stream* "~A~%" continue-line)))))
+            (values headers method url-string protocol)))))))
