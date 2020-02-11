@@ -673,7 +673,7 @@
       <clix:function generic='true' name='detach-socket'>
         <clix:lambda-list>acceptor
         </clix:lambda-list>
-        <clix:returns>stream
+        <clix:returns>nil
         </clix:returns>
         <clix:description>
           Indicate to Hunchentoot that it should stop serving requests
