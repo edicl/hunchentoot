@@ -247,7 +247,7 @@ not want to wait for another request any longer."
   (<= 32 (char-code char) 126))
 
 (defconstant +valid-request-methods+
-  #(:get :post :put :delete :connect :options :trace :patch))
+  #(:get :post :head :put :delete :connect :options :trace :patch))
 
 (defconstant +valid-protocol-versions+ #(:http/1.0 :http/1.1))
 
