@@ -121,7 +121,7 @@ process different from the one where START was called.")
                   :accessor acceptor-listen-socket
                   :documentation "The socket listening for incoming
 connections.")
-   #-:lispworks
+   #-(or :lispworks4 :lispworks5 :lispworks6)
    (listen-backlog :initarg :listen-backlog
                    :reader acceptor-listen-backlog
                    :documentation "Number of pending connections
@@ -177,7 +177,8 @@ acceptor-dispatch-request method handles the request."))
    :name (gensym)
    :request-class 'request
    :reply-class 'reply
-   #-lispworks :listen-backlog #-lispworks 50
+   #-(or :lispworks4 :lispworks5 :lispworks6) :listen-backlog
+   #-(or :lispworks4 :lispworks5 :lispworks6) 50
    :taskmaster (make-instance (cond (*supports-threads-p* 'one-thread-per-connection-taskmaster)
                                     (t 'single-threaded-taskmaster)))
    :output-chunking-p t
@@ -604,6 +605,10 @@ catches during request processing."
                             :process-name (format nil "Hunchentoot listener \(~A:~A)"
                                                   (or (acceptor-address acceptor) "*")
                                                   (acceptor-port acceptor))
+                            #-(or :lispworks4 :lispworks5 :lispworks6)
+                            :backlog
+                            #-(or :lispworks4 :lispworks5 :lispworks6)
+                            (acceptor-listen-backlog acceptor)
                             ;; this function is called once on startup - we
                             ;; use it to check for errors and random port
                             :announce (lambda (socket &optional condition)
