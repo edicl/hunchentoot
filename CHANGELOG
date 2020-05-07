@@ -1,6 +1,5 @@
-2019-05-22
-Respect the "Content-Length" header when parsing POST parameters
-Fix receiving a 0-byte file (where not even the MIME boundaries are sent)
+Version 1.3.0
+2020-05-07
 
 Version 1.2.38
 2017-12-03
