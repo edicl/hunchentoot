@@ -273,7 +273,7 @@ alist or NIL if there was no data or the data could not be parsed."
                                                :external-format +latin-1+
                                                :bound (if content-length 
                                                         (parse-integer content-length 
-                                                                       :junk-allowed T)))))
+                                                                       :junk-allowed t)))))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type request) external-format)
           (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
@@ -328,8 +328,8 @@ unknown character set ~A in request content type."
                               (string-equal subtype "form-data")
                               (if content-length 
                                   (plusp (parse-integer content-length 
-                                                    :junk-allowed T))
-                                  T))
+                                                    :junk-allowed t))
+                                  t))
                          (prog1 (parse-multipart-form-data request external-format)
                            (setf (slot-value request 'raw-post-data) t)))))))
           (error (condition)
