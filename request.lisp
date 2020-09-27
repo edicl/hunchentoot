@@ -223,35 +223,36 @@ slot values are computed in this :AFTER method."
           *headers-sent*
           (*request* request))
       (unwind-protect
-           (with-mapped-conditions ()
-             (labels
-                 ((report-error-to-client (error &optional backtrace)
-                    (when *log-lisp-errors-p*
-                      (log-message* *lisp-errors-log-level* "~A~@[~%~A~]" error (when *log-lisp-backtraces-p*
-                                                                                  backtrace)))
-                    (start-output +http-internal-server-error+
-                                  (acceptor-status-message *acceptor*
-                                                           +http-internal-server-error+
-                                                           :error (princ-to-string error)
-                                                           :backtrace (princ-to-string backtrace)))))
-               (multiple-value-bind (contents error backtrace)
-                   ;; skip dispatch if bad request
-                   (when (eql (return-code *reply*) +http-ok+)
-                     (catch 'handler-done
-                       (handle-request *acceptor* *request*)))
-                 (when error
-                   ;; error occurred in request handler
-                   (report-error-to-client error backtrace))
-                 (unless *headers-sent*
-                   (handler-case
-                       (with-debugger
-                         (start-output (return-code *reply*)
-                                       (or contents
-                                           (acceptor-status-message *acceptor*
-                                                                    (return-code *reply*)))))
-                     (error (e)
-                       ;; error occurred while writing to the client.  attempt to report.
-                       (report-error-to-client e)))))))
+           (labels
+               ((report-error-to-client (error &optional backtrace)
+                  (when *log-lisp-errors-p*
+                    (log-message* *lisp-errors-log-level* "~A~@[~%~A~]" error (when *log-lisp-backtraces-p*
+                                                                                backtrace)))
+                  (start-output +http-internal-server-error+
+                                (acceptor-status-message *acceptor*
+                                                         +http-internal-server-error+
+                                                         :error (princ-to-string error)
+                                                         :backtrace (princ-to-string backtrace)))))
+             (multiple-value-bind (contents error backtrace)
+                 ;; skip dispatch if bad request
+                 (when (eql (return-code *reply*) +http-ok+)
+                   (catch 'handler-done
+                     (handle-request *acceptor* *request*)))
+               (when error
+                 ;; error occurred in request handler
+                 (with-mapped-conditions ()
+                  (report-error-to-client error backtrace)))
+               (unless *headers-sent*
+                 (with-mapped-conditions ()
+                  (handler-case
+                      (with-debugger
+                        (start-output (return-code *reply*)
+                                      (or contents
+                                          (acceptor-status-message *acceptor*
+                                                                   (return-code *reply*)))))
+                    (error (e)
+                      ;; error occurred while writing to the client.  attempt to report.
+                      (report-error-to-client e)))))))
         (dolist (path *tmp-files*)
           (when (and (pathnamep path) (probe-file path))
             ;; the handler may have chosen to (re)move the uploaded
@@ -271,8 +272,8 @@ alist or NIL if there was no data or the data could not be parsed."
       (let* ((content-length (header-in :content-length request))
              (content-stream (make-flexi-stream (content-stream request)
                                                :external-format +latin-1+
-                                               :bound (if content-length 
-                                                        (parse-integer content-length 
+                                               :bound (if content-length
+                                                        (parse-integer content-length
                                                                        :junk-allowed t)))))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type request) external-format)
@@ -326,8 +327,8 @@ unknown character set ~A in request content type."
                           external-format))
                         ((and (string-equal type "multipart")
                               (string-equal subtype "form-data")
-                              (if content-length 
-                                  (plusp (parse-integer content-length 
+                              (if content-length
+                                  (plusp (parse-integer content-length
                                                     :junk-allowed t))
                                   t))
                          (prog1 (parse-multipart-form-data request external-format)
@@ -350,7 +351,7 @@ during the request."
   (setf (slot-value request 'get-parameters)
         (form-url-encoded-list-to-alist (split "&" (query-string request)) external-format))
   (values))
-                                                
+
 (defun script-name* (&optional (request *request*))
   "Returns the file name of the REQUEST object REQUEST. That's the
 requested URI without the query string \(i.e the GET parameters)."

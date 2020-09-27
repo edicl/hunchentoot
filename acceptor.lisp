@@ -365,8 +365,7 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
   ;; this around method is used for error handling
   ;; note that this method also binds *ACCEPTOR*
   (with-conditions-caught-and-logged ()
-    (with-mapped-conditions ()
-      (call-next-method))))
+    (call-next-method)))
 
 (defun do-with-acceptor-request-count-incremented (*acceptor* function)
   (with-lock-held ((acceptor-shutdown-lock *acceptor*))
