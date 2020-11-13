@@ -251,10 +251,11 @@ case the function will also send a session cookie to the browser."
   (let ((session (session *request*)))
     (when session
       (return-from start-session session))
-    (setf session (make-instance 'session)
-          (session *request*) session)
     (with-session-lock-held ((session-db-lock *acceptor*))
-      (setf (session-db *acceptor*)
+      ;; Must be under a lock because creating a new session increments a global counter
+      (setf session (make-instance 'session))
+      (setf (session *request*) session
+            (session-db *acceptor*)
             (acons (session-id session) session (session-db *acceptor*))))
     (set-cookie (session-cookie-name *acceptor*)
                 :value (session-cookie-value session)
