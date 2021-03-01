@@ -371,8 +371,9 @@ stopped right away so no other part of the software is impacted by them."
          ((error
            ;; abort if there's an error which isn't caught inside
            (lambda (cond)
-             (log-message* *lisp-errors-log-level*
-                           "Error while processing connection: ~A" cond)
+             (when *log-lisp-errors-p*
+               (log-message* *lisp-errors-log-level*
+                             "Error while processing connection: ~A" cond))
              (return)))
           (warning
            ;; log all warnings which aren't caught inside
