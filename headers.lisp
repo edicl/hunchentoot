@@ -194,8 +194,19 @@ Returns the stream that is connected to the client."
     (format header-stream "~C~C" #\Return #\Linefeed))
   ;; now optional content
   (when content
-    (write-sequence content stream)
-    (finish-output stream))
+    (cond
+      #+sbcl
+      ((and (> (content-length*) 4000)
+            (typep stream 'sb-sys:fd-stream))
+       ;; Flush headers
+       (finish-output stream)
+       ;; Write data
+       (sb-unix:unix-write (sb-sys:fd-stream-fd stream)
+                           content
+                           0 (content-length*)))
+      (t
+       (write-sequence content stream)
+       (finish-output stream))))
   stream)
 
 (defun send-headers ()
