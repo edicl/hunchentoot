@@ -667,9 +667,18 @@ handler."
                     (when *headers-sent*
                       (setq *finish-processing-socket* t))
                     (throw 'handler-done
-                      (values nil cond (get-backtrace))))))
+                      (values nil cond (get-backtrace-for-acceptor *acceptor*))))))
     (with-debugger
       (acceptor-dispatch-request *acceptor* *request*))))
+
+(defgeneric get-backtrace-for-acceptor (acceptor)
+  (:documentation
+   "A method that allows for overriding how the stack trace is
+displayed or logged. The default stacktrace might be verbose on some
+Lisps, which might write sensitive information, such as passwords."))
+
+(defmethod get-backtrace-for-acceptor (acceptor)
+  (get-backtrace))
 
 (defgeneric acceptor-status-message (acceptor http-status-code &key &allow-other-keys)
   (:documentation
