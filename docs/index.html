@@ -1184,7 +1184,7 @@
 
       <p xmlns=""><a class="none" name="create-folder-dispatcher-and-handler"></a>
           [Function]
-          <br><b>create-folder-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri-prefix base-path <tt>&amp;optional</tt> content-type</clix:lambda-list></i>
+          <br><b>create-folder-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri-prefix base-path <tt>&amp;optional</tt> content-type callback</clix:lambda-list></i>
             =&gt;
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">dispatch-fn</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Creates and returns a dispatch function which will dispatch to
@@ -1203,13 +1203,17 @@
             the content type of each file will be
             determined <a href="#handle-static-file">as usual</a>.
           </p>
+          <p xmlns="http://www.w3.org/1999/xhtml">
+            The <code xmlns=""><i>callback</i></code> is passed on to
+            <code xmlns=""><a href="#handle-static-file">HANDLE-STATIC-FILE</a></code>.
+          </p>
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="create-static-file-dispatcher-and-handler"></a>
           [Function]
           <br><b>create-static-file-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri path
         <tt>&amp;optional
-        </tt> content-type
+        </tt> content-type callback
         </clix:lambda-list></i>
             =&gt;
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">result
@@ -1220,6 +1224,10 @@
           CONTENT-TYPE if the SCRIPT-NAME of the request matches the
           string URI.  If CONTENT-TYPE is NIL, tries to determine the
           content type via the file's suffix.
+          <p xmlns="http://www.w3.org/1999/xhtml">
+            The <code xmlns=""><i>callback</i></code> is passed on to
+            <code xmlns=""><a href="#handle-static-file">HANDLE-STATIC-FILE</a></code>.
+          </p>
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="define-easy-handler"></a>
@@ -1236,7 +1244,7 @@
             <a href="http://www.lispworks.com/documentation/HyperSpec/Body/03_de.htm">destructuring
               lambda list</a>
           </p>
-          <pre xmlns="http://www.w3.org/1999/xhtml">(name &amp;key uri acceptor-names default-parameter-type default-request-type).</pre>
+          <pre xmlns="http://www.w3.org/1999/xhtml">(name &amp;key uri host acceptor-names default-parameter-type default-request-type).</pre>
           <code><i>lambda-list</i></code> is a list the elements of which
           are either a symbol <code><i>var</i></code> or a list matching
           the destructuring lambda list
@@ -1265,6 +1273,14 @@
             this function to
             the <a href="#*request*">current <code>REQUEST</code>
               object</a> returns a true value.
+          </p>
+          <p xmlns="http://www.w3.org/1999/xhtml">If <code xmlns=""><i>host</i></code> is passed in, it is compared
+              (via <code>STRING=</code>) to the host of the
+              current request, and acts as another dispatch filter. Please note
+              that the HTTP header sent from the browser might include the
+              port number, resp. will include it for ports other than 80 and 443,
+              so you will need to write something like
+              <code>"common-lisp.net:8080"</code>.
           </p>
           <p xmlns="http://www.w3.org/1999/xhtml">
             <code xmlns=""><i>acceptor-names</i></code> (which is evaluated) can be a
@@ -1421,8 +1437,6 @@
         </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">This is a dispatcher which returns the appropriate handler
         defined with <code><a href="#define-easy-handler">DEFINE-EASY-HANDLER</a></code>, if there is one.
         </clix:description></blockquote></p>
-
-    
 
     <h4 xmlns=""><a name="requests">Request objects</a></h4>
 
@@ -3152,9 +3166,10 @@
           </p>
         </clix:description></blockquote></p>
 
+
       <p xmlns=""><a class="none" name="handle-static-file"></a>
           [Function]
-          <br><b>handle-static-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">path <tt>&amp;optional</tt> content-type</clix:lambda-list></i>
+          <br><b>handle-static-file</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">path <tt>&amp;optional</tt> content-type callback</clix:lambda-list></i>
             =&gt;
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">nil</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Sends the file denoted by the pathname designator
@@ -3163,10 +3178,15 @@
           necessary handlers.  In particular the function employs
           <code><a href="#handle-if-modified-since">HANDLE-IF-MODIFIED-SINCE</a></code>.
           <p xmlns="http://www.w3.org/1999/xhtml">
-            If <code xmlns=""><i>content-type</i></code> is <code>NIL</code> the
+            If <code xmlns=""><i>content-type</i></code> is <code>NIL</code>, the
             function tries to determine the correct content type from
             the file's suffix or falls back
             to <code>"application/octet-stream"</code> as a last resort.
+          </p>
+          <p xmlns="http://www.w3.org/1999/xhtml">
+            The <code xmlns=""><i>callback</i></code> is run just before opening
+            the file; it can eg. check authorization or send caching headers.
+            It gets the filename and the (guessed) content-type as arguments.
           </p>
           <p xmlns="http://www.w3.org/1999/xhtml">
             Note that this function
@@ -3241,6 +3261,17 @@
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">generalized-boolean
         </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Whether the current connection to the client is secure.  See <code><a href="#acceptor-ssl-p">ACCEPTOR-SSL-P</a></code>.
+        </clix:description></blockquote></p>
+
+      <p xmlns=""><a class="none" name="ssl-get-peer-certificate"></a>
+          [Function]
+          <br><b>ssl-get-peer-certificate</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+        </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">system-area-pointer
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+		  Returns a SAP to the certificate the peer used to authenticate itself, or NIL.
+		  Can be used with <code xmlns="http://www.w3.org/1999/xhtml">CL+SSL:CERTIFICATE-SUBJECT-COMMON-NAMES</code> and the other certificate functions.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="reason-phrase"></a>
@@ -4169,6 +4200,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#ssl-acceptor">ssl-acceptor</a></code><span class="entry-type">Standard class</span>
+</li>
+<li>
+<code><a href="#ssl-get-peer-certificate">ssl-get-peer-certificate</a></code><span class="entry-type">Function</span>
 </li>
 <li>
 <code><a href="#ssl-p">ssl-p</a></code><span class="entry-type">Function</span>
