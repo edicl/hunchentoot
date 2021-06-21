@@ -238,7 +238,7 @@ slot values are computed in this :AFTER method."
                    ;; skip dispatch if bad request
                    (when (eql (return-code *reply*) +http-ok+)
                      (catch 'handler-done
-                       (handle-request *acceptor* *request*)))
+                       (values (handle-request *acceptor* *request*))))
                  (when error
                    ;; error occurred in request handler
                    (report-error-to-client error backtrace))
