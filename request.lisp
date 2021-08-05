@@ -285,7 +285,7 @@ alist or NIL if there was no data or the data could not be parsed."
       nil)))
 
 (defun maybe-read-post-parameters (&key (request *request*) force external-format)
-  "Make surce that any POST parameters in the REQUEST are parsed.  The
+  "Make sure that any POST parameters in the REQUEST are parsed.  The
 body of the request must be either application/x-www-form-urlencoded
 or multipart/form-data to be considered as containing POST parameters.
 If FORCE is true, parsing is done unconditionally.  Otherwise, parsing
