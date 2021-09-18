@@ -118,18 +118,23 @@ KEY-TYPE)."
 (defun compute-parameter (parameter-name parameter-type request-type)
   "Computes and returns the parameter\(s) called PARAMETER-NAME
 and converts it/them according to the value of PARAMETER-TYPE.
-REQUEST-TYPE is one of :GET, :POST, or :BOTH."
+REQUEST-TYPE is one of :GET, :POST, :BOTH or :PREFER-POST."
   (when (member parameter-type '(list array hash-table))
     (setq parameter-type (list parameter-type 'string)))
   (let ((parameter-reader (ecase request-type
                               (:get #'get-parameter)
                               (:post #'post-parameter)
-                              (:both #'parameter)))
+                              (:both #'parameter)
+			      (:prefer-post
+			       (lambda (name &optional (request *request*))
+				 (or (post-parameter name request)
+				     (get-parameter name request))))))
         (parameters (and (listp parameter-type)
                          (case request-type
                            (:get (get-parameters*))
                            (:post (post-parameters*))
-                           (:both (append (get-parameters*) (post-parameters*)))))))
+                           (:both (append (get-parameters*) (post-parameters*)))
+			   (:prefer-post (append (post-parameters*) (get-parameters*)))))))
     (cond ((atom parameter-type)
            (compute-simple-parameter parameter-name parameter-type parameter-reader))
           ((and (null (cddr parameter-type))
@@ -199,9 +204,10 @@ will be returned by DISPATCH-EASY-HANDLERS in every acceptor.
 
 Whether the GET or POST parameter \(or both) will be taken into
 consideration, depends on REQUEST-TYPE which can
-be :GET, :POST, :BOTH, or NIL.  In the last case, the value of
-DEFAULT-REQUEST-TYPE \(the default of which is :BOTH) will be
-used.
+be :GET, :POST, :BOTH, :PREFER-POST or NIL.  In the last case, the
+value of DEFAULT-REQUEST-TYPE \(the default of which is :BOTH) will be
+used.  The value :PREFER-POST is like :BOTH, but prefers POST
+parameters instead of GET parameters.
 
 The value of VAR will usually be a string \(unless it resulted from a
 file upload in which case it won't be converted at all), but if
