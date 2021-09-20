@@ -118,23 +118,25 @@ KEY-TYPE)."
 (defun compute-parameter (parameter-name parameter-type request-type)
   "Computes and returns the parameter\(s) called PARAMETER-NAME
 and converts it/them according to the value of PARAMETER-TYPE.
-REQUEST-TYPE is one of :GET, :POST, :BOTH or :PREFER-POST."
+REQUEST-TYPE is one of :GET, :POST, :GET-OR-POST, :POST-OR-GET
+or :BOTH.  If :POST-OR-GET then post parameters are first taken
+into account, if :GET-OR-POST then get parameters are prefered.
+:BOTH is an alias for :GET-OR-POST."
   (when (member parameter-type '(list array hash-table))
     (setq parameter-type (list parameter-type 'string)))
   (let ((parameter-reader (ecase request-type
                               (:get #'get-parameter)
                               (:post #'post-parameter)
                               (:both #'parameter)
-			      (:prefer-post
-			       (lambda (name &optional (request *request*))
-				 (or (post-parameter name request)
-				     (get-parameter name request))))))
+			      (:get-or-post #'parameter)
+			      (:post-or-get #'post-or-get-parameter)))
         (parameters (and (listp parameter-type)
                          (case request-type
                            (:get (get-parameters*))
                            (:post (post-parameters*))
                            (:both (append (get-parameters*) (post-parameters*)))
-			   (:prefer-post (append (post-parameters*) (get-parameters*)))))))
+                           (:get-or-post (append (get-parameters*) (post-parameters*)))
+			   (:post-or-get (append (post-parameters*) (get-parameters*)))))))
     (cond ((atom parameter-type)
            (compute-simple-parameter parameter-name parameter-type parameter-reader))
           ((and (null (cddr parameter-type))
