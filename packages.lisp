@@ -48,7 +48,7 @@
            #:*header-stream*
            #:*http-error-handler*
            #:*hunchentoot-default-external-format*
-	   #:*hunchentoot-version*
+           #:*hunchentoot-version*
            #:*lisp-errors-log-level*
            #:*lisp-warnings-log-level*
            #:*log-lisp-backtraces-p*
@@ -68,10 +68,13 @@
            #:*use-remote-addr-for-sessions*
            #:*use-user-agent-for-sessions*
            #:+http-accepted+
+           #:+http-already-reported+
            #:+http-authorization-required+
            #:+http-bad-gateway+
            #:+http-bad-request+
+           #:+http-client-closed-request+
            #:+http-conflict+
+           #:+http-connection-closed-without-response+
            #:+http-continue+
            #:+http-created+
            #:+http-expectation-failed+
@@ -79,25 +82,35 @@
            #:+http-forbidden+
            #:+http-gateway-time-out+
            #:+http-gone+
+           #:+http-im-a-teapot+
+           #:+http-im-used+
+           #:+http-insufficient-storage+
            #:+http-internal-server-error+
            #:+http-length-required+
+           #:+http-locked+
+           #:+http-loop-detected+
            #:+http-method-not-allowed+
+           #:+http-misdirected-request+
            #:+http-moved-permanently+
            #:+http-moved-temporarily+
            #:+http-multi-status+
            #:+http-multiple-choices+
            #:+http-network-authentication-required+
+           #:+http-network-connect-timeout-error+
            #:+http-no-content+
            #:+http-non-authoritative-information+
            #:+http-not-acceptable+
+           #:+http-not-extended
            #:+http-not-found+
            #:+http-not-implemented+
            #:+http-not-modified+
            #:+http-ok+
            #:+http-partial-content+
            #:+http-payment-required+
+           #:+http-permanent-redirect+
            #:+http-precondition-failed+
            #:+http-precondition-required+
+           #:+http-processing+
            #:+http-proxy-authentication-required+
            #:+http-request-entity-too-large+
            #:+http-request-header-fields-too-large+
@@ -110,8 +123,12 @@
            #:+http-switching-protocols+
            #:+http-temporary-redirect+
            #:+http-too-many-requests+
+           #:+http-unavailable-for-legal-reasons+
+           #:+http-unprocessable-entity+
            #:+http-unsupported-media-type+
+           #:+http-upgrade-required+
            #:+http-use-proxy+
+           #:+http-variant-also-negotiates+
            #:+http-version-not-supported+
            #:abort-request-handler
            #:accept-connections
@@ -135,7 +152,7 @@
            #:acceptor-request-class
            #:acceptor-requests-in-progress
            #:acceptor-ssl-p
-           #-:hunchentoot-no-ssl #:acceptor-ssl-certificate-file               
+           #-:hunchentoot-no-ssl #:acceptor-ssl-certificate-file
            #-:hunchentoot-no-ssl #:acceptor-ssl-privatekey-file
            #-:hunchentoot-no-ssl #:acceptor-ssl-privatekey-password
            #:acceptor-status-message
