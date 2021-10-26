@@ -60,13 +60,13 @@ cookie expires \(or NIL).")
            :initform "None"
            :accessor cookie-same-site
            :documentation "The SameSite attribute for the cookie, needs
-to be one of \"None\", \"Lax\" or \"Strict\". See 
+to be one of \"None\", \"Lax\" or \"Strict\". Defaults to \"None\". See
 <https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-02#section-5.3.7>.")
    (secure :initarg :secure
            :initform nil
            :accessor cookie-secure
            :documentation "A generalized boolean denoting whether this
-cookie is a secure cookie.")   
+cookie is a secure cookie.")
    (http-only :initarg :http-only
               :initform nil
               :accessor cookie-http-only
@@ -97,7 +97,7 @@ REPLY object REPLY. If a cookie with the same name
         (push (cons name cookie) (cookies-out reply))
         cookie))))
 
-(defun set-cookie (name &key (value "") expires max-age path domain same-site secure http-only (reply *reply*))
+(defun set-cookie (name &key (value "") expires max-age path domain (same-site "None") secure http-only (reply *reply*))
   "Creates a cookie object from the parameters provided and adds
 it to the outgoing cookies of the REPLY object REPLY. If a cookie
 with the name NAME \(case-sensitive) already exists, it is
