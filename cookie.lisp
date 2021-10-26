@@ -123,13 +123,13 @@ replaced."
   "Converts the COOKIE object COOKIE to a string suitable for a
 'Set-Cookie' header to be sent to the client."
   (format nil
-          "~A=~A~@[; Expires=~A~]~@[; Max-Age=~A~]~@[; Domain=~A~]~@[; Path=~A~]~:[~;; Secure~]~:[~;; HttpOnly~]"
+          "~A=~A~@[; Expires=~A~]~@[; Max-Age=~A~]~@[; Domain=~A~]~@[; Path=~A~]~:[~;; Secure~]~:[~;; HttpOnly~];SameSite=~A"
           (cookie-name cookie)
           (cookie-value cookie)
           (cookie-date (cookie-expires cookie))
           (cookie-max-age cookie)
           (cookie-domain cookie)
           (cookie-path cookie)
-          (cookie-same-site cookie)
           (cookie-secure cookie)
-          (cookie-http-only cookie)))
+          (cookie-http-only cookie)
+          (cookie-same-site cookie)))
