@@ -57,7 +57,7 @@ cookie expires \(or NIL).")
            :accessor cookie-domain
            :documentation "The domain this cookie is valid for \(or NIL).")
    (same-site :initarg :same-site
-           :initform "None"
+           :initform nil
            :accessor cookie-same-site
            :documentation "The SameSite attribute for the cookie, needs
 to be one of \"None\", \"Lax\" or \"Strict\". Defaults to \"None\". See
@@ -97,7 +97,7 @@ REPLY object REPLY. If a cookie with the same name
         (push (cons name cookie) (cookies-out reply))
         cookie))))
 
-(defun set-cookie (name &key (value "") expires max-age path domain (same-site "None") secure http-only (reply *reply*))
+(defun set-cookie (name &key (value "") expires max-age path domain same-site secure http-only (reply *reply*))
   "Creates a cookie object from the parameters provided and adds
 it to the outgoing cookies of the REPLY object REPLY. If a cookie
 with the name NAME \(case-sensitive) already exists, it is
@@ -123,7 +123,7 @@ replaced."
   "Converts the COOKIE object COOKIE to a string suitable for a
 'Set-Cookie' header to be sent to the client."
   (format nil
-          "~A=~A~@[; Expires=~A~]~@[; Max-Age=~A~]~@[; Domain=~A~]~@[; Path=~A~];SameSite=~A~:[~;; Secure~]~:[~;; HttpOnly~]"
+          "~A=~A~@[; Expires=~A~]~@[; Max-Age=~A~]~@[; Domain=~A~]~@[; Path=~A~]~@[; SameSite=~A~]~:[~;; Secure~]~:[~;; HttpOnly~]"
           (cookie-name cookie)
           (cookie-value cookie)
           (cookie-date (cookie-expires cookie))
