@@ -32,7 +32,7 @@
   (with-open-file (s pathname :element-type element-type)
     (let ((result (make-array (file-length s) :element-type element-type)))
       (read-sequence result s)
-      result)))  
+      result)))
 
 (defclass script-context ()
   ((base-url :initarg :base-url
@@ -49,12 +49,16 @@
 (defmacro with-script-context ((&rest args &key (context-class-name 'script-context) &allow-other-keys)
                                &body body)
   `(let ((*script-context* (make-instance ',context-class-name ,@args))
-         (*default-pathname-defaults* *this-file*)
+         (*default-pathname-defaults* (make-pathname :name nil :type nil :defaults *this-file*))
          failed)
      (handler-bind
-        ((assertion-failed (lambda (condition)
-                             (push condition failed)
-                             (format t "Assertion failed:~%~A~%" condition))))
+        ((test-failure (lambda (condition)
+                         (push condition failed)
+                         (format t "~A failed:~%~A~%"
+                                 (etypecase condition
+                                   (assertion-failed "Assertion")
+                                   (test-failure "Test"))
+                                 condition))))
        (prog1
            (progn ,@body
                   (values))
@@ -74,7 +78,14 @@
 (defvar *last-reply* nil
   "Contains the last HTTP reply received")
 
-(define-condition assertion-failed (simple-condition)
+(define-condition test-failure (simple-condition) ())
+
+(define-condition simple-test-failed (test-failure)
+  ((reason :initarg :reason :reader test-failure-reason))
+  (:report (lambda (condition stream)
+             (write-string (test-failure-reason condition) stream))))
+
+(define-condition assertion-failed (test-failure)
   ((assertion :initarg :assertion
               :accessor condition-assertion
               :initform nil)
