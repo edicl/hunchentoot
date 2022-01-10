@@ -26,7 +26,7 @@
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem "hunchentoot"
+(defsystem :hunchentoot
   :serial t
   :version "1.3.0"
   :description "Hunchentoot is a HTTP server based on USOCKET and
@@ -34,19 +34,19 @@
   simple framework for user-defined handlers and can be extended
   through subclassing."
   :license "BSD-2-Clause"
-  :depends-on ("chunga"
-               "cl-base64"
-               "cl-fad"
-               "cl-ppcre"
-               "flexi-streams"
+  :depends-on (:chunga
+               :cl-base64
+               :cl-fad
+               :cl-ppcre
+               :flexi-streams
                (:feature (:not (:or :lispworks :hunchentoot-no-ssl))
-                         "cl+ssl")
-               "md5"
-               "alexandria"
-               "rfc2388"
-               "trivial-backtrace"
-               (:feature (:not :lispworks) "usocket")
-               (:feature (:not :lispworks) "bordeaux-threads"))
+                         :cl+ssl)
+               :md5
+               :alexandria
+               :rfc2388
+               :trivial-backtrace
+               (:feature (:not :lispworks) :usocket)
+               (:feature (:not :lispworks) :bordeaux-threads))
   :components ((:module "url-rewrite"
                 :serial t
                 :components ((:file "packages")
@@ -75,7 +75,7 @@
                (:file "easy-handlers"))
   :perform (test-op (o c) (load (merge-pathnames "run-test.lisp" (system-source-directory c)))))
 
-(defsystem "hunchentoot/test"
+(defsystem :hunchentoot/test
   :description "Self test functionality for the Hunchentoot HTTP server."
   :components ((:module "test"
                         :serial t
@@ -83,13 +83,13 @@
                                      (:file "test-handlers")
                                      (:file "script-engine")
                                      (:file "script"))))
-  :depends-on ("hunchentoot" "cl-who" "cl-ppcre" "drakma"))
+  :depends-on (:hunchentoot :cl-who :cl-ppcre :drakma))
 
-(defsystem "hunchentoot/dev"
-    :description "Development tools for Hunchentoot development and releases"
-    :components ((:file "make-docstrings"))
-    :depends-on ("hunchentoot"
-                 "hunchentoot/test"
-                 "xpath"
-                 "cxml-stp"
-                 "swank"))
+(defsystem :hunchentoot/dev
+  :description "Development tools for Hunchentoot development and releases"
+  :components ((:file "make-docstrings"))
+  :depends-on (:hunchentoot
+               :hunchentoot/test
+               :xpath
+               :cxml-stp
+               :swank))
