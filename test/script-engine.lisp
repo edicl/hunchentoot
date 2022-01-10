@@ -49,7 +49,7 @@
 (defmacro with-script-context ((&rest args &key (context-class-name 'script-context) &allow-other-keys)
                                &body body)
   `(let ((*script-context* (make-instance ',context-class-name ,@args))
-         (*default-pathname-defaults* *this-file*)
+         (*default-pathname-defaults* (make-pathname :name nil :type nil :defaults *this-file*))
          failed)
      (handler-bind
         ((test-failure (lambda (condition)
