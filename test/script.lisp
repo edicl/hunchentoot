@@ -37,6 +37,41 @@
   (apply #'format t fmt args)
   (terpri))
 
+(defun test-acceptor-wake (address)
+  "Runs a test to ensure that an acceptor can be woken to check for a
+shutdown condition. ADDRESS is the address the acceptor will listen
+on (useful for distinguishing special cases like the wildcard
+address). The port will be a random free port."
+  (flet ((wait-for-connection (sock timeout)
+           (loop while timeout
+              do (multiple-value-bind (ready remaining)
+                     (usocket:wait-for-input sock :timeout timeout :ready-only t)
+                   (if (and (endp ready) remaining)
+                       ;; Interrupted, adjust timeout and retry.
+                       (setf timeout remaining)
+                       ;; Either timed out or got input.
+                       (return ready))))))
+    (let ((acceptor (make-instance 'easy-acceptor
+                                   :address address
+                                   ;; This should be 0 in a test to get
+                                   ;; a random free port
+                                   :port 0
+                                   :message-log-destination nil)))
+      (start-listening acceptor)
+      (usocket:with-server-socket (sock (hunchentoot::acceptor-listen-socket acceptor))
+        (hunchentoot::wake-acceptor-for-shutdown acceptor)
+
+        (let ((wake-clients (wait-for-connection sock 3)))
+          (when wake-clients
+            (map nil #'usocket:socket-close wake-clients))
+
+          (unless (not (endp wake-clients))
+            (signal 'simple-test-failed
+                    :reason (format nil "~S did not interrupt ~S on address ~S, acceptor shutdown will hang."
+                                    'hunchentoot::wake-acceptor-for-shutdown
+                                    'usocket:wait-for-input
+                                    address))))))))
+
 (defun test-hunchentoot (base-url &key (make-cookie-jar
                                         (lambda ()
                                           (make-instance 'drakma:cookie-jar))))
@@ -189,6 +224,8 @@ expecting certain responses."
         (http-assert 'body 'equalp (subseq range-test-buffer start-offset length))
         (http-assert-header :content-range (format nil "bytes ~D-~D/~D" start-offset (1- length) range-test-file-size))))
 
+    #-lispworks
+    (test-acceptor-wake "0.0.0.0")
 
     (values)))
 
