@@ -30,7 +30,7 @@
 
 (defparameter *test-port* 4241)
 
-(asdf:oos 'asdf:load-op :hunchentoot-test)
+(asdf:oos 'asdf:load-op "hunchentoot/test")
 
 (defun run-tests ()
   (format t "~&;; Starting web server on localhost:~A." *test-port*)
