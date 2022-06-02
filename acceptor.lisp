@@ -165,7 +165,7 @@ stream or to NIL to suppress logging.")
  messages.  Files must be named <return-code>.html with <return-code>
  representing the HTTP return code that the file applies to,
  i.e. 404.html would be used as the content for a HTTP 404 Not found
- response.")
+ response. Set *SHOW-LISP-ERRORS-P* to T for this setting to work.")
    (document-root :initarg :document-root
                   :accessor acceptor-document-root
                   :documentation "Directory pathname that points to
