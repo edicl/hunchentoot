@@ -26,13 +26,6 @@
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
-
-(defpackage :hunchentoot-asd
-  (:use :cl :asdf))
-
-(in-package :hunchentoot-asd)
-
 (defsystem :hunchentoot
   :serial t
   :version "1.3.0"
@@ -46,14 +39,15 @@
                :cl-fad
                :cl-ppcre
                :flexi-streams
-               #-(or :lispworks :hunchentoot-no-ssl) :cl+ssl
+               (:feature (:not (:or :lispworks :hunchentoot-no-ssl))
+                         :cl+ssl)
                :md5
                :alexandria
                :rfc2388
                :trivial-backtrace
-               #-:lispworks :usocket
-               #-:lispworks :bordeaux-threads)
-  :components ((:module url-rewrite
+               (:feature (:not :lispworks) :usocket)
+               (:feature (:not :lispworks) :bordeaux-threads))
+  :components ((:module "url-rewrite"
                 :serial t
                 :components ((:file "packages")
                              (:file "specials")
@@ -61,8 +55,8 @@
                              (:file "util")
                              (:file "url-rewrite")))
                (:file "packages")
-               #+:lispworks (:file "lispworks")
-               #-:lispworks (:file "compat")
+               (:file "lispworks" :if-feature :lispworks)
+               (:file "compat" :if-feature (:not :lispworks))
                (:file "specials")
                (:file "conditions")
                (:file "mime-types")
@@ -77,10 +71,11 @@
                (:file "set-timeouts")
                (:file "taskmaster")
                (:file "acceptor")
-               #-:hunchentoot-no-ssl (:file "ssl")
-               (:file "easy-handlers")))
+               (:file "ssl" :if-feature (:not :hunchentoot-no-ssl))
+               (:file "easy-handlers"))
+  :perform (test-op (o c) (load (merge-pathnames "run-test.lisp" (system-source-directory c)))))
 
-(defsystem :hunchentoot-test
+(defsystem :hunchentoot/test
   :description "Self test functionality for the Hunchentoot HTTP server."
   :components ((:module "test"
                         :serial t
@@ -90,14 +85,11 @@
                                      (:file "script"))))
   :depends-on (:hunchentoot :cl-who :cl-ppcre :drakma))
 
-(defmethod perform ((o test-op) (c (eql (find-system 'hunchentoot))))
-  (load (merge-pathnames "run-test.lisp" (system-source-directory c))))
-
-(defsystem :hunchentoot-dev
-    :description "Development tools for Hunchentoot development and releases"
-    :components ((:file "make-docstrings"))
-    :depends-on (:hunchentoot
-                 :hunchentoot-test
-                 :xpath
-                 :cxml-stp
-                 :swank))
+(defsystem :hunchentoot/dev
+  :description "Development tools for Hunchentoot development and releases"
+  :components ((:file "make-docstrings"))
+  :depends-on (:hunchentoot
+               :hunchentoot/test
+               :xpath
+               :cxml-stp
+               :swank))
