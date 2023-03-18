@@ -30,7 +30,14 @@
 
 (defpackage #:hunchentoot-test
   (:nicknames #:tbnl-test)
-  (:use :cl :cl-who :hunchentoot)
+  (:use #:cl #:hunchentoot)
+  (:import-from #:cl-who
+                #:esc
+                #:fmt
+                #:htm
+                #:str
+                #:with-html-output
+                #:with-html-output-to-string)
   (:export #:test-hunchentoot))
   
 (defpackage #:hunchentoot-test-user

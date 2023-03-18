@@ -30,7 +30,45 @@
 
 (defpackage #:hunchentoot
   (:nicknames #:tbnl)
-  (:use :cl :cl-ppcre :chunga :flexi-streams :url-rewrite :alexandria)
+  (:use #:cl)
+  (:import-from #:cl-ppcre
+                #:create-scanner
+                #:scan
+                #:split
+                #:regex-replace
+                #:regex-replace-all
+                #:register-groups-bind)
+  (:import-from #:chunga
+                #:*current-error-message*
+                #:chunked-stream
+                #:chunked-stream-input-chunking-p
+                #:chunked-stream-output-chunking-p
+                #:chunked-stream-stream
+                #:as-capitalized-string
+                #:as-keyword
+                #:make-chunked-stream
+                #:read-http-headers
+                #:read-char*
+                #:read-line*
+                #:read-name-value-pairs
+                #:read-token
+                #:with-character-stream-semantics)
+  (:import-from #:flexi-streams
+                #:*substitution-char*
+                #:flexi-stream-bound
+                #:flexi-stream-position
+                #:make-external-format
+                #:make-flexi-stream
+                #:octets-to-string
+                #:string-to-octets
+                #:octet
+                #:with-input-from-sequence)
+  (:import-from #:alexandria
+                #:when-let
+                #:with-gensyms
+                #:once-only)
+  (:import-from #:url-rewrite
+                #:starts-with-scheme-p)
   (:shadow #:defconstant
            #:url-encode)
   (:export #:*acceptor*
