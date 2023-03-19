@@ -154,27 +154,27 @@ object.  Returns just the stream if WANT-STREAM is true.  If there's a
 Content-Length header, it is assumed, that ALREADY-READ octets have
 already been read."
   (let* ((headers-in (headers-in request))
-         (content-length (when-let (content-length-header (cdr (assoc :content-length headers-in
-                                                                      :test #'eq)))
+         (content-length (alexandria:when-let (content-length-header (cdr (assoc :content-length headers-in
+                                                                                 :test #'eq)))
                            (parse-integer content-length-header :junk-allowed t)))
          (content-stream (content-stream request)))
     (setf (slot-value request 'raw-post-data)
           (cond (want-stream
-                 (let ((stream (make-flexi-stream content-stream :external-format +latin-1+)))
+                 (let ((stream (flex:make-flexi-stream content-stream :external-format +latin-1+)))
                    (when content-length
-                     (setf (flexi-stream-bound stream) content-length))
+                     (setf (flex:flexi-stream-bound stream) content-length))
                    stream))
                 ((and content-length (> content-length already-read))
                  (decf content-length already-read)
                  (when (input-chunking-p)
                    ;; see RFC 2616, section 4.4
                    (log-message* :warning "Got Content-Length header although input chunking is on."))
-                 (let ((content (make-array content-length :element-type 'octet)))
+                 (let ((content (make-array content-length :element-type 'flex:octet)))
                    (read-sequence content content-stream)
                    content))
                 ((input-chunking-p)
-                 (loop with buffer = (make-array +buffer-length+ :element-type 'octet)
-                       with content = (make-array 0 :element-type 'octet :adjustable t)
+                 (loop with buffer = (make-array +buffer-length+ :element-type 'flex:octet)
+                       with content = (make-array 0 :element-type 'flex:octet :adjustable t)
                        for index = 0 then (+ index pos)
                        for pos = (read-sequence buffer content-stream)
                        do (adjust-array content (+ index pos))
@@ -200,15 +200,15 @@ slot values are computed in this :AFTER method."
         (t (setq script-name (url-decode uri external-format nil))))
        ;; some clients (e.g. ASDF-INSTALL) send requests like
        ;; "GET http://server/foo.html HTTP/1.0"...
-       (setq script-name (regex-replace "^https?://[^/]+" script-name ""))
+       (setq script-name (ppcre:regex-replace "^https?://[^/]+" script-name ""))
        ;; compute GET parameters from query string and cookies from
        ;; the incoming 'Cookie' header
        (setq get-parameters
-             (let ((*substitution-char* #\?))
-               (form-url-encoded-list-to-alist (split "&" query-string) external-format))
+             (let ((flex:*substitution-char* #\?))
+               (form-url-encoded-list-to-alist (ppcre:split "&" query-string) external-format))
              cookies-in
-             (cookies-to-alist (split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
-                                                                 :test #'eq))))
+             (cookies-to-alist (ppcre:split "\\s*[,;]\\s*" (cdr (assoc :cookie headers-in
+                                                                       :test #'eq))))
              session (session-verify request)
              *session* session))
      (error (condition)
@@ -269,14 +269,14 @@ content type has already been verified.  Returns the form data as
 alist or NIL if there was no data or the data could not be parsed."
   (handler-case*
       (let* ((content-length (header-in :content-length request))
-             (content-stream (make-flexi-stream (content-stream request)
-                                               :external-format +latin-1+
-                                               :bound (if content-length 
-                                                        (parse-integer content-length 
-                                                                       :junk-allowed t)))))
+             (content-stream (flex:make-flexi-stream (content-stream request)
+                                                     :external-format +latin-1+
+                                                     :bound (if content-length
+                                                                (parse-integer content-length
+                                                                               :junk-allowed t)))))
         (prog1
             (parse-rfc2388-form-data content-stream (header-in :content-type request) external-format)
-          (let ((stray-data (get-post-data :already-read (flexi-stream-position content-stream))))
+          (let ((stray-data (get-post-data :already-read (flex:flexi-stream-position content-stream))))
             (when (and stray-data (plusp (length stray-data)))
               (hunchentoot-warn "~A octets of stray data after form-data sent by client."
                                 (length stray-data))))))
@@ -312,7 +312,7 @@ no Content-Length header and input chunking is off.")
           (let ((external-format (or external-format
                                      (when charset
                                        (handler-case
-                                           (make-external-format charset :eol-style :lf)
+                                           (flex:make-external-format charset :eol-style :lf)
                                          (error ()
                                            (hunchentoot-warn "Ignoring ~
 unknown character set ~A in request content type."
@@ -322,7 +322,7 @@ unknown character set ~A in request content type."
                   (cond ((and (string-equal type "application")
                               (string-equal subtype "x-www-form-urlencoded"))
                          (form-url-encoded-list-to-alist
-                          (split "&" (raw-post-data :request request :external-format +latin-1+))
+                          (ppcre:split "&" (raw-post-data :request request :external-format +latin-1+))
                           external-format))
                         ((and (string-equal type "multipart")
                               (string-equal subtype "form-data")
@@ -348,7 +348,7 @@ REQUEST.  This only makes sense if you're switching external formats
 during the request."
   (maybe-read-post-parameters :request request :force t :external-format external-format)
   (setf (slot-value request 'get-parameters)
-        (form-url-encoded-list-to-alist (split "&" (query-string request)) external-format))
+        (form-url-encoded-list-to-alist (ppcre:split "&" (query-string request)) external-format))
   (values))
                                                 
 (defun script-name* (&optional (request *request*))
@@ -408,10 +408,10 @@ the 'AUTHORIZATION' header.  Returns NIL if there is no such header."
          (start (and authorization
                      (> (length authorization) 5)
                      (string-equal "Basic" authorization :end2 5)
-                     (scan "\\S" authorization :start 5))))
+                     (ppcre:scan "\\S" authorization :start 5))))
     (when start
       (destructuring-bind (&optional user password)
-          (split ":" (base64:base64-string-to-string (subseq authorization start)) :limit 2)
+          (ppcre:split ":" (base64:base64-string-to-string (subseq authorization start)) :limit 2)
         (values user password)))))
 
 (defun remote-addr* (&optional (request *request*))
@@ -436,7 +436,7 @@ second value in the form of a list of IP addresses and the first
 element of this list as the first value if this header exists.
 Otherwise returns the value of REMOTE-ADDR as the only value."
   (let ((x-forwarded-for (header-in :x-forwarded-for request)))
-    (cond (x-forwarded-for (let ((addresses (split "\\s*,\\s*" x-forwarded-for)))
+    (cond (x-forwarded-for (let ((addresses (ppcre:split "\\s*,\\s*" x-forwarded-for)))
                              (values (first addresses) addresses)))
           (t (remote-addr request)))))
 
@@ -508,9 +508,9 @@ of the content type header provided in CONTENT-TYPE.  If the content
 type was not set or if the character set specified was invalid, NIL is
 returned."
   (when content-type
-    (when-let (charset (nth-value 2 (parse-content-type content-type)))
+    (alexandria:when-let (charset (nth-value 2 (parse-content-type content-type)))
       (handler-case
-          (make-external-format (as-keyword charset) :eol-style :lf)
+          (flex:make-external-format (chunga:as-keyword charset) :eol-style :lf)
         (error ()
           (hunchentoot-warn "Invalid character set ~S in request has been ignored."
                             charset))))))
@@ -555,7 +555,7 @@ content even if the request method is not POST."
                            (get-post-data :request request :want-stream want-stream))))
     (cond ((typep raw-post-data 'stream) raw-post-data)
           ((member raw-post-data '(t nil)) nil)
-          (external-format (octets-to-string raw-post-data :external-format external-format))
+          (external-format (flex:octets-to-string raw-post-data :external-format external-format))
           (t raw-post-data))))
 
 (defun aux-request-value (symbol &optional (request *request*))
@@ -571,8 +571,8 @@ second return value is true if such a value was found."
   "Sets the value associated with SYMBOL from the request object
 REQUEST \(default is *REQUEST*).  If there is already a value
 associated with SYMBOL it will be replaced."
-  (once-only (symbol)
-    (with-gensyms (place %request)
+  (alexandria:once-only (symbol)
+    (alexandria:with-gensyms (place %request)
       `(let* ((,%request (or ,request *request*))
               (,place (assoc ,symbol (aux-data ,%request) :test #'eq)))
          (cond
@@ -601,7 +601,7 @@ REQUEST."
                       #+ccl ccl:native-to-pathname
                       ;; Just disallow anything with :wild components later.
                       #-(or ccl sbcl) parse-namestring
-                      (remove #\\ (regex-replace "^/*" path ""))))
+                      (remove #\\ (ppcre:regex-replace "^/*" path ""))))
            (directory (pathname-directory pathname)))
       (when (and (or (null (pathname-host pathname))
                      (equal (pathname-host pathname)

@@ -280,12 +280,12 @@ the debugger).")
   "A list of temporary files created while a request was handled.")
 
 (defconstant +latin-1+
-  (make-external-format :latin1 :eol-style :lf)
+  (flex:make-external-format :latin1 :eol-style :lf)
   "A FLEXI-STREAMS external format used for `faithful' input and
 output of binary data.")
 
 (defconstant +utf-8+
-  (make-external-format :utf8 :eol-style :lf)
+  (flex:make-external-format :utf8 :eol-style :lf)
   "A FLEXI-STREAMS external format used internally for logging and to
 encode cookie values.")
 

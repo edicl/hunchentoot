@@ -128,7 +128,7 @@ Returns the stream that is connected to the client."
       (setq content (maybe-rewrite-urls-for-session content)))
     (when (stringp content)
       ;; if the content is a string, convert it to the proper external format
-      (setf content (string-to-octets content :external-format (reply-external-format*))
+      (setf content (flex:string-to-octets content :external-format (reply-external-format*))
             (content-type*) (maybe-add-charset-to-content-type-header (content-type*)
                                                                       (reply-external-format*))))
     (when content
@@ -152,9 +152,9 @@ Returns the stream that is connected to the client."
       (throw 'request-processed nil))
     (when chunkedp
       ;; turn chunking on after the headers have been sent
-      (unless (typep *hunchentoot-stream* 'chunked-stream)
-        (setq *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)))
-      (setf (chunked-stream-output-chunking-p *hunchentoot-stream*) t))
+      (unless (typep *hunchentoot-stream* 'chunga:chunked-stream)
+        (setq *hunchentoot-stream* (chunga:make-chunked-stream *hunchentoot-stream*)))
+      (setf (chunga:chunked-stream-output-chunking-p *hunchentoot-stream*) t))
     *hunchentoot-stream*))
 
 (defun send-response (acceptor stream status-code
@@ -187,7 +187,7 @@ Returns the stream that is connected to the client."
     ;; write all headers from the REPLY object
     (loop for (key . value) in headers
        when value
-       do (write-header-line (as-capitalized-string key) value header-stream))
+       do (write-header-line (chunga:as-capitalized-string key) value header-stream))
     ;; now the cookies
     (loop for (nil . cookie) in cookies
        do (write-header-line "Set-Cookie" (stringify-cookie cookie) header-stream))
@@ -222,9 +222,9 @@ to close the connection instead, a timeout indicates that the
 connection timeout established by Hunchentoot has expired and we do
 not want to wait for another request any longer."
   (handler-case
-      (let ((*current-error-message* "While reading initial request line:"))
+      (let ((chunga:*current-error-message* "While reading initial request line:"))
         (with-mapped-conditions ()
-          (read-line* stream)))
+          (chunga:read-line* stream)))
     ((or end-of-file #-:lispworks usocket:timeout-error) ())))
 
 (defun send-bad-request-response (stream &optional additional-info)
@@ -255,14 +255,14 @@ not want to wait for another request any longer."
   "Reads incoming headers from the client via STREAM.  Returns as
 multiple values the headers as an alist, the method, the URI, and the
 protocol of the request."
-  (with-character-stream-semantics
+  (chunga:with-character-stream-semantics
     (let ((first-line (read-initial-request-line stream)))
       (when first-line
         (unless (every #'printable-ascii-char-p first-line)
           (send-bad-request-response stream "Non-ASCII character in request line")
           (return-from get-request-data nil))
         (destructuring-bind (&optional method url-string protocol)
-            (split "\\s+" first-line :limit 3)
+            (ppcre:split "\\s+" first-line :limit 3)
           (cond ((not
                   (setf method
                         (find method +valid-request-methods+ :test #'string-equal)))
@@ -282,10 +282,10 @@ protocol of the request."
                  (return-from get-request-data nil)))
           (when *header-stream*
             (format *header-stream* "~A~%" first-line))
-          (let ((headers (read-http-headers stream *header-stream*)))
+          (let ((headers (chunga:read-http-headers stream *header-stream*)))
             ;; maybe handle 'Expect: 100-continue' header
-            (when-let (expectations (cdr (assoc* :expect headers)))
-              (when (member "100-continue" (split "\\s*,\\s*" expectations) :test #'equalp)
+            (alexandria:when-let (expectations (cdr (assoc* :expect headers)))
+              (when (member "100-continue" (ppcre:split "\\s*,\\s*" expectations) :test #'equalp)
                 ;; according to 14.20 in the RFC - we should actually
                 ;; check if we have to respond with 417 here
                 (let ((continue-line

@@ -364,13 +364,13 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
 
 (defmethod reset-connection-stream ((acceptor acceptor) stream)
   ;; turn chunking off at this point
-  (cond ((typep stream 'chunked-stream)
+  (cond ((typep stream 'chunga:chunked-stream)
          ;; flush the stream first and check if there's unread input
          ;; which would be an error
-         (setf (chunked-stream-output-chunking-p stream) nil
-               (chunked-stream-input-chunking-p stream) nil)
+         (setf (chunga:chunked-stream-output-chunking-p stream) nil
+               (chunga:chunked-stream-input-chunking-p stream) nil)
          ;; switch back to bare socket stream
-         (chunked-stream-stream stream))
+         (chunga:chunked-stream-stream stream))
         (t stream)))
 
 (defmethod process-connection :around ((*acceptor* acceptor) (socket t))
@@ -471,12 +471,12 @@ This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
                         (transfer-encodings (cdr (assoc* :transfer-encoding headers-in))))
                     (when transfer-encodings
                       (setq transfer-encodings
-                            (split "\\s*,\\s*" transfer-encodings))
+                            (ppcre:split "\\s*,\\s*" transfer-encodings))
                       (when (member "chunked" transfer-encodings :test #'equalp)
                         (cond ((acceptor-input-chunking-p *acceptor*)
                                ;; turn chunking on before we read the request body
-                               (setf *hunchentoot-stream* (make-chunked-stream *hunchentoot-stream*)
-                                     (chunked-stream-input-chunking-p *hunchentoot-stream*) t))
+                               (setf *hunchentoot-stream* (chunga:make-chunked-stream *hunchentoot-stream*)
+                                     (chunga:chunked-stream-input-chunking-p *hunchentoot-stream*) t))
                               (t (hunchentoot-error "Client tried to use ~
 chunked encoding, but acceptor is configured to not use it.")))))
                     (with-acceptor-request-count-incremented (*acceptor*)
@@ -597,10 +597,10 @@ catches during request processing."
         (when (acceptor-shutdown-p acceptor)
           (return)))
       (when (usocket:wait-for-input listener :ready-only t)
-       (when-let (client-connection
-                  (handler-case (usocket:socket-accept listener)
-                    ;; ignore condition
-                    (usocket:connection-aborted-error ())))
+       (alexandria:when-let (client-connection
+                             (handler-case (usocket:socket-accept listener)
+                               ;; ignore condition
+                               (usocket:connection-aborted-error ())))
          (set-timeouts client-connection
                        (acceptor-read-timeout acceptor)
                        (acceptor-write-timeout acceptor))

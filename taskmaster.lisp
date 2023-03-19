@@ -401,7 +401,7 @@ is set up via PROCESS-REQUEST."
              (let* ((*hunchentoot-stream* (initialize-connection-stream acceptor *hunchentoot-stream*))
                     (*reply* (make-instance (acceptor-reply-class acceptor)))
                     (*request* (acceptor-make-request acceptor socket)))
-               (with-character-stream-semantics
+               (chunga:with-character-stream-semantics
                  (send-response acceptor
                                 (flex:make-flexi-stream *hunchentoot-stream* :external-format :iso-8859-1)
                                 +http-service-unavailable+
@@ -435,7 +435,7 @@ is set up via PROCESS-REQUEST."
 
 #+:lispworks
 (defmethod shutdown ((taskmaster taskmaster))
-  (when-let (process (acceptor-process (taskmaster-acceptor taskmaster)))
+  (lw:when-let (process (acceptor-process (taskmaster-acceptor taskmaster)))
     ;; kill the main acceptor process, see LW documentation for
     ;; COMM:START-UP-SERVER
     (mp:process-kill process))

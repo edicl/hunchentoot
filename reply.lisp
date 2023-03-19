@@ -146,7 +146,7 @@ name doesn't exist, it is created.")
      new-value))
   (:method (new-value (name string) &optional (reply *reply*))
    "If NAME is a string, it is converted to a keyword first."
-   (setf (header-out (as-keyword name :destructivep nil) reply) new-value))
+   (setf (header-out (chunga:as-keyword name :destructivep nil) reply) new-value))
   (:method :after (new-value (name (eql :content-length)) &optional (reply *reply*))
    "Special case for the `Content-Length' header."
    (check-type new-value integer)

@@ -34,7 +34,7 @@
 URL.  Scanners are memoized in SCANNER-HASH once they are created."
     (or (gethash param-name scanner-hash)
         (setf (gethash param-name scanner-hash)
-                (create-scanner
+                (ppcre:create-scanner
                  `(:alternation
                    ;; session=value at end of URL
                    (:sequence
@@ -52,7 +52,7 @@ URL.  Scanners are memoized in SCANNER-HASH once they are created."
                     #\&))))))
   (defun add-cookie-value-to-url (url &key
                                       (cookie-name (session-cookie-name *acceptor*))
-                                      (value (when-let (session (session *request*))
+                                      (value (alexandria:when-let (session (session *request*))
                                                (session-cookie-value session)))
                                       (replace-ampersands-p t))
     "Removes all GET parameters named COOKIE-NAME from URL and then
@@ -62,7 +62,7 @@ are replaced with '&amp;'. The resulting URL is returned."
     (unless url
       ;; see URL-REWRITE:*URL-REWRITE-FILL-TAGS*
       (setq url (request-uri *request*)))
-    (setq url (regex-replace-all (scanner-for-get-param cookie-name) url "\\1"))
+    (setq url (ppcre:regex-replace-all (scanner-for-get-param cookie-name) url "\\1"))
     (when value
       (setq url (format nil "~A~:[?~;&~]~A=~A"
                         url
@@ -70,12 +70,12 @@ are replaced with '&amp;'. The resulting URL is returned."
                         cookie-name
                         (url-encode value))))
     (when replace-ampersands-p
-      (setq url (regex-replace-all "&" url "&amp;")))
+      (setq url (ppcre:regex-replace-all "&" url "&amp;")))
     url))
 
 (defun maybe-rewrite-urls-for-session (html &key
                                             (cookie-name (session-cookie-name *acceptor*))
-                                            (value (when-let (session (session *request*))
+                                            (value (alexandria:when-let (session (session *request*))
                                                      (session-cookie-value session))))
   "Rewrites the HTML page HTML such that the name/value pair
 COOKIE-NAME/COOKIE-VALUE is inserted if the client hasn't sent a
@@ -109,9 +109,9 @@ starts with the string PREFIX."
   "Creates a request dispatch function which will dispatch to the
 function denoted by HANDLER if the file name of the current request
 matches the CL-PPCRE regular expression REGEX."
-  (let ((scanner (create-scanner regex)))
+  (let ((scanner (ppcre:create-scanner regex)))
     (lambda (request)
-      (and (scan scanner (script-name request))
+      (and (ppcre:scan scanner (script-name request))
            handler))))
 
 (defun abort-request-handler (&optional result)
@@ -177,11 +177,11 @@ arguments are the filename and the (guessed) content-type."
       (funcall callback pathname content-type))
     (with-open-file (file pathname
                           :direction :input
-                          :element-type 'octet)
+                          :element-type 'flex:octet)
       (setf bytes-to-send (maybe-handle-range-header file)
             (content-length*) bytes-to-send)
       (let ((out (send-headers))
-            (buf (make-array +buffer-length+ :element-type 'octet)))
+            (buf (make-array +buffer-length+ :element-type 'flex:octet)))
         (loop
            (when (zerop bytes-to-send)
              (return))
@@ -246,7 +246,7 @@ See HANDLE-STATIC-FILE for CALLBACK."
                              port
                              (protocol (if (ssl-p) :https :http))
                              (add-session-id (not (or host-provided-p
-                                                      (starts-with-scheme-p target)
+                                                      (url-rewrite:starts-with-scheme-p target)
                                                       (cookie-in (session-cookie-name *acceptor*)))))
                              (code +http-moved-temporarily+))
   "Redirects the browser to TARGET which should be a string.  If
@@ -257,7 +257,7 @@ redirect to will be constructed from HOST, PORT, PROTOCOL, and TARGET.
 Adds a session ID if ADD-SESSION-ID is true.  If CODE is a 3xx
 redirection code, it will be sent as status code."
   (check-type code (integer 300 399))
-  (let ((url (if (starts-with-scheme-p target)
+  (let ((url (if (url-rewrite:starts-with-scheme-p target)
                target
                (format nil "~A://~A~@[:~A~]~A"
                        (ecase protocol

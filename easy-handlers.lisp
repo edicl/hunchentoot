@@ -57,7 +57,7 @@ NIL unconditionally."
     (character (and (= (length argument) 1)
                     (char argument 0)))
     (integer (ignore-errors* (parse-integer argument :junk-allowed t)))
-    (keyword (as-keyword argument :destructivep nil))
+    (keyword (chunga:as-keyword argument :destructivep nil))
     (boolean t)
     (otherwise (funcall type argument))))
 
@@ -83,7 +83,7 @@ is the corresponding value."
   #+:sbcl (declare (sb-ext:muffle-conditions warning))
   (let* ((index-value-list
           (loop for (full-name . value) in parameters
-                for index = (register-groups-bind (name index-string)
+                for index = (ppcre:register-groups-bind (name index-string)
                                 ("^(.*)\\[(\\d+)\\]$" full-name)
                               (when (string= name parameter-name)
                                 (parse-integer index-string)))
@@ -106,7 +106,7 @@ corresponding value is associated with the key FOO \(converted to
 KEY-TYPE)."
   (let ((hash-table (make-hash-table :test test-function)))
     (loop for (full-name . value) in parameters
-          for key = (register-groups-bind (name key-string)
+          for key = (ppcre:register-groups-bind (name key-string)
                         ("^(.*){([^{}]+)}$" full-name)
                       (when (string= name parameter-name)
                         (convert-parameter key-string key-type)))
@@ -293,7 +293,7 @@ argument is provided."
     `(progn
        ,@(when uri
            (list
-            (once-only (uri host acceptor-names)
+            (alexandria:once-only (uri host acceptor-names)
               `(progn
                  (setq *easy-handler-alist*
                        (delete-if (lambda (list)

@@ -32,15 +32,15 @@
                      (or #.*compile-file-pathname* *load-pathname*)))
 
 (defmacro with-html (&body body)
-  `(with-html-output-to-string (*standard-output* nil :prologue t)
+  `(who:with-html-output-to-string (*standard-output* nil :prologue t)
      ,@body))
 
 (defun hunchentoot-link ()
-  (with-html-output (*standard-output*)
+  (who:with-html-output (*standard-output*)
     (:a :href "http://weitz.de/hunchentoot/" "Hunchentoot")))
 
 (defun menu-link ()
-  (with-html-output (*standard-output*)
+  (who:with-html-output (*standard-output*)
     (:p (:hr
          (:a :href "/hunchentoot/test" "Back to menu")))))
 
@@ -54,7 +54,7 @@
 (defmacro info-table (&rest forms)
   (let ((=value= (gensym))
         (=first= (gensym)))
-    `(with-html-output (*standard-output*)
+    `(who:with-html-output (*standard-output*)
        (:p (:table :border 1 :cellpadding 2 :cellspacing 0
             (:tr (:td :colspan 2
                   "Some Information "
@@ -63,10 +63,10 @@
             ,@(loop for form in forms
                     collect `(:tr (:td :valign "top"
                                    (:pre :style "padding: 0px"
-                                    (esc (with-lisp-output (s) (pprint ',form s)))))
+                                    (who:esc (with-lisp-output (s) (pprint ',form s)))))
                               (:td :valign "top"
                                (:pre :style "padding: 0px"
-                                (esc (with-lisp-output (s)
+                                (who:esc (with-lisp-output (s)
                                        (loop for ,=value= in (multiple-value-list ,form)
                                              for ,=first= = t then nil
                                              unless ,=first=
@@ -113,7 +113,7 @@
         (:h2 (hunchentoot-link) " Information Page")
         (:p "This page has been called "
          (:b
-          (fmt "~[~;once~;twice~:;~:*~R times~]" (incf count)))
+          (who:fmt "~[~;once~;twice~:;~:*~R times~]" (incf count)))
          " since its handler was compiled.")
         (info-table (host)
                     (acceptor-address *acceptor*)
@@ -210,10 +210,10 @@ time or try with cookies disabled.")
         (format nil "text/html; charset=~A" charset))
   (with-html
     (:html
-     (:head (:title (fmt "Hunchentoot ~A parameter test" method)))
+     (:head (:title (who:fmt "Hunchentoot ~A parameter test" method)))
      (:body
       (:h2 (hunchentoot-link)
-       (fmt " ~A parameter test with charset ~A" method charset))
+       (who:fmt " ~A parameter test with charset ~A" method charset))
       (:p "Enter some non-ASCII characters in the input field below
 and see what's happening.")
       (:p (:form
@@ -298,20 +298,20 @@ and see what's happening.")
          :name "file2"))
        (:p (:input :type :submit)))
       (when *tmp-test-files*
-        (htm
+        (who:htm
          (:p
           (:table :border 1 :cellpadding 2 :cellspacing 0
            (:tr (:td :colspan 3 (:b "Uploaded files")))
            (loop for (path file-name nil) in *tmp-test-files*
                  for counter from 1
-                 do (htm
-                     (:tr (:td :align "right" (str counter))
+                 do (who:htm
+                     (:tr (:td :align "right" (who:str counter))
                       (:td (:a :href (format nil "files/~A?path=~A"
                                              (url-encode file-name)
                                              (url-encode (namestring path)))
-                            (esc file-name)))
+                            (who:esc file-name)))
                       (:td :align "right"
-                       (str (ignore-errors
+                       (who:str (ignore-errors
                               (with-open-file (in path)
                                 (file-length in))))
                        "&nbsp;Bytes"))))))
@@ -408,10 +408,10 @@ and see what's happening.")
                                                  (:cmu "CMUCL")
                                                  (:sbcl "SBCL")
                                                  (:openmcl "OpenMCL"))
-                         do (htm
+                         do (who:htm
                              (:option :value value
                               :selected (eq value implementation)
-                              (str option)))))))
+                              (who:str option)))))))
             (:tr
              (:td :valign :top "Meal:")
              (:td (loop for choice in '("Burnt weeny sandwich"
@@ -420,11 +420,11 @@ and see what's happening.")
                                         "Muffin"
                                         "Twenty small cigars"
                                         "Yellow snow")
-                        do (htm
+                        do (who:htm
                             (:input :type "checkbox"
                              :name (format nil "meal{~A}" choice)
                              :checked (gethash choice meal)
-                             (esc choice))
+                             (who:esc choice))
                             (:br)))))
             (:tr
              (:td :valign :top "Team:")
@@ -434,12 +434,12 @@ and see what's happening.")
                                         ;; without accent (for SBCL)
                                         "Pele"
                                         "Zidane")
-                        do (htm
+                        do (who:htm
                             (:input :type "checkbox"
                              :name "team"
                              :value player
                              :checked (member player team :test 'string=)
-                             (esc player))
+                             (who:esc player))
                             (:br)))))
             (:tr
              (:td :colspan 2
@@ -461,7 +461,7 @@ and see what's happening.")
        :href "/hunchentoot/test/favicon.ico" :type "image/x-icon")
       (:title "Hunchentoot test menu"))
      (:body
-      (:h2 (str *headline*))
+      (:h2 (who:str *headline*))
       (:table :border 0 :cellspacing 4 :cellpadding 4
        (:tr (:td (:a :href "/hunchentoot/test/info.html?foo=bar"
                   "Info provided by Hunchentoot")))
@@ -510,7 +510,7 @@ and see what's happening.")
              " \(output depends on "
              (:a :href "http://weitz.de/hunchentoot/#*show-lisp-errors-p*"
               (:code "*SHOW-LISP-ERRORS-P*"))
-             (fmt " \(currently ~S))" *show-lisp-errors-p*)))
+             (who:fmt " \(currently ~S))" *show-lisp-errors-p*)))
        (:tr (:td (:a :href "/hunchentoot/foo"
                   "URI handled by")
              " "

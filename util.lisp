@@ -202,7 +202,7 @@ ever. But just in case - here it is. The default for EXTERNAL-FORMAT is
 the value of *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
   (when (zerop (length string))
     (return-from url-decode ""))
-  (let ((vector (make-array (length string) :element-type 'octet :fill-pointer 0))
+  (let ((vector (make-array (length string) :element-type 'flex:octet :fill-pointer 0))
         (i 0)
         unicodep)
     (loop
@@ -243,7 +243,7 @@ the value of *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
            (advance))))))
     (cond (unicodep
            (upgrade-vector vector 'character :converter #'code-char))
-          (t (octets-to-string vector :external-format external-format)))))
+          (t (flex:octets-to-string vector :external-format external-format)))))
 
 (defun form-url-encoded-list-to-alist (form-url-encoded-list
                                        &optional (external-format *hunchentoot-default-external-format*))
@@ -251,7 +251,7 @@ the value of *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
 alist.  Both names and values are url-decoded while doing this."
   (mapcar #'(lambda (entry)
               (destructuring-bind (name &optional value)
-                  (split "=" entry :limit 2)
+                  (ppcre:split "=" entry :limit 2)
                 (cons (string-trim " " (url-decode name external-format))
                       (url-decode (or value "") external-format))))
           form-url-encoded-list))
@@ -261,7 +261,7 @@ alist.  Both names and values are url-decoded while doing this."
   character set processing is done."
   (mapcar #'(lambda (entry)
               (destructuring-bind (name &optional value)
-                  (split "=" entry :limit 2)
+                  (ppcre:split "=" entry :limit 2)
                 (cons (string-trim " " name) (or value ""))))
           cookies))
 
@@ -278,10 +278,10 @@ default for EXTERNAL-FORMAT is the value of
                         ;; note that there's no comma in there - because of cookies
                         (find c "$-_.!*'()" :test #'char=))
                      (write-char c s))
-                   (t (loop for octet across (string-to-octets string
-                                                               :start index
-                                                               :end (1+ index)
-                                                               :external-format external-format)
+                   (t (loop for octet across (flex:string-to-octets string
+                                                                    :start index
+                                                                    :end (1+ index)
+                                                                    :external-format external-format)
                             do (format s "%~2,'0x" octet)))))))
 
 (defun parse-content-type (content-type-header)
@@ -290,16 +290,16 @@ values - the type, the subtype, and the requests' character set as
 specified in the 'charset' parameter in the header, if there is one
 and if the content type is \"text\".  CONTENT-TYPE-HEADER is supposed
 to be the corresponding header value as a string."
-  (with-input-from-sequence (stream (map 'list 'char-code content-type-header))
-    (with-character-stream-semantics
-     (let* ((*current-error-message* (format nil "Corrupted Content-Type header ~S:" content-type-header))
-            (type (read-token stream))
-            (subtype (if (eql #\/ (read-char* stream nil))
-                       (read-token stream)
+  (flex:with-input-from-sequence (stream (map 'list 'char-code content-type-header))
+    (chunga:with-character-stream-semantics
+     (let* ((chunga:*current-error-message* (format nil "Corrupted Content-Type header ~S:" content-type-header))
+            (type (chunga:read-token stream))
+            (subtype (if (eql #\/ (chunga:read-char* stream nil))
+                       (chunga:read-token stream)
                        (return-from parse-content-type
                          ;; try to return something meaningful
                          (values "application" "octet-stream" nil))))
-            (parameters (read-name-value-pairs stream))
+            (parameters (chunga:read-name-value-pairs stream))
             (charset (cdr (assoc "charset" parameters :test #'string=)))
             (charset
              (when (string-equal type "text")
@@ -313,8 +313,8 @@ The second return value denotes whether the client has explicitly
 asked for a persistent connection."
   (let ((connection-values
          ;; the header might consist of different values separated by commas
-         (when-let (connection-header (header-in :connection request))
-           (split "\\s*,\\s*" connection-header))))
+         (alexandria:when-let (connection-header (header-in :connection request))
+           (ppcre:split "\\s*,\\s*" connection-header))))
     (flet ((connection-value-p (value)
              "Checks whether the string VALUE is one of the
 values of the `Connection' header."
@@ -340,14 +340,14 @@ inclusion in HTML output."
             (escape-for-html (lisp-implementation-type))
             (escape-for-html (lisp-implementation-version))
             (escape-for-html (or (host *request*) (acceptor-address *acceptor*)))
-            (scan ":\\d+$" (or (host *request*) ""))
+            (ppcre:scan ":\\d+$" (or (host *request*) ""))
             (acceptor-port *acceptor*))))
 
 (defun input-chunking-p ()
   "Whether input chunking is currently switched on for
 *HUNCHENTOOT-STREAM* - note that this will return NIL if the stream
 not a chunked stream."
-  (chunked-stream-input-chunking-p *hunchentoot-stream*))
+  (chunga:chunked-stream-input-chunking-p *hunchentoot-stream*))
 
 (defun ssl-p (&optional (acceptor *acceptor*))
   "Whether the current connection to the client is secure. See

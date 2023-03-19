@@ -44,8 +44,8 @@ for every logging operation, which is overall costly.  Web servers
 with high throughput demands should make use of a specialized logging
 function rather than relying on Hunchentoot's default logging
 facility."
-  (with-gensyms (binary-stream)
-    (once-only (destination)
+  (alexandria:with-gensyms (binary-stream)
+    (alexandria:once-only (destination)
       (let ((body body))
         `(when ,destination
            (with-lock-held (,lock)
@@ -53,14 +53,13 @@ facility."
                ((or string pathname)
                 (with-open-file (,binary-stream ,destination
                                                 :direction :output
-                                                :element-type 'octet
+                                                :element-type 'flex:octet
                                                 :if-does-not-exist :create
                                                 :if-exists :append
                                                 #+:openmcl :sharing #+:openmcl :lock)
-                  (let ((,stream-var (make-flexi-stream ,binary-stream :external-format +utf-8+)))
+                  (let ((,stream-var (flex:make-flexi-stream ,binary-stream :external-format +utf-8+)))
                     ,@body)))
                (stream
                 (let ((,stream-var ,destination))
                   (prog1 (progn ,@body)
                     (finish-output ,destination)))))))))))
-  

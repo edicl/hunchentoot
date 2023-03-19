@@ -48,8 +48,8 @@ threads and NIL otherwise."))
 (defmacro with-session-lock-held ((lock) &body body)
   "This is like WITH-LOCK-HELD except that it will accept NIL as a
 \"lock\" and just execute BODY in this case."
-  (with-gensyms (thunk)
-    (once-only (lock)
+  (alexandria:with-gensyms (thunk)
+    (alexandria:once-only (lock)
       `(flet ((,thunk () ,@body))
          (cond (,lock (with-lock-held (,lock) (,thunk)))
                (t (,thunk)))))))
@@ -181,8 +181,8 @@ SESSION \(the default is the current session) if it exists."
 SESSION. If there is already a value associated with SYMBOL it will be
 replaced. Will automatically start a session if none was supplied and
 there's no session for the current request."
-  (once-only (symbol)
-    (with-gensyms (place %session)
+  (alexandria:once-only (symbol)
+    (alexandria:with-gensyms (place %session)
       `(let ((,%session (or ,session (start-session))))
          (with-session-lock-held ((session-db-lock *acceptor* :whole-db-p nil))
            (let* ((,place (assoc ,symbol (session-data ,%session) :test #'eq)))
@@ -326,13 +326,13 @@ A default method is provided and you only need to write your own one
 if you want to maintain your own sessions."))
 
 (defmethod session-verify ((request request))
-  (let ((session-identifier (or (when-let (session-cookie (cookie-in (session-cookie-name *acceptor*) request))
+  (let ((session-identifier (or (alexandria:when-let (session-cookie (cookie-in (session-cookie-name *acceptor*) request))
                                   (url-decode session-cookie))
                                 (get-parameter (session-cookie-name *acceptor*) request))))
     (when (and (stringp session-identifier)
-               (scan "^\\d+:.+" session-identifier))
+               (ppcre:scan "^\\d+:.+" session-identifier))
       (destructuring-bind (id-string session-string)
-          (split ":" session-identifier :limit 2)
+          (ppcre:split ":" session-identifier :limit 2)
         (let* ((id (parse-integer id-string))
                (session (get-stored-session id))
                (user-agent (user-agent request))

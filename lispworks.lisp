@@ -107,7 +107,7 @@ used to set the timeouts."
                  :read-timeout (acceptor-read-timeout acceptor)
                  #+stream-has-timeouts #+stream-has-timeouts
                  :write-timeout (acceptor-write-timeout acceptor)
-                 :element-type 'octet))
+                 :element-type 'flex:octet))
 
 (defun make-lock (name)
   "Simple wrapper to allow LispWorks and Bordeaux Threads to coexist."
