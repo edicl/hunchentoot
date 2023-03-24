@@ -348,7 +348,7 @@ either return a handler or neglect by returning NIL."
   (loop for dispatcher in *dispatch-table*
      for action = (funcall dispatcher request)
      when action return (funcall action)
-     finally (call-next-method)))
+     finally (return (call-next-method))))
 
 #-:hunchentoot-no-ssl
 (defclass easy-ssl-acceptor (easy-acceptor ssl-acceptor)
