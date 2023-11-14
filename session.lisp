@@ -244,6 +244,8 @@ necessary."
                            *session-gc-frequency*)))
       (session-gc))))
 
+(defparameter *default-cookie-same-site* nil)
+
 (defun start-session ()
   "Returns the current SESSION object. If there is no current session,
 creates one and updates the corresponding data structures. In this
@@ -260,6 +262,7 @@ case the function will also send a session cookie to the browser."
     (set-cookie (session-cookie-name *acceptor*)
                 :value (session-cookie-value session)
                 :path "/"
+                :same-site *default-cookie-same-site*
                 :http-only t)
     (session-created *acceptor* session)
     (setq *session* session)))
