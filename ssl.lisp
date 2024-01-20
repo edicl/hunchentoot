@@ -96,17 +96,18 @@ denoting the location of the files and will be fed directly to
 OpenSSL.  If PRIVATEKEY-PASSWORD is not NIL then it should be the
 password for the private key file \(if necessary).  Returns the
 stream."
-  (flet ((ctx-configure-callback (ctx)
-           (when privatekey-password
-             (comm:set-ssl-ctx-password-callback ctx :password privatekey-password))
-           (comm:ssl-ctx-use-certificate-file ctx
-                                              certificate-file
-                                              comm:ssl_filetype_pem)
-           (comm:ssl-ctx-use-privatekey-file ctx
-                                             privatekey-file
-                                             comm:ssl_filetype_pem)))
+  (let ((ctx (comm:make-ssl-ctx)))
+    (when privatekey-password
+      (comm:set-ssl-ctx-password-callback ctx :password privatekey-password))
+    (comm:ssl-ctx-use-certificate-file ctx
+                                       certificate-file
+                                       comm:ssl_filetype_pem)
+    (comm:ssl-ctx-use-privatekey-file ctx
+                                      privatekey-file
+                                      comm:ssl_filetype_pem)
     (comm:attach-ssl socket-stream
-                     :ctx-configure-callback #'ctx-configure-callback)
+                     :ssl-side :server
+                     :ssl-ctx ctx)
     socket-stream))
 
 #+:lispworks
