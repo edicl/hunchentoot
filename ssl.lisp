@@ -84,7 +84,6 @@ The default port for SSL-ACCEPTOR instances is 443 instead of 80"))
         (certificate-file (acceptor-ssl-certificate-file acceptor))
         (privatekey-file (acceptor-ssl-privatekey-file acceptor)))
     ;; we can do the ssl-ctx setup here, on a per acceptor basis
-    (format t "Setting up SSL context for ~A~%" acceptor)
     (setf (slot-value acceptor 'ssl-ctx) ctx)
     (when privatekey-password
       (comm:set-ssl-ctx-password-callback ctx :password privatekey-password))
