@@ -487,6 +487,14 @@ case-sensitive."
   (or (get-parameter name request)
       (post-parameter name request)))
 
+(defun post-or-get-parameter (name &optional (request *request*))
+  "Returns the POST or the GET parameter with name NAME \(a string) -
+or NIL if there is none.  If both a POST and a GET parameter with the
+same name exist the POST parameter is returned.  Search is
+case-sensitive."
+  (or (post-parameter name request)
+      (get-parameter name request)))
+
 (defun handle-if-modified-since (time &optional (request *request*))
   "Handles the 'If-Modified-Since' header of REQUEST.  The date string
 is compared to the one generated from the supplied universal time
