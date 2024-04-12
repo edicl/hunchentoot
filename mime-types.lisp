@@ -28,7 +28,8 @@
 
 (in-package :hunchentoot)
 
-(defparameter *mime-type-list* '(("application/andrew-inset" "ez")
+(defparameter *mime-type-list* '(("application/wasm" "wasm")
+                                 ("application/andrew-inset" "ez")
                                  ("application/cu-seeme" "cu")
                                  ("application/dsptype" "tsp")
                                  ("application/futuresplash" "spl")
