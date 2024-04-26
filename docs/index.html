@@ -66,16 +66,6 @@
         <a href="http://www.opensource.org/licenses/bsd-license.php">BSD-style
         license</a> so you can basically do with it whatever you want.
       </p>
-      <p>
-        Hunchentoot is (or was) for example used by
-        <a href="http://quickhoney.com/">QuickHoney</a>,
-        <a href="http://www.city-farming.de/">City Farming</a>,
-        <a href="http://heikestephan.de/">Heike Stephan</a>.
-      </p>
-      <p>
-        <font color="red">Download shortcut:</font>
-        <a href="http://weitz.de/files/hunchentoot.tar.gz">http://weitz.de/files/hunchentoot.tar.gz</a>.
-      </p>
     
   </blockquote>
 
@@ -172,11 +162,6 @@
       Zach Beane's excellent <a href="http://www.quicklisp.org/">Quicklisp</a> system a try.
     </p>
     <p>
-      Hunchentoot and its dependencies can also be installed with <a href="http://common-lisp.net/project/clbuild/">clbuild</a>.
-      There's also a port for <a href="http://www.gentoo.org/proj/en/lisp/common-lisp/index.xml">Gentoo
-      Linux</a> thanks to Matthew Kennedy.
-    </p>
-    <p>
       The current development version of Hunchentoot can be found
       at <a href="https://github.com/edicl/hunchentoot">https://github.com/edicl/hunchentoot</a>.
       If you want to send patches, please fork the github repository and send pull requests.
@@ -225,8 +210,7 @@
       The development version of Hunchentoot can be found <a href="https://github.com/edicl/hunchentoot" target="_new">on
       github</a>.  Please use the github issue tracking system to
       submit bug reports.  Patches are welcome, please use <a href="https://github.com/edicl/hunchentoot/pulls">GitHub pull
-      requests</a>.  If you want to make a change, please <a href="http://weitz.de/patches.html" target="_new">read this
-      first</a>.
+      requests</a>.
     </p>
   
 
@@ -280,19 +264,7 @@
   (format nil "Hey~@[ ~A~]!" name))</pre>
       and see what happens at "<a href="http://127.0.0.1:4242/yo"><code>http://127.0.0.1:4242/yo</code></a>" or
       "<a href="http://127.0.0.1:4242/yo?name=Dude"><code>http://127.0.0.1:4242/yo?name=Dude</code></a>" .
-    </p>
-
-    <p>
-    Hunchentoot comes with a little example website which you can use
-    to see if it works and which should also demonstrate a couple of
-    the things you can do with Hunchentoot.  To start the example
-    website, enter the following code into your listener:
-
-<pre>(<a class="noborder" href="http://common-lisp.net/~mmommer/asdf-howto.shtml#sec11">asdf:oos</a> 'asdf:load-op :hunchentoot-test)</pre>
-
-    Now go to "<a href="http://127.0.0.1:4242/hunchentoot/test"><code>http://127.0.0.1:4242/hunchentoot/test</code></a>" and play a bit.
-    </p>
-  
+    </p>  
 
   <h3 xmlns=""><a class="none" name="extras">Third party documentation and add-ons</a></h3>
     <p>
