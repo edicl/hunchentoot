@@ -28,7 +28,7 @@
 
 (defsystem :hunchentoot
   :serial t
-  :version "1.3.0"
+  :version "1.3.1"
   :description "Hunchentoot is a HTTP server based on USOCKET and
   BORDEAUX-THREADS.  It supports HTTP 1.1, serves static files, has a
   simple framework for user-defined handlers and can be extended
