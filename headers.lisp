@@ -26,6 +26,22 @@
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+;;; The following code is for treating headers which exist in the keyword package as keywords, otherwise they will be treated as strings. This code will override the chunga code which by default interns every header to be a keyword
+
+(in-package :chunga)
+
+(defvar *intern-unsafely*)
+
+(defun as-keyword (string &key (destructivep t))
+  "Checks if the string STRING is found as a keyword and if it is, returns the keyword, otherwise it returns a string. Note that this is obviously not congruent to the name of the function, it is meant to be an override to the default behavior to avoid memory leaks in Hunchentoot"
+  (or (gethash string +string-to-keyword-hash+)
+      (find-symbol (string-upcase string) (find-package "KEYWORD"))
+      (if (and (boundp '*intern-unsafely*) *intern-unsafely*)
+          (make-keyword string destructivep)
+          string)))
+
+;;; End of Headers as Keywords Representation Code
+
 (in-package :hunchentoot)
 
 (defgeneric write-header-line (key value stream)
