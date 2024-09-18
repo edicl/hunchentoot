@@ -30,13 +30,12 @@
 
 (in-package :chunga)
 
-(defvar *intern-unsafely*)
+(defvar *intern-unsafely* NIL)
 
 (defun as-keyword (string &key (destructivep t))
   "Checks if the string STRING is found as a keyword and if it is, returns the keyword, otherwise it returns a string. Note that this is obviously not congruent to the name of the function, it is meant to be an override to the default behavior to avoid memory leaks in Hunchentoot"
-  (or (gethash string +string-to-keyword-hash+)
-      (find-symbol (string-upcase string) (find-package "KEYWORD"))
-      (if (and (boundp '*intern-unsafely*) *intern-unsafely*)
+  (or (find-symbol (string-upcase string) (find-package "KEYWORD"))
+      (if *intern-unsafely*
           (make-keyword string destructivep)
           string)))
 
