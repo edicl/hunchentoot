@@ -330,6 +330,9 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   #-lispworks
   (usocket:socket-close (acceptor-listen-socket acceptor))
   #-lispworks
+  (when (pathnamep (acceptor-address acceptor))
+    (uiop:delete-file-if-exists (acceptor-address acceptor)))
+  #-lispworks
   (setf (acceptor-listen-socket acceptor) nil)
   #+lispworks
   (mp:process-kill (acceptor-process acceptor))
@@ -340,20 +343,24 @@ they're using secure connections - see the SSL-ACCEPTOR class."))
   "Creates a dummy connection to the acceptor, waking ACCEPT-CONNECTIONS while it is waiting.
 This is supposed to force a check of ACCEPTOR-SHUTDOWN-P."
   (handler-case
-      (multiple-value-bind (address port) (usocket:get-local-name (acceptor-listen-socket acceptor))
-        (let ((conn (usocket:socket-connect
-                     (cond
-                       ;; 0.0.0.0/8 is invalid as the target for a
-                       ;; connection, so we have to use something
-                       ;; else.
-                       ((and (= (length address) 4) (zerop (elt address 0)))
-                        #(127 0 0 1))
-                       ;; In IPv6, :: is similarly reserved.
-                       ((and (= (length address) 16)
-                             (every #'zerop address))
-                        #(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1))
-                       (t address))
-                     port)))
+      (multiple-value-bind (raw-address port) (usocket:get-local-name (acceptor-listen-socket acceptor))
+        (let* ((address (cond
+                          ;; 0.0.0.0/8 is invalid as the target for a
+                          ;; connection, so we have to use something
+                          ;; else.
+                          ((and (= (length raw-address) 4) (zerop (elt raw-address 0)))
+                           #(127 0 0 1))
+                          ;; In IPv6, :: is similarly reserved.
+                          ((and (= (length raw-address) 16)
+                                (every #'zerop raw-address))
+                           #(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1))
+                          ((stringp raw-address)
+                           (merge-pathnames raw-address))
+                          (t raw-address)))
+               (conn (usocket:socket-connect
+                      address
+                      port
+                      :nodelay (if (pathnamep address) nil t))))
           (usocket:socket-close conn)))
     (error (e)
       (acceptor-log-message acceptor :error "Wake-for-shutdown connect failed: ~A" e))))
