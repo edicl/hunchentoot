@@ -44,7 +44,6 @@
            #:*default-content-type*
            #:*dispatch-table*
            #:*file-upload-hook*
-           #:*handle-http-errors-p*
            #:*header-stream*
            #:*http-error-handler*
            #:*hunchentoot-default-external-format*
