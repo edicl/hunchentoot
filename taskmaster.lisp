@@ -330,7 +330,10 @@ implementations."))
    (start-thread
     taskmaster
     (lambda () (handle-incoming-connection% taskmaster socket))
-    :name (format nil (taskmaster-worker-thread-name-format taskmaster) (client-as-string socket)))
+    :name (format nil (taskmaster-worker-thread-name-format taskmaster)
+                  (if (pathnamep (acceptor-address (taskmaster-acceptor taskmaster)))
+                      (acceptor-address (taskmaster-acceptor taskmaster))
+                      (client-as-string socket))))
    (error (cond)
           ;; need to bind *ACCEPTOR* so that LOG-MESSAGE* can do its work.
           (let ((*acceptor* (taskmaster-acceptor taskmaster)))
