@@ -56,7 +56,7 @@
          (vector-push-extend char (word-buffer stream))))
       (write-char char (understream stream))))
 
-(defmethod trivial-gray-streams:stream-line-column (stream)
+(defmethod trivial-gray-streams:stream-line-column ((stream formatting-stream))
   (+ (column stream) (length (word-buffer stream))))
 
 (defmethod trivial-gray-streams:stream-write-string ((stream formatting-stream) string &optional start end)
