@@ -224,6 +224,12 @@ expecting certain responses."
         (http-assert 'body 'equalp (subseq range-test-buffer start-offset length))
         (http-assert-header :content-range (format nil "bytes ~D-~D/~D" start-offset (1- length) range-test-file-size))))
 
+    (say "Test regex dispatcher with groups")
+    (http-request "regex-groups/12345/edit")
+    (http-assert 'status-code 200)
+    (http-assert-header :content-type "text/plain")
+    (http-assert-body "id=12345 action=edit")
+
     #-lispworks
     (test-acceptor-wake "0.0.0.0")
 

@@ -182,6 +182,7 @@
            #:create-folder-dispatcher-and-handler
            #:create-prefix-dispatcher
            #:create-regex-dispatcher
+           #:create-regex-dispatcher-with-groups
            #:create-request-handler-thread
            #:create-static-file-dispatcher-and-handler
            #:decrement-taskmaster-thread-count

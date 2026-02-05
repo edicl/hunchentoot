@@ -114,6 +114,20 @@ matches the CL-PPCRE regular expression REGEX."
       (and (scan scanner (script-name request))
            handler))))
 
+(defun create-regex-dispatcher-with-groups (regex handler)
+  "Creates a request dispatch function which will dispatch to the
+function denoted by HANDLER if the file name of the current request
+matches the CL-PPCRE regular expression REGEX.  If the regex matches,
+HANDLER is called with the captured register groups as arguments.
+HANDLER should accept one argument for each capturing group in REGEX."
+  (let ((scanner (create-scanner regex)))
+    (lambda (request)
+      (multiple-value-bind (match groups)
+          (scan-to-strings scanner (script-name request))
+        (when match
+          (lambda ()
+            (apply handler (coerce groups 'list))))))))
+
 (defun abort-request-handler (&optional result)
   "This function can be called by a request handler at any time to
 immediately abort handling the request.  This works as if the handler
