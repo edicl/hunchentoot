@@ -517,6 +517,12 @@ and see what's happening.")
              (:a :href "http://weitz.de/hunchentoot/#*default-handler*"
               (:code "*DEFAULT-HANDLER*")))))))))
 
+(defun regex-groups-test (id action)
+  "Test handler for create-regex-dispatcher-with-groups.
+Returns a simple text response showing the captured groups."
+  (setf (content-type*) "text/plain")
+  (format nil "id=~A action=~A" id action))
+
 (setq *dispatch-table*
       (nconc
        (list 'dispatch-easy-handlers
@@ -533,7 +539,10 @@ and see what's happening.")
               "/hunchentoot/code/"
               (make-pathname :name nil :type nil :version nil
                              :defaults *this-file*)
-              "text/plain"))
+              "text/plain")
+             (create-regex-dispatcher-with-groups
+              "^/hunchentoot/test/regex-groups/([^/]+)/([^/]+)$"
+              'regex-groups-test))
        (mapcar (lambda (args)
                  (apply 'create-prefix-dispatcher args))
                '(("/hunchentoot/test/form-test.html" form-test)

@@ -1154,6 +1154,22 @@
           s-expression, or a scanner).
         </clix:description></blockquote></p>
 
+      <p xmlns=""><a class="none" name="create-regex-dispatcher-with-groups"></a>
+          [Function]
+          <br><b>create-regex-dispatcher-with-groups</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">regex handler</clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">dispatch-fn</clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          Like <code><a href="#create-regex-dispatcher">CREATE-REGEX-DISPATCHER</a></code>,
+          but when the regex matches, <code><i>handler</i></code> is called with
+          the captured register groups as arguments.  <code><i>handler</i></code>
+          should be a function that accepts one argument for each
+          capturing group in <code><i>regex</i></code>.
+          <p xmlns="http://www.w3.org/1999/xhtml">
+            For example, with a regex like <code>"^/user/([0-9]+)/profile$"</code>,
+            the handler would be called with the matched user ID string as its argument.
+          </p>
+        </clix:description></blockquote></p>
+
       <p xmlns=""><a class="none" name="create-folder-dispatcher-and-handler"></a>
           [Function]
           <br><b>create-folder-dispatcher-and-handler</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">uri-prefix base-path <tt>&amp;optional</tt> content-type callback</clix:lambda-list></i>
@@ -3857,6 +3873,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#create-regex-dispatcher">create-regex-dispatcher</a></code><span class="entry-type">Function</span>
+</li>
+<li>
+<code><a href="#create-regex-dispatcher-with-groups">create-regex-dispatcher-with-groups</a></code><span class="entry-type">Function</span>
 </li>
 <li>
 <code><a href="#create-request-handler-thread">create-request-handler-thread</a></code><span class="entry-type">Generic function</span>
