@@ -309,6 +309,17 @@ from and writing to a socket stream.")
   "A global lock to prevent two threads from modifying *session-db* at
 the same time \(or NIL for Lisps which don't have threads).")
 
+(defvar *on-http-204-with-content* :warn
+  "Defines behaviour in case the user attempts to send content
+after setting the return code to HTTP 204 No Content
+(resulting in a malformed HTTP response, as per
+https://datatracker.ietf.org/doc/html/rfc7231#section-6.3.5).
+NIL means no action is taken (the default of previous versions of
+Hunchentoot). :IGNORE ignores the content and any set Content-Length
+headers before sending a response. :WARN signals a warning and then
+sends the content. :CERROR signals a correctable error while handling
+the request. :ERROR signals an error while handling the request.")
+
 (pushnew :hunchentoot *features*)
 
 ;; stuff for Nikodemus Siivola's HYPERDOC

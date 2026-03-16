@@ -40,6 +40,13 @@
   ()
   (:documentation "Like HUNCHENTOOT-ERROR but with formatting capabilities."))
 
+(defun hunchentoot-cerror (continue-string format-control &rest format-arguments)
+  "Signals a correctable error of type HUNCHENTOOT-SIMPLE-ERROR with the provided
+format control and arguments."
+  (cerror continue-string 'hunchentoot-simple-error
+          :format-control format-control
+          :format-arguments format-arguments))
+
 (defun hunchentoot-error (format-control &rest format-arguments)
   "Signals an error of type HUNCHENTOOT-SIMPLE-ERROR with the provided
 format control and arguments."

@@ -76,6 +76,23 @@ no body is written to the client.  The handler function is expected to
 directly write to the stream in this case.
 
 Returns the stream that is connected to the client."
+  ;; guard against malformed HTTP 204 responses
+  (when (and content-provided-p (= return-code +http-no-content+))
+    (let ((report "Attempting to send ~D bytes of content ~
+                   despite HTTP 204 No Content not allowing such.")
+          (length (length content)))
+      (ecase *on-http-204-with-content*
+        ((nil)) ; explicitly do nothing
+        (:ignore
+         ;; clean up after the user, including any Content-Length
+         ;; headers they might have set themselves
+         (setf content nil
+               content-provided-p nil
+               (content-length*) nil))
+        (:warn (hunchentoot-warn report length))
+        (:cerror (hunchentoot-cerror "Send content body anyway."
+                                     report length))
+        (:error (hunchentoot-error report length)))))
   (let* ((chunkedp (and (acceptor-output-chunking-p *acceptor*)
                         (eq (server-protocol *request*) :http/1.1)
                         ;; only turn chunking on if the content
@@ -147,8 +164,9 @@ Returns the stream that is connected to the client."
                    :cookies (cookies-out*)
                    :content (unless head-request-p
                               content))
-    ;; when processing a HEAD request, exit to return from PROCESS-REQUEST
-    (when head-request-p
+    ;; when processing a HEAD request or serving a HTTP 204,
+    ;; exit to return from PROCESS-REQUEST
+    (when (or head-request-p (= return-code +http-no-content+))
       (throw 'request-processed nil))
     (when chunkedp
       ;; turn chunking on after the headers have been sent
@@ -209,7 +227,7 @@ full body as a string or as an array of octets you should NOT call
 this function.
 
 This function does not return control to the caller during HEAD
-request processing."
+request processing or if HTTP 204 No Content return code is set."
   (start-output (return-code*)))
 
 (defun read-initial-request-line (stream)

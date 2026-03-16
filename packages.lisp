@@ -54,6 +54,7 @@
            #:*log-lisp-errors-p*
            #:*log-lisp-warnings-p*
            #:*methods-for-post-parameters*
+           #:*on-http-204-with-content*
            #:*reply*
            #:*request*
            #:*rewrite-for-session-urls*
@@ -212,6 +213,7 @@
            #:host
            #:http-token-p
            #:hunchentoot-condition
+           #:hunchentoot-cerror
            #:hunchentoot-error
            #:hunchentoot-warning
            #:increment-taskmaster-thread-count
