@@ -54,11 +54,31 @@ digits."
       (format s "~VR" base
               (random base *the-random-state*)))))
 
-(defun reason-phrase (return-code)
+(defgeneric generic-reason-phrase (return-code acceptor)
+  (:documentation
+   "A generic function implementing REASON-PHRASE, allowing specialization
+on the RETURN-CODE (via EQL specializers) and ACCEPTOR.")
+  (:method (return-code acceptor)
+    (multiple-value-bind (value foundp)
+        (gethash return-code *http-reason-phrase-map*)
+      (if foundp
+          value
+          (case (truncate return-code 100)
+            ;; we cannot say anything meaningful about
+            ;; unknown 1xx, 2xx, 3xx codes.
+            (4 (reason-phrase +http-bad-request+))
+            (5 (reason-phrase +http-internal-server-error+))
+            (t "No reason phrase known"))))))
+
+(defun reason-phrase (return-code &optional (acceptor nil acceptorp))
   "Returns a reason phrase for the HTTP return code RETURN-CODE \(which
-should be an integer) or NIL for return codes Hunchentoot doesn't know."
-  (gethash return-code *http-reason-phrase-map* 
-           "No reason phrase known"))
+should be an integer) or a cooked phrase for return codes Hunchentoot
+doesn't know. Takes an optional acceptor argument that is then passed into
+GENERIC-REASON-PHRASE for parametrization. The argument defaults to the
+value of *ACCEPTOR* (if bound)."
+  (generic-reason-phrase return-code
+                         (cond (acceptorp acceptor)
+                               ((boundp '*acceptor*) *acceptor*))))
 
 (defgeneric assoc* (thing alist)
   (:documentation "Similar to CL:ASSOC, but 'does the right thing' if

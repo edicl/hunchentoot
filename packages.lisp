@@ -195,6 +195,7 @@
            #-:hunchentoot-no-ssl #:easy-ssl-acceptor
            #:escape-for-html
            #:execute-acceptor
+           #:generic-reason-phrase
            #:get-parameter
            #:get-parameters
            #:get-parameters*

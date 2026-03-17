@@ -3264,14 +3264,31 @@
 
       <p xmlns=""><a class="none" name="reason-phrase"></a>
           [Function]
-          <br><b>reason-phrase</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">return-code
+          <br><b>reason-phrase</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+            return-code <tt>&amp;optional</tt> acceptor
         </clix:lambda-list></i>
             =&gt;
             <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
         </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
           Returns a reason phrase for the HTTP return code <code><i>return-code</i></code>
-          (which should be an integer) or <code xmlns="http://www.w3.org/1999/xhtml">NIL</code> for return codes Hunchentoot
-          doesn't know.
+          (which should be an integer) or a cooked phrase for return codes Hunchentoot doesn't know.
+          Takes an optional acceptor argument that is then passed into
+          <code><a href="#generic-reason-phrase">GENERIC-REASON-PHRASE</a></code> for parametrization.
+          The argument defaults to the value of <code><a href="#*acceptor*">*ACCEPTOR*</a></code>
+            (if bound).
+        </clix:description></blockquote></p>
+
+      <p xmlns=""><a class="none" name="generic-reason-phrase"></a>
+          [Generic function]
+          <br><b>generic-reason-phrase</b> <i><clix:lambda-list xmlns:clix="http://bknr.net/clixdoc">
+            acceptor return-code
+            </clix:lambda-list></i>
+            =&gt;
+            <i><clix:returns xmlns:clix="http://bknr.net/clixdoc">string
+        </clix:returns></i><blockquote><clix:description xmlns:clix="http://bknr.net/clixdoc">
+          A generic function implementing <code><a href="#reason-phrase">REASON-PHRASE</a></code>,
+          allowing specialization on the <code><i>return-code</i></code> (via EQL specializers)
+          and <code><i>acceptor</i></code>.
         </clix:description></blockquote></p>
 
       <p xmlns=""><a class="none" name="rfc-1123-date"></a>
@@ -4041,6 +4058,9 @@ start and test an https server instead.)
 </li>
 <li>
 <code><a href="#reason-phrase">reason-phrase</a></code><span class="entry-type">Function</span>
+</li>
+<li>
+<code><a href="#generic-reason-phrase">generic-reason-phrase</a></code><span class="entry-type">Generic function</span>
 </li>
 <li>
 <code><a href="#recompute-request-parameters">recompute-request-parameters</a></code><span class="entry-type">Function</span>
