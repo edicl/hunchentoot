@@ -64,6 +64,7 @@
            #:*show-lisp-backtraces-p*
            #:*show-lisp-errors-p*
            #:*tmp-directory*
+           #:*url-decode-encoding-fallback*
            #:*use-remote-addr-for-sessions*
            #:*use-user-agent-for-sessions*
            #:+http-accepted+

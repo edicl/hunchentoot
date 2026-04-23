@@ -292,6 +292,12 @@ encode cookie values.")
 (defvar *hunchentoot-default-external-format* +utf-8+
   "The external format used to compute the REQUEST object.")
 
+(defvar *url-decode-encoding-fallback* +latin-1+
+  "When non-NIL, URL-DECODE will fall back to this external format if
+the requested format fails to decode the input.  When NIL, encoding
+errors will be signalled as before.  The default is +LATIN-1+ which
+is lossless for all single-byte values.")
+
 (defconstant +buffer-length+ 8192
   "Length of buffers used for internal purposes.")
 

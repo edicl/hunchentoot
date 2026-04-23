@@ -194,6 +194,17 @@ The macro also uses SETQ to store the new vector in VECTOR."
               (error 'bad-request)
               integer)))))
 
+(defun safe-octets-to-string (vector external-format)
+  "Decode the octet VECTOR using EXTERNAL-FORMAT.  If decoding fails
+and *URL-DECODE-ENCODING-FALLBACK* is non-NIL, retry with that format
+instead of signalling an error."
+  (handler-case
+      (octets-to-string vector :external-format external-format)
+    (flex:external-format-encoding-error ()
+      (if *url-decode-encoding-fallback*
+          (octets-to-string vector :external-format *url-decode-encoding-fallback*)
+          (error 'bad-request)))))
+
 (defun url-decode (string &optional (external-format *hunchentoot-default-external-format*)
                                     (decode-plus t))
   "Decodes a URL-encoded string which is assumed to be encoded using the
@@ -244,7 +255,7 @@ the value of *HUNCHENTOOT-DEFAULT-EXTERNAL-FORMAT*."
            (advance))))))
     (cond (unicodep
            (upgrade-vector vector 'character :converter #'code-char))
-          (t (octets-to-string vector :external-format external-format)))))
+          (t (safe-octets-to-string vector external-format)))))
 
 (defun form-url-encoded-list-to-alist (form-url-encoded-list
                                        &optional (external-format *hunchentoot-default-external-format*))
