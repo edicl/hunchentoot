@@ -244,8 +244,7 @@ and see what's happening.")
 ;; this should not be the same directory as *TMP-DIRECTORY* and it
 ;; should be initially empty (or non-existent)
 (defvar *tmp-test-directory*
-    #+(or :win32 :mswindows) #p"c:\\hunchentoot-temp\\test\\"
-    #-(or :win32 :mswindows) #p"/tmp/hunchentoot/test/")
+    (pathname (format nil "~Atest/" *tmp-directory*)))
 
 (defvar *tmp-test-files* nil)
 

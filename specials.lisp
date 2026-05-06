@@ -271,9 +271,34 @@ the debugger).")
   #+:openmcl "http://openmcl.clozure.com/"
   "A link to the website of the underlying Lisp implementation.")
 
-(defvar *tmp-directory*
-  #+(or :win32 :mswindows) "c:\\hunchentoot-temp\\"
-  #-(or :win32 :mswindows) "/tmp/hunchentoot/"
+(defun make-tmp-directory ()
+  "Creates and returns a unique temporary directory for Hunchentoot.
+On POSIX systems, uses mkdtemp for atomic creation.  On Windows,
+generates a random name and creates the directory."
+  #+(and :sbcl (not (or :win32 :mswindows)))
+  (let ((template (format nil "/tmp/hunchentoot-XXXXXX")))
+    (let ((path (sb-posix:mkdtemp template)))
+      (format nil "~A/" path)))
+  #+(and :ccl (not (or :win32 :mswindows)))
+  (let ((template (format nil "/tmp/hunchentoot-XXXXXX")))
+    (let ((path (ccl:with-cstrs ((c-template template))
+                  (ccl:external-call "mkdtemp" :address c-template :address)
+                  (ccl:%get-cstring c-template))))
+      (format nil "~A/" path)))
+  #-(or (and :sbcl (not (or :win32 :mswindows)))
+        (and :ccl (not (or :win32 :mswindows))))
+  (loop for attempt from 0 below 100
+        for random-name = (format nil "hunchentoot-~36R" (random (expt 36 8) *the-random-state*))
+        for dir-path = #+(or :win32 :mswindows)
+                        (format nil "c:\\hunchentoot-temp\\~A\\" random-name)
+                        #-(or :win32 :mswindows)
+                        (format nil "/tmp/~A/" random-name)
+        unless (probe-file dir-path)
+        do (ensure-directories-exist (pathname dir-path))
+           (return dir-path)
+        finally (error "Failed to create temporary directory after 100 attempts")))
+
+(defvar *tmp-directory* (make-tmp-directory)
   "Directory for temporary files created by MAKE-TMP-FILE-NAME.")
 
 (defvar *tmp-files* nil
