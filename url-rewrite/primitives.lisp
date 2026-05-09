@@ -113,14 +113,14 @@ WRITE-THROUGH is true.  On EOF the string read so far is returned."
                                   ;; STRING starting from I
                                   for mismatch = (mismatch string string
                                                            :start1 i :test #'char=)
-                                  when (> mismatch i)
+                                  when (and (> mismatch i) (< mismatch length))
                                   ;; if this is the case remember the
                                   ;; length of the match plus the
                                   ;; character which must follow in
                                   ;; OFFSETS
                                   do (push (cons (char string (- mismatch i))
                                                  (1+ (- mismatch i)))
-                                           (svref offsets i))
+                                           (svref offsets mismatch))
                                   finally (return offsets))))))
          (collector (or skip
                         (make-array 0
